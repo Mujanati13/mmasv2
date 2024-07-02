@@ -27,7 +27,10 @@ import {
   Switch,
 } from "antd";
 import "dayjs/locale/fr"; // Import French locale for Day.js
-import { formatDateToYearMonthDay, getCurrentDate } from "../../../utils/helper";
+import {
+  formatDateToYearMonthDay,
+  getCurrentDate,
+} from "../../../utils/helper";
 const { RangePicker } = DatePicker;
 
 const fetchReservations = async () => {
@@ -72,6 +75,9 @@ export const TableReservationCoachs = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisible2, setIsModalVisible2] = useState(false);
   const [clientPresence, setClientPresence] = useState({});
+  const [isAbsenceModalVisible, setIsAbsenceModalVisible] = useState(false);
+  const [selectedAbsentClient, setSelectedAbsentClient] = useState(null);
+  const [absenceReason, setAbsenceReason] = useState("");
   const [ReservationData, setReservationData] = useState({
     id_client: null,
     id_seance: null,
@@ -82,41 +88,58 @@ export const TableReservationCoachs = () => {
     motif_annulation: null,
   });
   const handlePresenceChange = async (checked, clientId) => {
-    console.log(clientId,checked);
-    setClientPresence(prev => ({...prev, [clientId]: checked}));
-    await updateClientPresence(clientId, checked);
-    // Here you can also add an API call to update the presence status on the server
+    if (!checked) {
+      setSelectedAbsentClient(clientId);
+      setIsAbsenceModalVisible(true);
+    } else {
+      setClientPresence((prev) => ({ ...prev, [clientId]: checked }));
+      await updateClientPresence(clientId, checked);
+    }
   };
-  const updateClientPresence = async (clientId, isPresent, absenceReason = "") => {
+  const handleAbsenceReasonSubmit = async () => {
+    setClientPresence((prev) => ({ ...prev, [selectedAbsentClient]: false }));
+    await updateClientPresence(selectedAbsentClient, false, absenceReason);
+    setIsAbsenceModalVisible(false);
+    setAbsenceReason("");
+    setSelectedAbsentClient(null);
+  };
+  const updateClientPresence = async (
+    clientId,
+    isPresent,
+    absenceReason = ""
+  ) => {
     console.log(SeancInfos);
     try {
-      const response = await fetch('https://fithouse.pythonanywhere.com/api/set_presence', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
-        },
-        body: JSON.stringify({
-          id_etd: clientId,
-          id_seance: SeancInfos.id_seance,
-          cours: SeancInfos.title,
-          heure_debut: SeancInfos.datestart,
-          heure_fin: SeancInfos.dateend,
-          date_presence: formatDateToYearMonthDay(SeancInfos.start),
-          status: 1,
-          presence: isPresent,
-          motif_annulation: "absenceReason" ,
-        }),
-      });
-  
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/set_presence",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+          },
+          body: JSON.stringify({
+            id_etd: clientId,
+            id_seance: SeancInfos.id_seance,
+            cours: SeancInfos.title,
+            heure_debut: SeancInfos.datestart,
+            heure_fin: SeancInfos.dateend,
+            date_presence: formatDateToYearMonthDay(SeancInfos.start),
+            status: 1,
+            presence: isPresent,
+            motif_annulation: absenceReason,
+          }),
+        }
+      );
+
       if (!response.ok) {
-        throw new Error('Failed to update presence');
+        throw new Error("Failed to update presence");
       }
-  
+
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error updating presence:', error);
+      console.error("Error updating presence:", error);
       throw error;
     }
   };
@@ -296,18 +319,35 @@ export const TableReservationCoachs = () => {
       key: obj.id_client, // or any unique identifier
       fullName: `${obj.nom_client} ${obj.prenom_client}`,
       mail: obj.mail,
-      presence:"",
+      presence: "",
     }));
     setevent(dataSource);
   }, [selectedEventIdSeance]);
 
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Motif d'absence"
+        visible={isAbsenceModalVisible}
+        onOk={handleAbsenceReasonSubmit}
+        onCancel={() => {
+          setIsAbsenceModalVisible(false);
+          setAbsenceReason("");
+          setSelectedAbsentClient(null);
+        }}
+      >
+        <Input.TextArea
+          rows={4}
+          value={absenceReason}
+          onChange={(e) => setAbsenceReason(e.target.value)}
+          placeholder="Veuillez saisir le motif d'absence"
+        />
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className=" w-52">
           <Input prefix={<SearchOutlined />} placeholder="Search Reservation" />
         </div>
-       {/*  <div>
+        {/*  <div>
           <>
             <div className="flex items-center space-x-3">
               <Button
@@ -465,7 +505,7 @@ export const TableReservationCoachs = () => {
           startAccessor="start"
           endAccessor="end"
           style={{ height: 400 }}
-          views={['month', 'week']}
+          views={["month", "week"]}
           messages={{
             date: "Date",
             time: "Heure",
@@ -527,8 +567,7 @@ export const TableReservationCoachs = () => {
             {SeancInfos.title && SeancInfos.title}
           </div>
           <div>
-            <span className="font-medium">Coach</span>:{" "}
-            {SeancInfos.coach }
+            <span className="font-medium">Coach</span>: {SeancInfos.coach}
           </div>
           <div>
             <span className="font-medium">Heur debut</span>:{" "}
@@ -542,11 +581,10 @@ export const TableReservationCoachs = () => {
             <span className="font-medium">Salle</span>:{" "}
             {SeancInfos.resource && SeancInfos.resource}
           </div>
-         
 
           <div className="h-96 overflow-y-auto mt-10">
             <div>List des clients</div>
-           
+
             <Table
               columns={[
                 {
@@ -563,11 +601,19 @@ export const TableReservationCoachs = () => {
                   title: "Présence",
                   key: "presence",
                   render: (_, record) => (
-                    <Switch
-                      defaultValue={true}
-                      checked={clientPresence[record.key] || false}
-                      onChange={(checked) => handlePresenceChange(checked, record.key)}
-                    />
+                    <div>
+                      <Switch
+                        checked={clientPresence[record.key] || false}
+                        onChange={(checked) =>
+                          handlePresenceChange(checked, record.key)
+                        }
+                      />
+                      {!clientPresence[record.key] && (
+                        <span className="ml-2 text-red-500">
+                          {record.absenceReason || "Absente"}
+                        </span>
+                      )}
+                    </div>
                   ),
                 },
               ]}
