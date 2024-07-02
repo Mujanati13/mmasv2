@@ -30,7 +30,6 @@ import {
   getTimeInHHMM,
   formatDateToYearMonthDay,
   getDayNameInFrench,
-  addNewTrace,
 } from "../../../utils/helper";
 import Paper from "@mui/material/Paper";
 import { ViewState, EditingState } from "@devexpress/dx-react-scheduler";
@@ -45,15 +44,13 @@ import {
 } from "@devexpress/dx-react-scheduler-material-ui";
 import dayjs from "dayjs";
 
-const TableSeance = () => {
+const TableSeanceCoachs = () => {
   const [data2, setData2] = useState([]);
   const [currentDate] = useState(getCurrentDate());
   const [addedAppointment, setAddedAppointment] = useState({});
   const [appointmentChanges, setAppointmentChanges] = useState({});
   const [editingAppointment, setEditingAppointment] = useState(undefined);
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [changedFields, setChangedFields] = useState([]);
-  const [isFormChanged, setIsFormChanged] = useState(false);
 
   const commitChanges = ({ added, changed, deleted }) => {
     setData2((prevData) => {
@@ -124,12 +121,11 @@ const TableSeance = () => {
   const [CourDetils, setCourDetils] = useState([]);
   const [display, setDisplay] = useState(true);
   const [displayValue, setDisplayValue] = useState("Tableau");
-  const id_staff = JSON.parse(localStorage.getItem("data"));
+
   // State for room related data
   const [ClientData, setClientData] = useState({
     id_cour: null,
     id_coach: null,
-    id_employe: id_staff[0].id_employe,
     id_salle: null,
     capacity: null,
     jour: null,
@@ -187,40 +183,6 @@ const TableSeance = () => {
     return endTime > startTime;
   };
 
-  const updateAvailableOptions = (unavailableCoaches, unavailableRooms) => {
-    const availableCoaches = Coach.filter(coach => !unavailableCoaches.includes(coach.value));
-    const availableRooms = Salle.filter(room => !unavailableRooms.includes(room.value));
-    
-    setCoach(availableCoaches);
-    setSalle(availableRooms);
-  };
-
-  const checkAvailability = async (jour, heure_debut, heure_fin) => {
-    const authToken = localStorage.getItem("jwtToken");
-    try {
-      const response = await fetch(
-        `https://fithouse.pythonanywhere.com/api/sallesProfnondispo/?jour=${jour}&heur_debut=${heure_debut}&heur_fin=${heure_fin}`,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch availability data');
-      }
-      const data = await response.json();
-      const unavailableCoaches = data.data.map(seance => seance.id_coach);
-      const unavailableRooms = data.data.map(seance => seance.id_salle);
-      return { unavailableCoaches, unavailableRooms };
-    
-    } catch (error) {
-      console.error("Error checking availability:", error);
-      message.error("An error occurred while checking availability");
-      return null;
-    }
-  };
-
   // Function to add a new chamber
   const addClient = async () => {
     const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
@@ -236,77 +198,47 @@ const TableSeance = () => {
         return;
       }
 
-      const availabilityData = await checkAvailability(
-        ClientData.jour,
-        ClientData.heure_debut,
-        ClientData.heure_fin
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/seance/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          },
+          body: JSON.stringify(ClientData),
+        }
       );
-    
-      if (availabilityData) {
-        const { unavailableCoaches, unavailableRooms } = availabilityData;
-    
-        // Update available options
-        updateAvailableOptions(unavailableCoaches, unavailableRooms);
-    
-        if (unavailableCoaches.includes(ClientData.id_coach)) {
-          message.warning("Le coach sélectionné n'est pas disponible à cette heure");
-          return;
+      if (response.ok) {
+        const res = await response.json();
+        if (res.msg == "Added successfully!!") {
+          message.success("Séance ajoutée avec succès");
+          setAdd(Math.random() * 1000);
+          setClientData({
+            id_cour: null,
+            id_coach: null,
+            id_salle: null,
+            capacity: null,
+            jour: null,
+            heure_debut: null,
+            heure_fin: null,
+            cour: "",
+            coach: "",
+            salle: "",
+            genre: "",
+            day_name: "",
+            date_reservation: getCurrentDate(),
+            nb_reservations: 0,
+          });
+          onCloseR();
+        } else {
+          message.warning(res.msg);
+          console.log(res);
         }
-    
-        if (unavailableRooms.includes(ClientData.id_salle)) {
-          message.warning("La salle sélectionnée n'est pas disponible à cette heure");
-          return;
-        }
+      } else {
+        console.log(response);
+        message.error("Error adding chamber");
       }
-      // const response = await fetch(
-      //   "https://fithouse.pythonanywhere.com/api/seance/",
-      //   {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //       Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-      //     },
-      //     body: JSON.stringify(ClientData),
-      //   }
-      // );
-      // if (response.ok) {
-      //   const res = await response.json();
-      //   if (res.msg == "Added successfully!!") {
-      //     message.success("Séance ajoutée avec succès");
-      //     setAdd(Math.random() * 1000);
-      //     setClientData({
-      //       id_cour: null,
-      //       id_coach: null,
-      //       id_salle: null,
-      //       capacity: null,
-      //       jour: null,
-      //       heure_debut: null,
-      //       heure_fin: null,
-      //       cour: "",
-      //       coach: "",
-      //       salle: "",
-      //       genre: "",
-      //       day_name: "",
-      //       date_reservation: getCurrentDate(),
-      //       nb_reservations: 0,
-      //     });
-      //     const id_staff = JSON.parse(localStorage.getItem("data"));
-      //     const res = await addNewTrace(
-      //       id_staff[0].id_employe,
-      //       "Ajout",
-      //       getCurrentDate(),
-      //       `${JSON.stringify(ClientData)}`,
-      //       "seance"
-      //     );
-      //     onCloseR();
-      //   } else {
-      //     message.warning(res.msg);
-      //     console.log(res);
-      //   }
-      // } else {
-      //   console.log(response);
-      //   message.error("Error adding Seance");
-      // }
     } catch (error) {
       console.log(error);
       message.error("An error occurred:", error);
@@ -489,10 +421,10 @@ const TableSeance = () => {
   };
 
   const handleModalSubmit = async () => {
-    // if (!isValidTimeRange()) {
-    //   message.warning("L'heure de fin doit être après l'heure de début");
-    //   return;
-    // }
+    if (!isValidTimeRange()) {
+      message.warning("L'heure de fin doit être après l'heure de début");
+      return;
+    }
     console.log();
     try {
       const response = await fetch(
@@ -534,17 +466,6 @@ const TableSeance = () => {
           nb_reservations: 0,
         });
         setSelectedRowKeys([]);
-        const id_staff = JSON.parse(localStorage.getItem("data"));
-        const res = await addNewTrace(
-          id_staff[0].id_employe,
-          "Modification",
-          getCurrentDate(),
-          `${JSON.stringify(changedFields)}`,
-          "seance"
-        );
-        setIsFormChanged(false);
-        setChangedFields([]);
-
         // Reset the form fields
         form.resetFields();
       } else {
@@ -558,7 +479,6 @@ const TableSeance = () => {
 
   const handleModalCancel = () => {
     setIsModalVisible(false);
-    setChangedFields([]);
     setEditingClient(null);
     setClientData({
       id_cour: null,
@@ -599,14 +519,6 @@ const TableSeance = () => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
-          const id_staff = JSON.parse(localStorage.getItem("data"));
-          const res = await addNewTrace(
-            id_staff[0].id_employe,
-            "Supprimer",
-            getCurrentDate(),
-            `${JSON.stringify(ClientData)}`,
-            "seance"
-          );
         });
 
         await Promise.all(promises);
@@ -690,22 +602,20 @@ const TableSeance = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const staff = JSON.parse(localStorage.getItem("data"));
       try {
         const response = await fetch(
-          "https://fithouse.pythonanywhere.com/api/staff_by_type/?type=" +
-            staff[0].fonction,
+          "https://fithouse.pythonanywhere.com/api/coach/",
           {
-            headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-            },
+            // headers: {
+            //   "Authorization": `Bearer ${authToken}`, // Include the auth token in the headers
+            // },
           }
         );
         const jsonData = await response.json();
         const option = jsonData.data.map((coach) => {
           return {
-            label: coach.nom + " " + coach.prenom,
-            value: coach.id_employe,
+            label: coach.nom_coach + " " + coach.prenom_coach,
+            value: coach.id_coach,
           };
         });
         setCoach(option);
@@ -801,23 +711,15 @@ const TableSeance = () => {
             " "
           )}
           <div className="flex items-center space-x-6">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
-              selectedRowKeys.length === 1 ? (
+          {/*   {selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
               />
             ) : (
               ""
-            )}
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
-              selectedRowKeys.length >= 1 ? (
+            )} */}
+          {/*   {selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer la séance"
                 description="Êtes-vous sûr de supprimer cette séance ?"
@@ -830,7 +732,7 @@ const TableSeance = () => {
               </Popconfirm>
             ) : (
               ""
-            )}
+            )} */}
             {/* {selectedRowKeys.length >= 1 ? (
               <PrinterOutlined disabled={true} />
             ) : (
@@ -841,21 +743,7 @@ const TableSeance = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&&
-              display ? (
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
-              >
-                Ajout seance
-              </Button>
-            ) : (
-              " "
-            )}
+           
 
             <Segmented
               onChange={(v) => {
@@ -880,196 +768,7 @@ const TableSeance = () => {
               Planing
             </Button> */}
           </div>
-          <Drawer
-            title="Saisir un nouveau seance"
-            width={720}
-            onClose={onCloseR}
-            closeIcon={false}
-            open={open1}
-            bodyStyle={{
-              paddingBottom: 80,
-            }}
-          >
-            <div>
-              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                <div className="">
-                  <div className="grid grid-cols-2 gap-4 mt-5">
-                    <div>
-                      <label htmlFor="civilite" className="block font-medium">
-                        *Cours
-                      </label>
-                      <Select
-                        id="Cours"
-                        showSearch
-                        value={ClientData.cour}
-                        placeholder="Cours"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value) => {
-                          const cour = CourDetils.filter(
-                            (sal) => sal.id_cour === value
-                          );
-                          ClientData.cour = cour[0].nom_cour;
-                          ClientData.genre = cour[0].genre;
-                          setClientData({ ...ClientData, id_cour: value });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={Cours}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="civilite" className="block font-medium">
-                        *Salle
-                      </label>
-                      <Select
-                        id="Salle"
-                        value={ClientData.salle}
-                        showSearch
-                        placeholder="Salle"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, option) => {
-                          const sale = SalleDetils.filter(
-                            (sal) => sal.id_salle === value
-                          );
-                          ClientData.capacity = sale[0].capacity;
-                          setClientData({
-                            ...ClientData,
-                            id_salle: value,
-                            salle: option.label,
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={Salle}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="civilite" className="block font-medium">
-                        *Coach
-                      </label>
-                      <Select
-                        id="Coach"
-                        showSearch
-                        placeholder="Coach"
-                        className="w-full"
-                        value={ClientData.coach}
-                        optionFilterProp="children"
-                        onChange={(value, option) =>
-                          setClientData({
-                            ...ClientData,
-                            id_coach: value,
-                            coach: option.label,
-                          })
-                        }
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={Coach}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="civilite" className="block font-medium">
-                        *Jour de la semaine
-                      </label>
-                      <Select
-                        id="Jour de la semaine "
-                        showSearch
-                        value={ClientData.day_name}
-                        placeholder="Jour de la semaine "
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, option) =>
-                          setClientData({
-                            ...ClientData,
-                            jour: value,
-                            day_name: option.label,
-                          })
-                        }
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        options={[
-                          { label: "Lundi", value: 1 },
-                          { label: "Mardi", value: 2 },
-                          { label: "Mercredi", value: 3 },
-                          { label: "Jeudi", value: 4 },
-                          { label: "Vendredi", value: 5 },
-                          { label: "Samedi", value: 6 },
-                          { label: "Dimanche", value: 7 },
-                        ]}
-                      />
-                    </div>
-                    <div>
-                      <label>Heur debut</label>
-                      <div>
-                        <Input
-                          type="time"
-                          className="w-full border bottom-1 border-gray-200 p-1 rounded-md"
-                          value={ClientData.heure_debut}
-                          onChange={(e) => {
-                            const selectedTime = e.target.value;
-                            setClientData({
-                              ...ClientData,
-                              heure_debut: selectedTime,
-                            });
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label>Heur de fine</label>
-                      <div>
-                        <Input
-                          type="time"
-                          className="w-full border bottom-1 border-gray-200 p-1 rounded-md"
-                          value={ClientData.heure_fin}
-                          onChange={(e) => {
-                            const selectedTime = e.target.value;
-                            setClientData({
-                              ...ClientData,
-                              heure_fin: selectedTime,
-                            });
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label>Capacity</label>
-                      <Input disabled value={ClientData.capacity} />
-                    </div>
-                    {/* UploadImage component already included */}
-                  </div>
-                </div>
-                <Space className="mt-10">
-                  <Button danger onClick={onCloseR}>
-                    Annuler
-                  </Button>
-                  <Button onClick={handleRoomSubmit} type="default">
-                    Enregistrer
-                  </Button>
-                </Space>
-              </div>
-            </div>
-          </Drawer>
+        
         </div>
       </div>
       {display ? (
@@ -1143,23 +842,7 @@ const TableSeance = () => {
           className="w-full"
           title="Information seance"
           actions={[
-            <Popconfirm
-              title="Supprimer la séance"
-              description="Êtes-vous sûr de supprimer cette séance ?"
-              onConfirm={handleDelete2}
-              onCancel={cancel}
-              okText="Yes"
-              cancelText="No"
-            >
-              <DeleteOutlined className="cursor-pointer" />
-            </Popconfirm>,
-            <EditOutlined
-              key="edit"
-              onClick={() => {
-                setIsModalVisible(true);
-                setIsModalVisible1(false);
-              }}
-            />,
+          
           ]}
         >
           <div>
@@ -1182,7 +865,6 @@ const TableSeance = () => {
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
-        okButtonProps={{ disabled: !isFormChanged }}
       >
         <div className="h-96 overflow-y-auto">
           <div className="mt-5">
@@ -1195,19 +877,10 @@ const TableSeance = () => {
               className="w-full mt-1"
               optionFilterProp="children"
               onChange={(value) => {
-                if (value !== editingClient.id_cour) {
-                  setIsFormChanged(true);
-                  setChangedFields((prev) => [
-                    ...new Set([...prev, "id_cour", "cour", "genre"]),
-                  ]);
-                }
-                const cour = CourDetils.find((sal) => sal.id_cour === value);
-                setEditingClient({
-                  ...editingClient,
-                  id_cour: value,
-                  cour: cour ? cour.nom_cour : "",
-                  genre: cour ? cour.genre : "",
-                });
+                const cour = CourDetils.filter((sal) => sal.id_cour === value);
+                editingClient.cour = cour[0].nom_cour;
+                editingClient.genre = cour[0].genre;
+                setEditingClient({ ...editingClient, id_cour: value });
               }}
               filterOption={(input, option) =>
                 (option?.label ?? "").startsWith(input)
@@ -1230,18 +903,14 @@ const TableSeance = () => {
               className="w-full mt-1"
               optionFilterProp="children"
               onChange={(value, option) => {
-                if (value !== editingClient.id_salle) {
-                  setIsFormChanged(true);
-                  setChangedFields((prev) => [
-                    ...new Set([...prev, "id_salle", "salle", "capacity"]),
-                  ]);
-                }
-                const sale = SalleDetils.find((sal) => sal.id_salle === value);
+                const sale = SalleDetils.filter(
+                  (sal) => sal.id_salle === value
+                );
+                editingClient.capacity = sale[0].capacity;
                 setEditingClient({
                   ...editingClient,
                   id_salle: value,
                   salle: option.label,
-                  capacity: sale ? sale.capacity : null,
                 });
               }}
               filterOption={(input, option) =>
@@ -1264,19 +933,13 @@ const TableSeance = () => {
               value={editingClient && editingClient.coach}
               className="w-full mt-1"
               optionFilterProp="children"
-              onChange={(value, option) => {
-                if (value !== editingClient.id_coach) {
-                  setIsFormChanged(true);
-                  setChangedFields((prev) => [
-                    ...new Set([...prev, "id_coach", "coach"]),
-                  ]);
-                }
+              onChange={(value, option) =>
                 setEditingClient({
                   ...editingClient,
                   id_coach: value,
                   coach: option.label,
-                });
-              }}
+                })
+              }
               filterOption={(input, option) =>
                 (option?.label ?? "").startsWith(input)
               }
@@ -1298,12 +961,6 @@ const TableSeance = () => {
               className="w-full mt-1"
               optionFilterProp="children"
               onChange={(value, option) => {
-                if (value !== editingClient.jour) {
-                  setIsFormChanged(true);
-                  setChangedFields((prev) => [
-                    ...new Set([...prev, "jour", "day_name"]),
-                  ]);
-                }
                 setEditingClient({
                   ...editingClient,
                   jour: parseInt(value),
@@ -1337,12 +994,6 @@ const TableSeance = () => {
                 value={editingClient && editingClient.heure_debut}
                 className="w-full"
                 onChange={(event) => {
-                  if (event.target.value !== editingClient.heure_debut) {
-                    setIsFormChanged(true);
-                    setChangedFields((prev) => [
-                      ...new Set([...prev, "heure_debut"]),
-                    ]);
-                  }
                   setEditingClient({
                     ...editingClient,
                     heure_debut: event.target.value,
@@ -1359,12 +1010,6 @@ const TableSeance = () => {
                 value={editingClient && editingClient.heure_fin}
                 className="w-full"
                 onChange={(event) => {
-                  if (event.target.value !== editingClient.heure_fin) {
-                    setIsFormChanged(true);
-                    setChangedFields((prev) => [
-                      ...new Set([...prev, "heure_fin"]),
-                    ]);
-                  }
                   setEditingClient({
                     ...editingClient,
                     heure_fin: event.target.value,
@@ -1383,4 +1028,4 @@ const TableSeance = () => {
   );
 };
 
-export default TableSeance;
+export default TableSeanceCoachs;

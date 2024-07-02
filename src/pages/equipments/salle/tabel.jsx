@@ -23,6 +23,7 @@ import {
   PlusOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
+import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
 const TableSalle = () => {
   const [data1, setData1] = useState([]);
@@ -51,6 +52,8 @@ const TableSalle = () => {
   const [contarctStaff, setcontarctStaff] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [changedFields, setChangedFields] = useState([]);
+  const [isFormChanged, setIsFormChanged] = useState(false);
 
   // State for room related data
   const [ClientData, setClientData] = useState({
@@ -143,7 +146,7 @@ const TableSalle = () => {
       if (response.ok) {
         const res = await response.json();
         if (res.msg == "Added Successfully!!") {
-          message.success("Cour added successfully");
+          message.success("salle ajoutée avec succès");
           setAdd(Math.random() * 1000);
           setClientData({
             id_etablissement: 19,
@@ -154,6 +157,14 @@ const TableSalle = () => {
             etablissemnt: "FitHouse Complexe",
             category: "",
           });
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "salle"
+          );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -267,12 +278,7 @@ const TableSalle = () => {
         setFilteredData(processedData);
 
         // Generate columns based on the desired keys
-        const desiredKeys = [
-          "nom_salle",
-          "category",
-          "capacity",
-          "",
-        ];
+        const desiredKeys = ["nom_salle", "category", "capacity", ""];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
           dataIndex: key,
@@ -448,6 +454,16 @@ const TableSalle = () => {
           setUpdate(updatedData);
           setData(updatedData);
           setFilteredData(updatedData);
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Modification",
+            getCurrentDate(),
+            `${JSON.stringify(changedFields)}`,
+            "salle"
+          );
+          setChangedFields([]);
+          setIsFormChanged(false);
           message.success("Client mis à jour avec succès");
           setIsModalVisible(false);
           setEditingClient(null);
@@ -527,6 +543,7 @@ const TableSalle = () => {
   const handleModalCancel = () => {
     setIsModalVisible(false);
     setEditingClient(null);
+    setChangedFields([]);
   };
   const handleModalCancel1 = () => {
     setIsModalVisible1(false);
@@ -554,6 +571,14 @@ const TableSalle = () => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Supprimer",
+            getCurrentDate(),
+            `${JSON.stringify(clientToDelete)}`,
+            "salle"
+          );
         });
 
         await Promise.all(promises);
@@ -627,6 +652,36 @@ const TableSalle = () => {
     console.log(e);
   };
 
+  const handleFormChange = (changedValues, allValues) => {
+    const formatFieldName = (name) => {
+      return name.replace("_", " ");
+    };
+
+    setChangedFields((prevFields) => {
+      const updatedFields = [...prevFields];
+      Object.keys(changedValues).forEach((key) => {
+        const newField = {
+          name: formatFieldName(key),
+          oldValue: editingClient[key], // Use editingClient instead of selectedRecord
+          newValue: changedValues[key],
+        };
+        const existingIndex = updatedFields.findIndex(
+          (field) => field.name === newField.name
+        );
+        if (existingIndex !== -1) {
+          // Update existing field
+          updatedFields[existingIndex] = newField;
+        } else {
+          // Add new field
+          updatedFields.push(newField);
+        }
+      });
+      return updatedFields;
+    });
+
+    setIsFormChanged(true);
+  };
+
   return (
     <div className="w-full p-2">
       <Modal
@@ -681,20 +736,30 @@ const TableSalle = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
-              type="default"
-              onClick={showDrawerR}
-              icon={<UserAddOutlined />}
-            >
-              Ajout salle
-            </Button>}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
-              type="default"
-              onClick={showDrawerC}
-              icon={<BorderOuterOutlined />}
-            >
-              Ajout categorie
-            </Button>}
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire")&& (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajout salle
+                </Button>
+              )}
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") && (
+                <Button
+                  type="default"
+                  onClick={showDrawerC}
+                  icon={<BorderOuterOutlined />}
+                >
+                  Ajout categorie
+                </Button>
+              )}
           </div>
           <Drawer
             title="Saisir un nouveau salle"
@@ -881,9 +946,12 @@ const TableSalle = () => {
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
+        okButtonProps={{ disabled: !isFormChanged }}
+        okText="Soumettre"
+        cancelText="Annuler"
       >
         <div className="h-96 overflow-y-auto">
-          <Form form={form} layout="vertical">
+          <Form onValuesChange={handleFormChange} form={form} layout="vertical">
             <Form.Item name="nom_salle" label="Nom salle">
               <Input rules={[{ required: true, message: "Nom salle" }]} />
             </Form.Item>

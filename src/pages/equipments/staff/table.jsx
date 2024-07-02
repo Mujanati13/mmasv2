@@ -23,6 +23,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import {
+  addNewTrace,
   getCurrentDate,
   isEighteenYearsApart,
   validateEmail,
@@ -46,6 +47,8 @@ const TableStaff = () => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [detailsData, setDetailsData] = useState(null);
   const [imagePath, setimagePath] = useState("/staff/avatar.png");
+  const [changedFields, setChangedFields] = useState([]);
+  const [isFormChanged, setIsFormChanged] = useState(false);
   const [formErrors, setFormErrors] = useState({
     tel: "",
     mail: "",
@@ -251,6 +254,14 @@ const TableStaff = () => {
             fonction: "",
             image: imagePath,
           });
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "staff"
+          );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -448,6 +459,16 @@ const TableStaff = () => {
         setIsModalVisible(false);
         setEditingClient(null);
         setSelectedRowKeys([]);
+        const id_staff = JSON.parse(localStorage.getItem("data"));
+        const res = await addNewTrace(
+          id_staff[0].id_employe,
+          "Modification",
+          getCurrentDate(),
+          `${JSON.stringify(changedFields)}`,
+          "staff"
+        );
+        setChangedFields([]);
+        setIsFormChanged(false);
         // Reset the form fields
         form.resetFields();
       } else {
@@ -462,6 +483,8 @@ const TableStaff = () => {
   const handleModalCancel = () => {
     setIsModalVisible(false);
     setEditingClient(null);
+    setChangedFields([]);
+    setIsFormChanged(false);
   };
 
   const handleDelete = async () => {
@@ -483,8 +506,16 @@ const TableStaff = () => {
           );
 
           if (!response.ok) {
-            throw new Error(`Failed to delete client with key ${key}`);
+            throw new Error(`Failed to delete staff with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Supprimer",
+            getCurrentDate(),
+            `${JSON.stringify(clientToDelete)}`,
+            "staff"
+          );
         });
 
         await Promise.all(promises);
@@ -553,6 +584,36 @@ const TableStaff = () => {
     });
   };
 
+  const handleFormChange = (changedValues, allValues) => {
+    const formatFieldName = (name) => {
+      return name.replace("_", " ");
+    };
+
+    setChangedFields((prevFields) => {
+      const updatedFields = [...prevFields];
+      Object.keys(changedValues).forEach((key) => {
+        const newField = {
+          name: formatFieldName(key),
+          oldValue: editingClient[key], // Use editingClient instead of selectedRecord
+          newValue: changedValues[key],
+        };
+        const existingIndex = updatedFields.findIndex(
+          (field) => field.name === newField.name
+        );
+        if (existingIndex !== -1) {
+          // Update existing field
+          updatedFields[existingIndex] = newField;
+        } else {
+          // Add new field
+          updatedFields.push(newField);
+        }
+      });
+      return updatedFields;
+    });
+
+    setIsFormChanged(true);
+  };
+
   return (
     <div className="w-full p-2">
       <Modal
@@ -584,7 +645,10 @@ const TableStaff = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") && selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -592,7 +656,9 @@ const TableStaff = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
+            {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administartion" || JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "secretaire" && selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer le personnel"
                 description="Êtes-vous sûr de supprimer ce personnel ?"
@@ -616,13 +682,18 @@ const TableStaff = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&& <Button
-              type="default"
-              onClick={showDrawerR}
-              icon={<UserAddOutlined />}
-            >
-              Ajoute Satff
-            </Button>}
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") && (
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajoute Satff
+              </Button>
+            )}
           </div>
           <Drawer
             title="Saisir un nouveau membre du personnel"
@@ -785,6 +856,23 @@ const TableStaff = () => {
                         value={ClientData.mail}
                         status={formErrors.mail ? "error" : ""}
                         onChange={handleEmailChange}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="mail" className="block font-medium">
+                        *Mode de passe
+                      </label>
+                      <Input
+                        id="passowrd"
+                        size="middle"
+                        placeholder="Mote de passe"
+                        value={ClientData.password}
+                        onChange={(e) =>
+                          setClientData({
+                            ...ClientData,
+                            password: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div>
@@ -980,22 +1068,26 @@ const TableStaff = () => {
                             value: "Coach",
                             label: "Coach",
                           },
-                          {
-                            value: "Recption",
-                            label: "Recption",
-                          },
-                          {
-                            value: "Commercial",
-                            label: "Commercial",
-                          },
+                          // {
+                          //   value: "Recption",
+                          //   label: "Recption",
+                          // },
+                          // {
+                          //   value: "Commercial",
+                          //   label: "Commercial",
+                          // },
                           {
                             value: "Administration",
                             label: "Administration",
                           },
                           {
-                            value: "autres",
-                            label: "autres",
+                            value: "secretaire",
+                            label: "secretaire",
                           },
+                          // {
+                          //   value: "autres",
+                          //   label: "autres",
+                          // },
                         ]}
                       />
                     </div>
@@ -1074,11 +1166,12 @@ const TableStaff = () => {
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
-        okText="Soumettre" // Submit button text in French
-        cancelText="Annuler" // Cancel button text in French
+        okButtonProps={{ disabled: !isFormChanged }}
+        okText="Soumettre"
+        cancelText="Annuler"
       >
         <div className="h-96 overflow-y-auto">
-          <Form form={form} layout="vertical">
+          <Form onValuesChange={handleFormChange} form={form} layout="vertical">
             <Form.Item name="civilite" label="Civilité">
               <Select>
                 <Select.Option value="Monsieur">Monsieur</Select.Option>

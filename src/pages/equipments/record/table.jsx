@@ -16,10 +16,11 @@ import {
   SearchOutlined,
   UserAddOutlined,
   DeleteOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
-import { addNewTrace, getCurrentDate } from "../../../utils/helper";
+import { addNewTrace } from "../../../utils/helper";
 
-const TablePeriod = () => {
+const TableRecord = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -32,6 +33,10 @@ const TablePeriod = () => {
   const [form] = Form.useForm();
   const [open1, setOpen1] = useState(false);
   const [add, setAdd] = useState(false);
+  const [isDescriptionModalVisible, setIsDescriptionModalVisible] =
+    useState(false);
+  const [selectedDescription, setSelectedDescription] = useState(null);
+  const [stypeDescription, setstypeDescription] = useState(null);
   const [attribut, Setattribut] = useState({
     years: "",
     month: "",
@@ -78,14 +83,6 @@ const TablePeriod = () => {
           setClientData({
             PeriodeSalaire: "",
           });
-          const id_staff = JSON.parse(localStorage.getItem("data"));
-          const res = await addNewTrace(
-            id_staff[0].id_employe,
-            "Ajout",
-            getCurrentDate(),
-            `${JSON.stringify(ClientData)}`,
-            "période"
-          );
           onCloseR();
         } else {
           message.warning("Deja un Période créer avec cette attribut");
@@ -118,6 +115,20 @@ const TablePeriod = () => {
     addClient();
   };
 
+  const showDescriptionModal = (description, type) => {
+    setSelectedDescription(description);
+    setstypeDescription(type);
+    console.log("====================================");
+    console.log(type);
+    console.log("====================================");
+    setIsDescriptionModalVisible(true);
+  };
+
+  const handleDescriptionModalCancel = () => {
+    setIsDescriptionModalVisible(false);
+    setSelectedDescription(null);
+  };
+
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
 
   useEffect(() => {
@@ -125,11 +136,11 @@ const TablePeriod = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://fithouse.pythonanywhere.com/api/periode/",
+          "https://fithouse.pythonanywhere.com/api/trace/",
           {
-            // headers: {
-            //   "Authorization": `Bearer ${authToken}`, // Include the auth token in the headers
-            // },
+            headers: {
+              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+            },
           }
         );
         const jsonData = await response.json();
@@ -137,16 +148,22 @@ const TablePeriod = () => {
         // Ensure each row has a unique key
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id_periode || index, // Assuming each item has a unique id, otherwise use index
+          key: item.id_trace || index, // Assuming each item has a unique id, otherwise use index
         }));
-
         setData(processedData);
         setFilteredData(processedData);
 
         // Generate columns based on the desired keys
-        const desiredKeys = ["PeriodeSalaire"];
+        const desiredKeys = [
+          "staff",
+          "type_operation",
+          "date_operation",
+          "description",
+          "cible",
+          "",
+        ];
         const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
+          title: capitalizeFirstLetter(key.replace(/\_/g, " ")),
           dataIndex: key,
           key,
           render: (text, record) => {
@@ -158,6 +175,16 @@ const TablePeriod = () => {
               );
             } else if (key === "date_inscription") {
               return <Tag>{text}</Tag>;
+            } else if (key === "description") {
+              return (
+                <Button
+                  icon={<EyeOutlined />}
+                  onClick={() =>
+                    showDescriptionModal(text, record.type_operation)
+                  }
+                  type="link"
+                />
+              );
             }
             return text;
           },
@@ -284,16 +311,8 @@ const TablePeriod = () => {
           );
 
           if (!response.ok) {
-            throw new Error(`Failed to delete periode lient with key ${key}`);
+            throw new Error(`Failed to delete client with key ${key}`);
           }
-          const id_staff = JSON.parse(localStorage.getItem("data"));
-          const res = await addNewTrace(
-            id_staff[0].id_employe,
-            "Supprimer",
-            getCurrentDate(),
-            `${JSON.stringify(clientToDelete)}`,
-            "periode"
-          );
         });
 
         await Promise.all(promises);
@@ -326,24 +345,106 @@ const TablePeriod = () => {
     });
   };
 
+  const transformJsonToTableData = (jsonData) => {
+    const parsedData = JSON.parse(jsonData);
+    return Object.entries(parsedData).map(([key, value], index) => ({
+      key: index,
+      field: key,
+      value: typeof value === "object" ? JSON.stringify(value) : String(value),
+    }));
+  };
+
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Description Détails"
+        visible={isDescriptionModalVisible}
+        onCancel={handleDescriptionModalCancel}
+        footer={null}
+        width={800}
+      >
+        {selectedDescription &&
+          (stypeDescription == "Ajout" || stypeDescription == "Supprimer" ? (
+            <div>
+              <Table
+                dataSource={transformJsonToTableData(selectedDescription)}
+                pagination={false}
+                size="small"
+                columns={[
+                  {
+                    title: "Champ",
+                    dataIndex: "field",
+                    key: "field",
+                    render: (text) => <span className="font-bold">{text.replace("_"," ")}</span>,
+                  },
+                  {
+                    title: "Valeur",
+                    dataIndex: "value",
+                    key: "value",
+                    render: (text) => <span>{text}</span>,
+                  },
+                ]}
+              />
+            </div>
+          ) : (
+            <Table
+              dataSource={JSON.parse(selectedDescription).filter(
+                (item, index, self) =>
+                  index ===
+                  self.findIndex(
+                    (t) =>
+                      t.id_trace === item.id_trace &&
+                      t.name === item.name &&
+                      t.oldValue === item.oldValue &&
+                      t.newValue === item.newValue
+                  )
+              )}
+              pagination={{
+                pageSize: 6,
+                showQuickJumper: true,
+              }}
+              size="small"
+              columns={[
+                {
+                  title: "Name",
+                  dataIndex: "name",
+                  key: "name",
+                  render: (name) => <span className="font-bold">{name}</span>,
+                },
+                {
+                  title: "Old Value",
+                  dataIndex: "oldValue",
+                  key: "oldValue",
+                  render: (oldValue) => (
+                    <span className="line-through text-gray-500">
+                      {oldValue}
+                    </span>
+                  ),
+                },
+                {
+                  title: "New Value",
+                  dataIndex: "newValue",
+                  key: "newValue",
+                  render: (newValue) => (
+                    <span className="text-green-500">{newValue}</span>
+                  ),
+                },
+              ]}
+            />
+          ))}
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
             <Input
               prefix={<SearchOutlined />}
-              placeholder="Search Period"
+              placeholder="Search Trace"
               value={searchText}
               onChange={handleSearch}
             />
           </div>
           <div className="flex items-center space-x-6">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&&
-              selectedRowKeys.length >= 1 ? (
+            {/* {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer la période"
                 description="Êtes-vous sûr de supprimer cette période ?"
@@ -356,24 +457,19 @@ const TablePeriod = () => {
               </Popconfirm>
             ) : (
               ""
-            )}
+            )} */}
           </div>
         </div>
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") && (
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<UserAddOutlined />}
-                >
-                  Ajoute Priod
-                </Button>
-              )}
+            {/* {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
+              type="default"
+              onClick={showDrawerR}
+              icon={<UserAddOutlined />}
+            >
+              Ajoute Priod
+            </Button>} */}
           </div>
           <Drawer
             title="Saisir un nouveau Period"
@@ -487,7 +583,7 @@ const TablePeriod = () => {
       <Table
         loading={loading}
         pagination={{
-          pageSize: 7,
+          pageSize: 6,
           showQuickJumper: true,
         }}
         size="small"
@@ -525,4 +621,4 @@ const TablePeriod = () => {
   );
 };
 
-export default TablePeriod;
+export default TableRecord;

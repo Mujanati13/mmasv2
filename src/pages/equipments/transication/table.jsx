@@ -17,6 +17,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import {
+  addNewTrace,
   formatDateToYearMonthDay,
   getCurrentDate,
 } from "../../../utils/helper";
@@ -146,10 +147,11 @@ const TableTransication = () => {
         message.error("Please fill in all required fields for the chamber.");
         return;
       }
-      const ii = localStorage.getItem("data");
-      console.log(JSON.parse(ii)[0].id_admin);
-      ClientData.id_admin = JSON.parse(ii)[0].id_admin;
-      ClientData.admin = JSON.parse(ii)[0].login;
+
+      const id_staff = JSON.parse(localStorage.getItem("data"));
+      ClientData.id_admin = 4;
+      ClientData.id_staff = id_staff[0].id_employe;
+      ClientData.admin = "Test";
       console.log(ClientData);
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/transactions/",
@@ -180,6 +182,17 @@ const TableTransication = () => {
             Reste: null,
             rest_pre: null,
           });
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "transctions"
+          );
+          console.log("====================================");
+          console.log(res);
+          console.log("====================================");
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -443,8 +456,11 @@ const TableTransication = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length == 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+              selectedRowKeys.length == 1 ? (
               <EyeOutlined
                 style={{ cursor: "pointer" }}
                 onClick={() => {
@@ -462,18 +478,21 @@ const TableTransication = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
-              >
-                Ajoute Transication
-              </Button>
-            )}
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajoute Transication
+                </Button>
+              )}
           </div>
           <Drawer
-            title="Saisir un nouveau transaction"
+            title="Saisir une nouvelle transaction"
             width={720}
             onClose={onCloseR}
             closeIcon={false}

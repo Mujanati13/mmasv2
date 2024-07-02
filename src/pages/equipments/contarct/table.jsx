@@ -23,7 +23,12 @@ import StepLabel from "@mui/material/StepLabel";
 import StepContent from "@mui/material/StepContent";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { addMonths, getCurrentDate, toCapitalize } from "../../../utils/helper";
+import {
+  addMonths,
+  addNewTrace,
+  getCurrentDate,
+  toCapitalize,
+} from "../../../utils/helper";
 import dayjs from "dayjs";
 import { handlePrintContract } from "../../../utils/printable/contract";
 
@@ -40,6 +45,9 @@ const TableContract = () => {
   const [abonnements, setAbonnements] = useState([]);
   const [tarif, setTarif] = useState(0);
   const [add, setAdd] = useState(0);
+  const [changedFields, setChangedFields] = useState([]);
+  const [isFormChanged, setIsFormChanged] = useState(false);
+
   // State for contract related data
   const [ContractData, setContractData] = useState({
     id_client: "",
@@ -123,9 +131,11 @@ const TableContract = () => {
     let day = date.getDate();
 
     ContractData.date_fin = `${year}-${month}-${day}`;
-    const adminData = JSON.parse(localStorage.getItem("data"));
-    const initialAdminId = adminData ? adminData[0].id_admin : ""; // Accessing the first element's id_admin
-    ContractData.id_admin = initialAdminId;
+    // const adminData = JSON.parse(localStorage.getItem("data"));
+    // const initialAdminId = adminData ? adminData[0].id_admin : ""; // Accessing the first element's id_admin
+    // // ContractData.id_admin = initialAdminId;
+    const id_staff = JSON.parse(localStorage.getItem("data"));
+    ContractData.id_admin = id_staff[0].id_employe;
 
     const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
     try {
@@ -145,6 +155,14 @@ const TableContract = () => {
         if (res.msg === "Added Successfully!!") {
           message.success("Contrat ajouté avec succès");
           setAdd(Math.random() * 1000);
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ContractData)}`,
+            "contrat"
+          );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -622,6 +640,14 @@ const TableContract = () => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Supprimer",
+            getCurrentDate(),
+            `${JSON.stringify(ContractData)}`,
+            "contrat"
+          );
         });
 
         await Promise.all(promises);
@@ -633,7 +659,7 @@ const TableContract = () => {
         setFilteredData(updatedData);
         setSelectedRowKeys([]);
         message.success(
-          `${selectedRowKeys.length} client(s) deleted successfully`
+          `${selectedRowKeys.length} contact(s) supprimé(s) avec succès`
         );
       } catch (error) {
         console.error("Error deleting clients:", error);
@@ -663,11 +689,14 @@ const TableContract = () => {
           </div>
           <div className="flex items-center space-x-6">
             {selectedRowKeys.length === 1 ? "" : ""}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length >= 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+              selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Delete the Clinet"
-                description="Are you sure to delete this Clinet?"
+                title="Supprimer le contact"
+                description="Êtes-vous sûr de supprimer ce contact ?"
                 onConfirm={confirm}
                 onCancel={cancel}
                 okText="Yes"
@@ -678,8 +707,11 @@ const TableContract = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length >= 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+              selectedRowKeys.length >= 1 ? (
               <PrinterOutlined onClick={handlePrint} disabled={true} />
             ) : (
               ""
@@ -690,15 +722,18 @@ const TableContract = () => {
         <div>
           <>
             <div className="flex items-center space-x-3">
-              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<FileAddOutlined />}
-                >
-                  Ajouter Contrat
-                </Button>
-              )}
+              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") && (
+                  <Button
+                    type="default"
+                    onClick={showDrawerR}
+                    icon={<FileAddOutlined />}
+                  >
+                    Ajouter Contrat
+                  </Button>
+                )}
             </div>
             <Drawer
               title="Saisir un nouveau Contrat"

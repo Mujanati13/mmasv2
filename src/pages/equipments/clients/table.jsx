@@ -24,6 +24,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import {
+  addNewTrace,
   getCurrentDate,
   validateEmail,
   validateMoroccanPhoneNumber,
@@ -45,6 +46,8 @@ const TableClient = () => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [imagePath, setimagePath] = useState("");
+  const [changedFields, setChangedFields] = useState([]);
+  const [isFormChanged, setIsFormChanged] = useState(false);
   const [formErrors, setFormErrors] = useState({
     tel: "",
     mail: "",
@@ -226,6 +229,14 @@ const TableClient = () => {
             password: null,
             image: imagePath,
           });
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "client"
+          );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -435,6 +446,19 @@ const TableClient = () => {
         setData(updatedData);
         setFilteredData(updatedData);
         message.success("Client mis à jour avec succès");
+        const id_staff = JSON.parse(localStorage.getItem("data"));
+        const res = await addNewTrace(
+          id_staff[0].id_employe,
+          "Modification",
+          getCurrentDate(),
+          `${JSON.stringify(changedFields)}`,
+          "client"
+        );
+        console.log("====================================");
+        console.log(res);
+        console.log("====================================");
+        setChangedFields([]);
+        setIsFormChanged(false);
         setIsModalVisible(false);
         setEditingClient(null);
         setSelectedRowKeys([]);
@@ -451,6 +475,8 @@ const TableClient = () => {
 
   const handleModalCancel = () => {
     setIsModalVisible(false);
+    setChangedFields([]);
+    setIsFormChanged(false);
     setEditingClient(null);
   };
 
@@ -475,6 +501,14 @@ const TableClient = () => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Supprimer",
+            getCurrentDate(),
+            `${JSON.stringify(clientToDelete)}`,
+            "client"
+          );
         });
 
         await Promise.all(promises);
@@ -501,6 +535,36 @@ const TableClient = () => {
 
   const cancel = (e) => {
     console.log(e);
+  };
+
+  const handleFormChange = (changedValues, allValues) => {
+    const formatFieldName = (name) => {
+      return name.replace("_", " ");
+    };
+
+    setChangedFields((prevFields) => {
+      const updatedFields = [...prevFields];
+      Object.keys(changedValues).forEach((key) => {
+        const newField = {
+          name: formatFieldName(key),
+          oldValue: editingClient[key], // Use editingClient instead of selectedRecord
+          newValue: changedValues[key],
+        };
+        const existingIndex = updatedFields.findIndex(
+          (field) => field.name === newField.name
+        );
+        if (existingIndex !== -1) {
+          // Update existing field
+          updatedFields[existingIndex] = newField;
+        } else {
+          // Add new field
+          updatedFields.push(newField);
+        }
+      });
+      return updatedFields;
+    });
+
+    setIsFormChanged(true);
   };
 
   return (
@@ -541,7 +605,11 @@ const TableClient = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+              selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -549,7 +617,11 @@ const TableClient = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+            selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer le client"
                 description="Êtes-vous sûr de supprimer ce client ?"
@@ -563,23 +635,30 @@ const TableClient = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
+            {(JSON.parse(localStorage.getItem("data"))[0].fonction ===
+              "Administration" ||
+              JSON.parse(localStorage.getItem("data"))[0].fonction ===
+                "secretaire") &&
+            selectedRowKeys.length >= 1 ? (
               <PrinterOutlined disabled={true} />
-            ) : (
-              ""
-            )}
+            ) : null}
           </div>
         </div>
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
-              type="default"
-              onClick={showDrawerR}
-              icon={<UserAddOutlined />}
-            >
-              Ajoute Client
-            </Button>}
+            {(JSON.parse(localStorage.getItem("data"))[0].fonction ===
+              "Administration" ||
+              JSON.parse(localStorage.getItem("data"))[0].fonction ===
+                "secretaire") && (
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajouter Client
+              </Button>
+            )}
           </div>
           <Drawer
             title="Saisir un nouveau client"
@@ -976,9 +1055,12 @@ const TableClient = () => {
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
+        okButtonProps={{ disabled: !isFormChanged }}
+        okText="Soumettre"
+        cancelText="Annuler"
       >
         <div className="h-96 overflow-y-auto">
-          <Form form={form} layout="vertical">
+          <Form onValuesChange={handleFormChange} form={form} layout="vertical">
             <Form.Item name="civilite" label="Civilité">
               <Select>
                 <Select.Option value="Monsieur">Monsieur</Select.Option>

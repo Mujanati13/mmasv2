@@ -45,7 +45,7 @@ export default function Login() {
 
     try {
       const endpoint =
-        userType === "admin" ? "/api/loginAdmin" : "/api/loginCoach";
+        userType === "admin" ? "/api/login" : "/api/login";
       const response = await fetch(Endpoint() + endpoint, {
         method: "POST",
         headers: {
@@ -92,7 +92,7 @@ export default function Login() {
         />
       </div>
       <div className="w-80 h-60 m-auto mt-1 flex flex-col justify-center items-center space-y-5">
-        <Segmented
+        {/* <Segmented
           options={[
             {
               label: "Admin",
@@ -107,7 +107,7 @@ export default function Login() {
           ]}
           value={userType}
           onChange={(value) => setUserType(value)}
-        />
+        /> */}
         <Input
           style={
             (emailError || loginError) && !getEmail
@@ -138,18 +138,18 @@ export default function Login() {
         />
         {isLoading ? (
           <Button className="w-80" loading>
-            Login
+            Se connecter
           </Button>
         ) : (
           <Button className="font-medium w-80" onClick={handleLogin}>
-            Login
+            Se connecter
           </Button>
         )}
         {loginError && <div className="text-red-500">{loginError}</div>}
       </div>
       <Link to="/forget-password">
         <div className="text-blue-400 underline underline-offset-1 text-center">
-          Forgot Password?
+          Mot de passe oublié?{" "}
         </div>
       </Link>
     </div>

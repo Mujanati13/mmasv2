@@ -27,7 +27,7 @@ import {
   Switch,
 } from "antd";
 import "dayjs/locale/fr"; // Import French locale for Day.js
-import { addNewTrace, getCurrentDate } from "../../../utils/helper";
+import { formatDateToYearMonthDay, getCurrentDate } from "../../../utils/helper";
 const { RangePicker } = DatePicker;
 
 const fetchReservations = async () => {
@@ -58,7 +58,7 @@ const transformReservations = (reservations) => {
   }));
 };
 
-export const TableReservation = () => {
+export const TableReservationCoachs = () => {
   const [events, setEvents] = useState([]);
   const [open1, setOpen1] = useState(false);
   const [clients, setClients] = useState([]);
@@ -72,9 +72,6 @@ export const TableReservation = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisible2, setIsModalVisible2] = useState(false);
   const [clientPresence, setClientPresence] = useState({});
-  const [isAbsenceModalVisible, setIsAbsenceModalVisible] = useState(false);
-  const [absenceReason, setAbsenceReason] = useState("");
-  const [currentClientId, setCurrentClientId] = useState(null);
   const [ReservationData, setReservationData] = useState({
     id_client: null,
     id_seance: null,
@@ -84,9 +81,45 @@ export const TableReservation = () => {
     presence: null,
     motif_annulation: null,
   });
-  const [changedFields, setChangedFields] = useState([]);
-  const [isFormChanged, setIsFormChanged] = useState(false);
-
+  const handlePresenceChange = async (checked, clientId) => {
+    console.log(clientId,checked);
+    setClientPresence(prev => ({...prev, [clientId]: checked}));
+    await updateClientPresence(clientId, checked);
+    // Here you can also add an API call to update the presence status on the server
+  };
+  const updateClientPresence = async (clientId, isPresent, absenceReason = "") => {
+    console.log(SeancInfos);
+    try {
+      const response = await fetch('https://fithouse.pythonanywhere.com/api/set_presence', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+        },
+        body: JSON.stringify({
+          id_etd: clientId,
+          id_seance: SeancInfos.id_seance,
+          cours: SeancInfos.title,
+          heure_debut: SeancInfos.datestart,
+          heure_fin: SeancInfos.dateend,
+          date_presence: formatDateToYearMonthDay(SeancInfos.start),
+          status: 1,
+          presence: isPresent,
+          motif_annulation: "absenceReason" ,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update presence');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating presence:', error);
+      throw error;
+    }
+  };
   const fetchClients = async () => {
     try {
       const response = await fetch(
@@ -96,67 +129,6 @@ export const TableReservation = () => {
       setClients(data.data);
     } catch (error) {
       console.error("Error fetching clients:", error);
-    }
-  };
-  const updateClientPresence = async (
-    clientId,
-    isPresent,
-    absenceReason = null
-  ) => {
-    try {
-      const response = await fetch(
-        "https://fithouse.pythonanywhere.com/api/update_presence/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
-          },
-          body: JSON.stringify({
-            id_client: clientId,
-            id_seance: SeancInfos.id_seance,
-            presence: isPresent,
-            motif_absence: absenceReason,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update presence");
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error updating presence:", error);
-      throw error;
-    }
-  };
-  const handlePresenceChange = async (checked, clientId) => {
-    if (checked) {
-      // If marking as present, update directly
-      try {
-        await updateClientPresence(clientId, true);
-        setClientPresence((prev) => ({ ...prev, [clientId]: true }));
-        message.success(`Présence mise à jour pour le client ${clientId}`);
-      } catch (error) {
-        message.error("Erreur lors de la mise à jour de la présence");
-      }
-    } else {
-      // If marking as absent, show the modal for absence reason
-      setCurrentClientId(clientId);
-      setAbsenceReason("");
-      setIsAbsenceModalVisible(true);
-    }
-  };
-  const handleAbsenceConfirm = async () => {
-    try {
-      await updateClientPresence(currentClientId, false, absenceReason);
-      setClientPresence((prev) => ({ ...prev, [currentClientId]: false }));
-      message.success(`Absence enregistrée pour le client ${currentClientId}`);
-      setIsAbsenceModalVisible(false);
-    } catch (error) {
-      message.error("Erreur lors de l'enregistrement de l'absence");
     }
   };
   const fetchCours = async () => {
@@ -183,7 +155,7 @@ export const TableReservation = () => {
     if (id_client && cour_id) {
       try {
         const response = await fetch(
-          `https://fithouse.pythonanywhere.com/api/seance`,
+          `https://fithouse.pythonanywhere.com/api/seance/?cour_id=${cour_id}&client_id=${id_client}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -234,21 +206,12 @@ export const TableReservation = () => {
           body: JSON.stringify(ReservationData),
         }
       );
-
       if (response.ok) {
         const res = await response.json();
         if (res.msg === "Added Successfully!!") {
           message.success("Réservation ajoutée avec succès");
           setAdd(Math.random() * 1000);
           onCloseR();
-          const id_staff = JSON.parse(localStorage.getItem("data"));
-          const res = await addNewTrace(
-            id_staff[0].id_employe,
-            "Ajout",
-            getCurrentDate(),
-            `${JSON.stringify(ReservationData)}`,
-            "reservation"
-          );
         } else {
           message.warning(res.msg);
           console.log(res);
@@ -333,44 +296,27 @@ export const TableReservation = () => {
       key: obj.id_client, // or any unique identifier
       fullName: `${obj.nom_client} ${obj.prenom_client}`,
       mail: obj.mail,
+      presence:"",
     }));
     setevent(dataSource);
   }, [selectedEventIdSeance]);
 
   return (
     <div className="w-full p-2">
-      <Modal
-        title="Motif d'absence"
-        visible={isAbsenceModalVisible}
-        onOk={handleAbsenceConfirm}
-        onCancel={() => setIsAbsenceModalVisible(false)}
-      >
-        <Input.TextArea
-          rows={4}
-          value={absenceReason}
-          onChange={(e) => setAbsenceReason(e.target.value)}
-          placeholder="Veuillez saisir le motif d'absence"
-        />
-      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className=" w-52">
           <Input prefix={<SearchOutlined />} placeholder="Search Reservation" />
         </div>
-        <div>
+       {/*  <div>
           <>
             <div className="flex items-center space-x-3">
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&& (
-                  <Button
-                    type="default"
-                    onClick={showDrawerR}
-                    icon={<FileAddOutlined />}
-                  >
-                    Ajouter Réservation
-                  </Button>
-                )}
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<FileAddOutlined />}
+              >
+                Ajouter Réservation
+              </Button>
             </div>
             <Drawer
               title="Saisir une nouvelle réservation"
@@ -505,7 +451,7 @@ export const TableReservation = () => {
               </div>
             </Drawer>
           </>
-        </div>
+        </div> */}
       </div>
       <div className="mt-5">
         <Calendar
@@ -519,6 +465,7 @@ export const TableReservation = () => {
           startAccessor="start"
           endAccessor="end"
           style={{ height: 400 }}
+          views={['month', 'week']}
           messages={{
             date: "Date",
             time: "Heure",
@@ -580,6 +527,10 @@ export const TableReservation = () => {
             {SeancInfos.title && SeancInfos.title}
           </div>
           <div>
+            <span className="font-medium">Coach</span>:{" "}
+            {SeancInfos.coach }
+          </div>
+          <div>
             <span className="font-medium">Heur debut</span>:{" "}
             {SeancInfos.datestart}
           </div>
@@ -591,9 +542,11 @@ export const TableReservation = () => {
             <span className="font-medium">Salle</span>:{" "}
             {SeancInfos.resource && SeancInfos.resource}
           </div>
+         
 
           <div className="h-96 overflow-y-auto mt-10">
             <div>List des clients</div>
+           
             <Table
               columns={[
                 {
@@ -606,19 +559,17 @@ export const TableReservation = () => {
                   dataIndex: "mail",
                   key: "mail",
                 },
-                // {
-                //   title: "Présence",
-                //   key: "presence",
-                //   render: (_, record) => (
-                //     <Switch
-                //       defaultValue={true}
-                //       checked={clientPresence[record.key] || false}
-                //       onChange={(checked) =>
-                //         handlePresenceChange(checked, record.key)
-                //       }
-                //     />
-                //   ),
-                // },
+                {
+                  title: "Présence",
+                  key: "presence",
+                  render: (_, record) => (
+                    <Switch
+                      defaultValue={true}
+                      checked={clientPresence[record.key] || false}
+                      onChange={(checked) => handlePresenceChange(checked, record.key)}
+                    />
+                  ),
+                },
               ]}
               dataSource={event}
               pagination={false}

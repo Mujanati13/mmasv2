@@ -472,7 +472,11 @@ const TableCoach = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+              selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -480,7 +484,11 @@ const TableCoach = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+              selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer coach"
                 description="Êtes-vous sûr de supprimer cet coach?"
@@ -494,23 +502,28 @@ const TableCoach = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
+            {/* {JSON.parse(localStorage.getItem(`data`))[0].fonction == "Administration"&&selectedRowKeys.length >= 1 ? (
               <PrinterOutlined disabled={true} />
             ) : (
               ""
-            )}
+            )} */}
           </div>
         </div>
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-           {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&& <Button
-              type="default"
-              onClick={showDrawerR}
-              icon={<UserAddOutlined />}
-            >
-              Ajoute coach
-            </Button>}
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajoute coach
+                </Button>
+              )}
           </div>
           <Drawer
             title="Saisir un nouveau coach"

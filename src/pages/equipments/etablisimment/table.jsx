@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Space, Table, Select, Modal, Form, Input, Button } from "antd";
 import { EyeOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  addNewTrace,
+  addNewTraceDetail,
+  getCurrentDate,
+} from "../../../utils/helper";
 
 const TableEtablissement = () => {
   const [data, setData] = useState([]);
@@ -12,6 +17,8 @@ const TableEtablissement = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [form] = Form.useForm();
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
+  const [changedFields, setChangedFields] = useState([]);
+  const [isFormChanged, setIsFormChanged] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,14 +98,21 @@ const TableEtablissement = () => {
   const handleModalCancel = () => {
     setVisibleModal(false);
     setSelectedRecord(null);
+    setChangedFields([]);
+    setIsFormChanged(false);
   };
 
   const handleEdit = () => {
     setEditMode(true);
     form.setFieldsValue(selectedRecord);
+    setChangedFields([]);
+    setIsFormChanged(false);
   };
 
   const handleFormSubmit = async (values) => {
+    console.log("====================================");
+    console.log(changedFields);
+    console.log("====================================");
     try {
       const response = await fetch(
         `https://fithouse.pythonanywhere.com/api/etablissements/`,
@@ -111,6 +125,7 @@ const TableEtablissement = () => {
           body: JSON.stringify({
             ...values,
             id_etablissement: selectedRecord.id_etablissement,
+            changedFields: changedFields,
           }),
         }
       );
@@ -124,10 +139,53 @@ const TableEtablissement = () => {
       );
       setVisibleModal(false);
       setSelectedRecord(null);
+      const id_staff = JSON.parse(localStorage.getItem("data"));
+      const res = await addNewTrace(
+        id_staff[0].id_employe,
+        "Modification",
+        getCurrentDate(),
+        `${JSON.stringify(changedFields)}`,
+        "établissement"
+      );
+      console.log("====================================");
+      console.log(res);
+      console.log("====================================");
+      setChangedFields([]);
+      setIsFormChanged(false);
       Setadd(Math.random() * 10000);
     } catch (error) {
       console.error("Error updating data:", error);
     }
+  };
+
+  const handleFormChange = (changedValues, allValues) => {
+    const formatFieldName = (name) => {
+      return name.replace("_", " ");
+    };
+
+    const changedFieldsArray = Object.keys(changedValues).map((key) => ({
+      name: formatFieldName(key),
+      oldValue: selectedRecord[key],
+      newValue: changedValues[key],
+    }));
+
+    setChangedFields((prevFields) => {
+      const updatedFields = [...prevFields];
+      changedFieldsArray.forEach((newField) => {
+        const existingIndex = updatedFields.findIndex(
+          (field) => field.name === newField.name
+        );
+        if (existingIndex !== -1) {
+          // Update existing field
+          updatedFields[existingIndex] = newField;
+        } else {
+          // Add new field
+          updatedFields.push(newField);
+        }
+      });
+      return updatedFields;
+    });
+    setIsFormChanged(true);
   };
 
   return (
@@ -199,6 +257,12 @@ const TableEtablissement = () => {
                 type="primary"
                 icon={<EditOutlined />}
                 onClick={handleEdit}
+                disabled={
+                  !JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                    "Administration" ||
+                  JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                    "secretaire"
+                }
               >
                 Modifier
               </Button>
@@ -211,6 +275,7 @@ const TableEtablissement = () => {
             layout="vertical"
             onFinish={handleFormSubmit}
             initialValues={selectedRecord}
+            onValuesChange={handleFormChange}
           >
             <Form.Item name="nom_etablissement" label="Nom Etablissement">
               <Input />
@@ -258,7 +323,11 @@ const TableEtablissement = () => {
               <Input disabled={true} />
             </Form.Item>
             <Form.Item>
-              <Button type="primary" htmlType="submit">
+              <Button
+                type="primary"
+                htmlType="submit"
+                disabled={!isFormChanged}
+              >
                 Sauvegarder
               </Button>
             </Form.Item>

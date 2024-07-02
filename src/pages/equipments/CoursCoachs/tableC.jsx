@@ -16,13 +16,13 @@ import {
   SearchOutlined,
   UserAddOutlined,
   DeleteOutlined,
-  PrinterOutlined,
+  EditOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
 import { handlePrintContractStaff } from "../../../utils/printable/contraStaff";
-import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
-const TableContractStaff = () => {
+const TableCoursCoachs = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -38,16 +38,16 @@ const TableContractStaff = () => {
   const [add, setAdd] = useState(false);
   const [contarctClient, setcontarctClient] = useState([]);
   const [contarctStaff, setcontarctStaff] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
 
   // State for room related data
   const [ClientData, setClientData] = useState({
-    id_employe: null,
-    date_debut: "",
-    date_fin: null,
-    type_contrat: "",
-    salaire: 0,
-    employe: "",
-    image: "",
+    nom_cour: "",
+    description: "",
+    reglement: "",
+    genre: "",
+    image: "cours/avatar.jpg",
   });
 
   useEffect(() => {
@@ -93,68 +93,14 @@ const TableContractStaff = () => {
     fetchData();
   }, []);
 
-  const handlePrint = () => {
-    selectedRowKeys.map(async (key) => {
-      const ContractData = data.find((client) => client.key === key);
-      const Client = contarctClient.find(
-        (client) => client.id_employe === ContractData.id_employe
-      );
-      handlePrintContractStaff(
-        Client.nom,
-        Client.prenom,
-        Client.mail,
-        Client.adresse,
-        Client.adresse,
-        Client.tel,
-        Client.cin,
-        Client.date_naissance,
-        ContractData.date_debut,
-        ContractData.type_contrat,
-        ContractData.salaire
-      );
-    });
-  };
-
   // Validation function to check if all required fields are filled for the room form
   const isRoomFormValid = () => {
-    const { id_employe, date_debut, date_fin, type_contrat, salaire } =
-      ClientData;
-    return true;
+    const { nom_cour, description, reglement, genre } = ClientData;
+    if ((nom_cour, description, reglement, genre)) return true;
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          "https://fithouse.pythonanywhere.com/api/staff/"
-        );
-        const jsonData = await response.json();
-        // Create options for the staff Select
-        const staffOptionss = jsonData.data.map((staff) => ({
-          value: staff.id_employe, // Assuming staff has an 'id' property
-          label: staff.nom + " " + staff.prenom, // Assuming staff has a 'name' property
-        }));
-        setStaffOptions(staffOptionss);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   // Function to add a new chamber
   const addClient = async () => {
-    const check = contarctStaff.filter(
-      (staff) => staff.id_employe == ClientData.id_employe
-    );
-    console.log(check);
-    if (check.length > 0) {
-      message.warning("Ce membre du personnel a déjà un contrat.");
-      return false;
-    }
     // check in contra staf
     try {
       // Check if the form is valid before submitting
@@ -162,43 +108,30 @@ const TableContractStaff = () => {
         message.error("Please fill in all required fields for the chamber.");
         return;
       }
-      if (ClientData.date_fin == "") {
-        ClientData.date_fin = null;
-      }
-      // ClientData.date_fin = null;
 
       const response = await fetch(
-        "https://fithouse.pythonanywhere.com/api/contratstaff/",
+        "https://fithouse.pythonanywhere.com/api/cours/",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
           },
           body: JSON.stringify(ClientData),
         }
       );
       if (response.ok) {
         const res = await response.json();
-        if (res.msg == "Added Successfully!!e") {
-          message.success("Contarct added successfully");
+        if (res == "Added Successfully!!") {
+          message.success("Cour ajoutée avec succès");
           setAdd(Math.random() * 1000);
           setClientData({
-            id_employe: null,
-            date_debut: "",
-            date_fin: null,
-            type_contrat: "",
-            salaire: 0,
-            employe: "",
+            nom_cour: "",
+            description: "",
+            reglement: "",
+            genre: "",
             image: "",
           });
-          const id_staff = JSON.parse(localStorage.getItem("data"));
-          const res = await addNewTrace(
-            id_staff[0].id_employe,
-            "Ajout",
-            getCurrentDate(),
-            `${JSON.stringify(ClientData)}`,
-            "contart staff"
-          );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -221,19 +154,22 @@ const TableContractStaff = () => {
   const onCloseR = () => {
     setOpen1(false);
     setClientData({
-      id_employe: null,
-      date_debut: "",
-      date_fin: null,
-      type_contrat: "",
-      salaire: 0,
-      employe: "",
-      image: "",
+      nom_cour: "",
+      description: "",
+      reglement: "",
+      genre: "",
+      image: "cours/avatar.jpg",
     });
   };
 
   // Function to handle form submission in the room drawer
   const handleRoomSubmit = () => {
     addClient();
+  };
+
+  const handleViewDetails = (course) => {
+    setSelectedCourse(course);
+    setIsViewModalVisible(true);
   };
 
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
@@ -243,11 +179,11 @@ const TableContractStaff = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://fithouse.pythonanywhere.com/api/contratstaff/",
+          "https://fithouse.pythonanywhere.com/api/cours/",
           {
-            // headers: {
-            //   "Authorization": `Bearer ${authToken}`, // Include the auth token in the headers
-            // },
+            headers: {
+              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+            },
           }
         );
         const jsonData = await response.json();
@@ -255,7 +191,8 @@ const TableContractStaff = () => {
         // Ensure each row has a unique key
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id_contratStaff || index, // Assuming each item has a unique id, otherwise use index
+          key: item.id_cour || index, 
+          nom_cours: item.nom_cour, 
         }));
 
         setData(processedData);
@@ -263,24 +200,28 @@ const TableContractStaff = () => {
 
         // Generate columns based on the desired keys
         const desiredKeys = [
-          "employe",
-          "type_contrat",
-          "salaire",
-          "date_debut",
-          "date_fin",
+          "nom_cours",
+          "description",
+          "reglement",
+          "genre",
+          "",
         ];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
           dataIndex: key,
           key,
           render: (text, record) => {
-            if (
-              (key === "date_fin" && text == "2060-01-01") ||
-              (key === "date_fin" && text == null)
-            ) {
-              return <Tag>-</Tag>;
+            if (key === "description") {
+              return <div>{text}</div>;
             } else if (key === "date_inscription") {
               return <Tag>{text}</Tag>;
+            } else if (key === "") {
+              return (
+                <EyeOutlined
+                  onClick={() => handleViewDetails(record)}
+                  style={{ cursor: "pointer" }}
+                />
+              );
             }
             return text;
           },
@@ -306,7 +247,7 @@ const TableContractStaff = () => {
     const value = e.target.value.toLowerCase();
     setSearchText(value);
     const filtered = data.filter((item) =>
-      item.employe.toLowerCase().includes(value)
+      item.nom_cour.toLowerCase().includes(value)
     );
     setFilteredData(filtered);
   };
@@ -339,24 +280,16 @@ const TableContractStaff = () => {
     try {
       const values = await form.validateFields();
       const { PeriodeSalaire } = values;
-
-      // Check if date_naissance is not empty
-      if (!PeriodeSalaire) {
-        message.error("Veuillez entrer la date de naissance");
-        return;
-      }
-
-      // Add id_client to the values object
-
+      console.log(editingClient);
       const response = await fetch(
-        `https://fithouse.pythonanywhere.com/api/coach/`,
+        `https://fithouse.pythonanywhere.com/api/cours/`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify(values),
+          body: JSON.stringify({ ...values, id_cour: editingClient.id_cour }),
         }
       );
 
@@ -395,7 +328,7 @@ const TableContractStaff = () => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://fithouse.pythonanywhere.com/api/contratstaff/${clientToDelete.id_contratStaff}`,
+            `https://fithouse.pythonanywhere.com/api/cours/${clientToDelete.id_cour}`,
             {
               method: "DELETE",
               headers: {
@@ -407,16 +340,8 @@ const TableContractStaff = () => {
           );
 
           if (!response.ok) {
-            throw new Error(`Failed to delete contart staff with key ${key}`);
+            throw new Error(`Failed to delete client with key ${key}`);
           }
-          const id_staff = JSON.parse(localStorage.getItem("data"));
-          const res = await addNewTrace(
-            id_staff[0].id_employe,
-            "Supprimer",
-            getCurrentDate(),
-            `${JSON.stringify(clientToDelete)}`,
-            "contart staff"
-          );
         });
 
         await Promise.all(promises);
@@ -447,25 +372,44 @@ const TableContractStaff = () => {
 
   return (
     <div className="w-full p-2">
+      <Modal
+        title={`Details of ${selectedCourse?.nom_cour}`}
+        visible={isViewModalVisible}
+        onCancel={() => {
+          setIsViewModalVisible(false);
+          setSelectedCourse(null);
+        }}
+        footer={null}
+      >
+        {/* Display the details of the selected course here */}
+        <p><span className="font-medium">Description</span>: {selectedCourse?.description}</p>
+        <p>Reglement: {selectedCourse?.reglement}</p>
+        <p>Genre: {selectedCourse?.genre}</p>
+        {/* Add other details as needed */}
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
             <Input
               prefix={<SearchOutlined />}
-              placeholder="Search Contrat Staff"
+              placeholder="Search Cours"
               value={searchText}
               onChange={handleSearch}
             />
           </div>
-          <div className="flex items-center space-x-6">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
-              selectedRowKeys.length >= 1 ? (
+          {/* <div className="flex items-center space-x-6">
+            {selectedRowKeys.length === 1 ? (
+              <EditOutlined
+                className="cursor-pointer"
+                onClick={handleEditClick}
+              />
+            ) : (
+              ""
+            )}
+            {selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Supprimer le personnel de contact"
-                description="Etes-vous sûr de supprimer Contrat Staff"
+                title="Delete Contrat Staff"
+                description="Are you sure to delete this cour"
                 onConfirm={confirm}
                 onCancel={cancel}
                 okText="Yes"
@@ -476,35 +420,21 @@ const TableContractStaff = () => {
             ) : (
               ""
             )}
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&&
-              selectedRowKeys.length == 1 ? (
-              <PrinterOutlined onClick={handlePrint} disabled={true} />
-            ) : (
-              ""
-            )}
-          </div>
+          </div> */}
         </div>
-        {/* add new client  */}
+       {/*  add new client 
         <div>
           <div className="flex items-center space-x-3">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&& (
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<UserAddOutlined />}
-                >
-                  Ajoute Contrat Staff
-                </Button>
-              )}
+            <Button
+              type="default"
+              onClick={showDrawerR}
+              icon={<UserAddOutlined />}
+            >
+              Ajoute Cours
+            </Button>
           </div>
           <Drawer
-            title="Saisir un nouveau Contrat Staff"
+            title="Saisir un nouveau Cours"
             width={720}
             onClose={onCloseR}
             closeIcon={false}
@@ -518,59 +448,60 @@ const TableContractStaff = () => {
                 <div className="">
                   <div className="grid grid-cols-2 gap-4 mt-5">
                     <div>
+                      <div>*Nom cours</div>
+                      <Input
+                        value={ClientData.nom_cour}
+                        onChange={(value) =>
+                          setClientData({
+                            ...ClientData,
+                            nom_cour: value.target.value,
+                          })
+                        }
+                        placeholder="Nom cours"
+                      ></Input>
+                    </div>
+                    <div>
+                      <div>*Description</div>
+                      <Input
+                        value={ClientData.description}
+                        onChange={(value) =>
+                          setClientData({
+                            ...ClientData,
+                            description: value.target.value,
+                          })
+                        }
+                        placeholder="Description"
+                      ></Input>
+                    </div>
+                    <div>
+                      <div>*Reglement</div>
+                      <Input
+                        value={ClientData.reglement}
+                        onChange={(value) =>
+                          setClientData({
+                            ...ClientData,
+                            reglement: value.target.value,
+                          })
+                        }
+                        placeholder="Reglement"
+                      ></Input>
+                    </div>
+                    <div>
                       <label htmlFor="Année" className="block font-medium">
-                        *Staff
+                        *Genre
                       </label>
                       <Select
-                        id="Staff"
+                        id="Genre"
                         showSearch
-                        placeholder="Staff"
-                        value={ClientData.employe}
+                        placeholder="Genre"
+                        value={ClientData.genre}
                         className="w-full"
                         optionFilterProp="children"
                         onChange={(value, option) => {
                           setClientData({
                             ...ClientData,
-                            id_employe: value,
-                            employe: option.label,
+                            genre: value,
                           });
-                          ClientData.id_employe = value;
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={staffOptions}
-                      />{" "}
-                    </div>
-                    <div>
-                      <label htmlFor="Mois" className="block font-medium">
-                        {" "}
-                        * Type contrat{" "}
-                      </label>
-                      <Select
-                        id="mois"
-                        showSearch
-                        placeholder="Type contrat"
-                        className="w-full"
-                        value={ClientData.type_contrat}
-                        optionFilterProp="children"
-                        onChange={(value) => {
-                          if (value == "Anapec") {
-                            ClientData.date_fin = moment()
-                              .add(2, "years")
-                              .format("YYYY-MM-DD");
-                            ClientData.date_debut =
-                              moment().format("YYYY-MM-DD");
-                          } else {
-                            ClientData.date_fin = "";
-                            ClientData.date_debut = "";
-                          }
-                          setClientData({ ...ClientData, type_contrat: value });
                         }}
                         filterOption={(input, option) =>
                           (option?.label ?? "").startsWith(input)
@@ -581,59 +512,13 @@ const TableContractStaff = () => {
                             .localeCompare((optionB?.label ?? "").toLowerCase())
                         }
                         options={[
-                          { value: "CDD", label: "CDD" },
-                          { value: "CDI", label: "CDI" },
-                          { value: "Anapec", label: "Anapec" },
-                          { value: "vacataire", label: "vacataire" },
-                          { value: "Autre", label: "Autre" },
+                          { value: "Home", label: "Home" },
+                          { value: "Femme", label: "Femme" },
+                          { value: "Mixte", label: "Mixte" },
+                          { value: "Junior", label: "Junior" },
                         ]}
                       />
                     </div>
-                    <div>
-                      <div>*Montant</div>
-                      <Input
-                        value={ClientData.salaire}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            salaire: value.target.value,
-                          })
-                        }
-                        placeholder="Montant"
-                      ></Input>
-                    </div>
-                    <div>
-                      <div>*Date de debut</div>
-                      <Input
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            date_debut: value.target.value,
-                          })
-                        }
-                        value={ClientData.date_debut}
-                        type="date"
-                        placeholder="Montant"
-                      ></Input>
-                    </div>
-                    {ClientData.type_contrat == "CDI" ? (
-                      ""
-                    ) : (
-                      <div>
-                        <div>*Date de fine</div>
-                        <Input
-                          value={ClientData.date_fin}
-                          onChange={(value) =>
-                            setClientData({
-                              ...ClientData,
-                              date_fin: value.target.value,
-                            })
-                          }
-                          type="date"
-                          placeholder="Montant"
-                        ></Input>
-                      </div>
-                    )}
                   </div>
                 </div>
                 <Space className="mt-10">
@@ -647,7 +532,7 @@ const TableContractStaff = () => {
               </div>
             </div>
           </Drawer>
-        </div>
+        </div> */}
       </div>
       <Table
         loading={loading}
@@ -662,26 +547,35 @@ const TableContractStaff = () => {
         rowSelection={rowSelection}
       />
       <Modal
-        title="Edit Coach"
+        title="Edit Cours"
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
       >
         <div className="h-96 overflow-y-auto">
           <Form form={form} layout="vertical">
-            <Form.Item name="mois" label="mois">
-              <Input
-                type="date"
-                disabled
-                rules={[{ required: true, message: "mois" }]}
-              />
+            <Form.Item name="nom_cour" label="Nom cours">
+              <Input rules={[{ required: true, message: "Nom cours" }]} />
             </Form.Item>
-            <Form.Item name="Année" label="Année">
-              <Input
-                type="date"
-                disabled
-                rules={[{ required: true, message: "Année" }]}
-              />
+            <Form.Item name="description" label="description">
+              <Input rules={[{ required: true, message: "description" }]} />
+            </Form.Item>
+            <Form.Item name="reglement" label="reglement">
+              <Input rules={[{ required: true, message: "reglement" }]} />
+            </Form.Item>
+            <Form.Item
+              name="genre"
+              label="Genre"
+              rules={[
+                { required: true, message: "Gene selection is required" },
+              ]}
+            >
+              <Select placeholder="Select a gene">
+                <Option value="Home">Home</Option>
+                <Option value="Femme">Femme</Option>
+                <Option value="Mixte">Mixte</Option>
+                <Option value="Junior">Junior</Option>
+              </Select>
             </Form.Item>
           </Form>
         </div>
@@ -690,4 +584,4 @@ const TableContractStaff = () => {
   );
 };
 
-export default TableContractStaff;
+export default TableCoursCoachs;

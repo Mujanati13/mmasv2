@@ -24,7 +24,7 @@ function Dashboard() {
           <p className="font-normal text-sm">{JSON.parse(localStorage.getItem(`data`))[0].mail}</p>
           <p className="font-normal text-sm">{JSON.parse(localStorage.getItem(`data`))[0].login}</p>
         </div>
-        {JSON.parse(localStorage.getItem(`data`))[0].mail?<Tag style={{fontSize:14}} color="green">Coach</Tag>:<Tag style={{fontSize:14}} color="green">Admin</Tag>}
+        {JSON.parse(localStorage.getItem(`data`))[0].mail?<Tag style={{fontSize:14}} color="green">{JSON.parse(localStorage.getItem(`data`))[0].fonction}</Tag>:<Tag style={{fontSize:14}} color="green">Admin</Tag>}
       </div>
       <MenuPrime />
     </div>

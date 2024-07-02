@@ -23,6 +23,7 @@ import StepContent from "@mui/material/StepContent";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { handlePrintPayment } from "../../../utils/printable/payment";
+import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
 const TablePayemnt = () => {
   const [data, setData] = useState([]);
@@ -46,6 +47,9 @@ const TablePayemnt = () => {
   const [contarctClient, setcontarctClient] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedPaymentData, setSelectedPaymentData] = useState(null);
+  const [changedFields, setChangedFields] = useState([]);
+  const [isFormChanged, setIsFormChanged] = useState(false);
+
   // State for contract related data
   const [PaymentData, setPaymentData] = useState({
     id_contrat: null,
@@ -139,9 +143,17 @@ const TablePayemnt = () => {
       if (response.ok) {
         const res = await response.json();
         if (res.msg === "Added Successfully!!e") {
-          message.success("Payment added successfully");
+          message.success("Paiement ajouté avec succès");
           setAdd(Math.random() * 1000);
           onCloseR();
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(PaymentData)}`,
+            "paiement"
+          );
         } else {
           message.warning(res.msg);
           console.log(res);
@@ -617,6 +629,36 @@ const TablePayemnt = () => {
     console.log(e);
   };
 
+  const handleFormChange = (changedValues, allValues) => {
+    const formatFieldName = (name) => {
+      return name.replace("_", " ");
+    };
+
+    setChangedFields((prevFields) => {
+      const updatedFields = [...prevFields];
+      Object.keys(changedValues).forEach((key) => {
+        const newField = {
+          name: formatFieldName(key),
+          oldValue: editingClient[key], // Use editingClient instead of selectedRecord
+          newValue: changedValues[key],
+        };
+        const existingIndex = updatedFields.findIndex(
+          (field) => field.name === newField.name
+        );
+        if (existingIndex !== -1) {
+          // Update existing field
+          updatedFields[existingIndex] = newField;
+        } else {
+          // Add new field
+          updatedFields.push(newField);
+        }
+      });
+      return updatedFields;
+    });
+
+    setIsFormChanged(true);
+  };
+
   return (
     <div className="w-full p-2">
       <Modal
@@ -670,9 +712,14 @@ const TablePayemnt = () => {
                 <DeleteOutlined className="cursor-pointer" />{" "}
               </Popconfirm>
             ) : (
+
               ""
             )} */}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire")&&
+              selectedRowKeys.length >= 1 ? (
               <PrinterOutlined onClick={handlePrint} disabled={true} />
             ) : (
               ""
@@ -683,13 +730,18 @@ const TablePayemnt = () => {
         <div>
           <>
             <div className="flex items-center space-x-3">
-             {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&& <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<FileAddOutlined />}
-              >
-                Ajouter Paiement
-              </Button>}
+              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") && (
+                  <Button
+                    type="default"
+                    onClick={showDrawerR}
+                    icon={<FileAddOutlined />}
+                  >
+                    Ajouter Paiement
+                  </Button>
+                )}
             </div>
             <Drawer
               title="Saisir un nouveau Paiement"

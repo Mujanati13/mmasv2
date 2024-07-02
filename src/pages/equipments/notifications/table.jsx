@@ -30,7 +30,11 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import moment from "moment";
 import { handlePrintPayment } from "../../../utils/printable/payment";
-import { getCurrentDate, getCurrentTime } from "../../../utils/helper";
+import {
+  addNewTrace,
+  getCurrentDate,
+  getCurrentTime,
+} from "../../../utils/helper";
 import TextArea from "antd/es/input/TextArea";
 
 const TableNotification = () => {
@@ -60,6 +64,8 @@ const TableNotification = () => {
   const [selectedValues, setSelectedValues] = useState(["all"]);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [changedFields, setChangedFields] = useState([]);
+  const [isFormChanged, setIsFormChanged] = useState(false);
 
   // State for contract related data
   const [PaymentData, setPaymentData] = useState({
@@ -183,8 +189,12 @@ const TableNotification = () => {
 
   // Function to add a new contract
   const addContract = async () => {
-    const ii = localStorage.getItem("data");
-    PaymentData.id_admin = JSON.parse(ii)[0].id_admin;
+    const staff = JSON.parse(localStorage.getItem("data"));
+    PaymentData.id_admin = 4;
+    PaymentData.id_staff = staff[0].id_employe;
+    console.log("====================================");
+    console.log(staff[0].id_employe);
+    console.log("====================================");
     PaymentData.cible = selectedValues.toString();
 
     const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
@@ -234,6 +244,18 @@ const TableNotification = () => {
             } else {
               console.log(notificationData);
               message.success("Notification ajoutée avec succès");
+              setChangedFields([]);
+              const id_staff = JSON.parse(localStorage.getItem("data"));
+              const res = await addNewTrace(
+                id_staff[0].id_employe,
+                "Ajout",
+                getCurrentDate(),
+                `${JSON.stringify(notificationData)}`,
+                "notifications"
+              );
+              console.log("====================================");
+              console.log(res);
+              console.log("====================================");
             }
           }
           setAdd(Math.random() * 1000);
@@ -674,8 +696,11 @@ const TableNotification = () => {
           </div>
           <div className="flex items-center space-x-6">
             {selectedRowKeys.length === 1 ? "" : ""}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length >= 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire")&&
+              selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer le notification"
                 description="Êtes-vous sûr de supprimer ce notification ?"
@@ -689,8 +714,11 @@ const TableNotification = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length == 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+              selectedRowKeys.length == 1 ? (
               <EyeOutlined
                 style={{ cursor: "pointer" }}
                 onClick={() => {
@@ -703,8 +731,11 @@ const TableNotification = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length == 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire")&&
+              selectedRowKeys.length == 1 ? (
               <Tooltip title="dupliquer cette notification">
                 <img
                   className="cursor-pointer"
@@ -728,15 +759,18 @@ const TableNotification = () => {
         <div>
           <>
             <div className="flex items-center space-x-3">
-              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<FileAddOutlined />}
-                >
-                  Ajouter Notification
-                </Button>
-              )}
+              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire")&& (
+                  <Button
+                    type="default"
+                    onClick={showDrawerR}
+                    icon={<FileAddOutlined />}
+                  >
+                    Ajouter Notification
+                  </Button>
+                )}
             </div>
             <Drawer
               title="Saisir une nouvelle notification"

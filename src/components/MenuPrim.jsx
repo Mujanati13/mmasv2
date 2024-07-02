@@ -14,6 +14,7 @@ import {
   BookOutlined,
   FieldTimeOutlined,
   LogoutOutlined,
+  CopyOutlined,
 } from "@ant-design/icons";
 import { Menu } from "antd";
 import Etablisiment from "../pages/screens/etablisimment";
@@ -33,7 +34,10 @@ import Transication from "../pages/screens/transication";
 import Notification from "../pages/screens/notification";
 import Dashboard from "../pages/screens/dashboard";
 import { useNavigate } from "react-router-dom";
-
+import Record from "../pages/screens/record";
+import ReservationCoachs from "../pages/screens/reservationC";
+import CoursC from "../pages/screens/coursC";
+import SeanceCoach from "../pages/screens/seancC";
 const items = [
   {
     key: "1",
@@ -173,7 +177,7 @@ const items = [
   },
   {
     key: "40",
-    label: "Logout",
+    label: "Deconnexion",
     icon: <LogoutOutlined />,
     style: { marginTop: "auto" }, // This will push the logout button to the bottom
   },
@@ -197,7 +201,12 @@ const getLevelKeys = (items1) => {
 const levelKeys = getLevelKeys(items);
 
 const MenuPrime = () => {
-  const [selectedComponent, setSelectedComponent] = useState("12");
+  const [selectedComponent, setSelectedComponent] = useState(
+    JSON.parse(localStorage.getItem(`data`))[0].fonction == "Administration" ||
+      JSON.parse(localStorage.getItem("data"))[0].fonction == "secretaire"
+      ? "11"
+      : "36"
+  );
   const [stateOpenKeys, setStateOpenKeys] = useState(["1", "12"]);
   const navigate = useNavigate();
   const onOpenChange = (openKeys) => {
@@ -267,6 +276,14 @@ const MenuPrime = () => {
         return <Abonnement />;
       case "14":
         return <Transication />;
+      case "41":
+        return <Record />;
+      case "36":
+        return <ReservationCoachs />;
+      case "37":
+        return <CoursC />;
+      case "38":
+        return <SeanceCoach />;
       default:
         return null;
     }
@@ -284,154 +301,198 @@ const MenuPrime = () => {
         style={{
           width: 256,
         }}
-        items={[
-          {
-            key: "1",
-            label: "Gestion D'Etablissement",
-            icon: <HomeOutlined />,
-            children: [
-              {
-                key: "11",
-                label: "Etablissement",
-                icon: <HomeOutlined />,
-              },
-              {
-                key: "12",
-                label: "Dashboard",
-                icon: <PieChartOutlined />,
-              },
-              {
-                key: "13",
-                label: "Notification",
-                icon: <NotificationOutlined />,
-              },
-              {
-                key: "14",
-                label: "Transactions",
-                icon: <CreditCardOutlined />,
-              },
-              {
-                key: "18",
-                label: "Abonnements",
-                icon: (
-                  <img
-                    width="17"
-                    height="17"
-                    src="https://img.icons8.com/ios/50/video-playlist.png"
-                    alt="video-playlist"
-                  />
-                ),
-              },
-              {
-                key: "15",
-                label: "Gestion de cours",
-                icon: (
-                  <img
-                    width="17"
-                    height="17"
-                    src="https://img.icons8.com/material-outlined/24/books--v2.png"
-                    alt="books--v2"
-                  />
-                ),
-                children: [
-                  {
-                    key: "151",
-                    label: "Séance",
-                    icon: <ClockCircleOutlined />,
+        items={
+          JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+            "Administration" ||
+          JSON.parse(localStorage.getItem(`data`))[0].fonction == "secretaire"
+            ? [
+                {
+                  key: "1",
+                  label: "Gestion D'Etablissement",
+                  icon: <HomeOutlined />,
+                  children: [
+                    {
+                      key: "11",
+                      label: "Etablissement",
+                      icon: <HomeOutlined />,
+                    },
+                    {
+                      key: "12",
+                      label: "Dashboard",
+                      icon: <PieChartOutlined />,
+                    },
+                    {
+                      key: "13",
+                      label: "Notification",
+                      icon: <NotificationOutlined />,
+                    },
+                    {
+                      key: "14",
+                      label: "Transactions",
+                      icon: <CreditCardOutlined />,
+                    },
+                    {
+                      key: "18",
+                      label: "Abonnements",
+                      icon: (
+                        <img
+                          width="17"
+                          height="17"
+                          src="https://img.icons8.com/ios/50/video-playlist.png"
+                          alt="video-playlist"
+                        />
+                      ),
+                    },
+                    {
+                      key: "15",
+                      label: "Gestion de cours",
+                      icon: (
+                        <img
+                          width="17"
+                          height="17"
+                          src="https://img.icons8.com/material-outlined/24/books--v2.png"
+                          alt="books--v2"
+                        />
+                      ),
+                      children: [
+                        {
+                          key: "151",
+                          label: "Séance",
+                          icon: <ClockCircleOutlined />,
+                        },
+                        {
+                          key: "152",
+                          label: "Salle",
+                          icon: <LayoutOutlined />,
+                        },
+                        {
+                          key: "153",
+                          label: "Cours",
+                          icon: (
+                            <img
+                              width="17"
+                              height="17"
+                              src="https://img.icons8.com/ios/50/book--v1.png"
+                              alt="book--v1"
+                            />
+                          ),
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  key: "2",
+                  label: "Gestion des clients",
+                  icon: <AppstoreOutlined />,
+                  children: [
+                    {
+                      key: "21",
+                      label: "Clients",
+                      icon: <UserOutlined />,
+                    },
+                    {
+                      key: "22",
+                      label: "Contrats",
+                      icon: <ContactsOutlined />,
+                    },
+                    {
+                      key: "23",
+                      label: "Réservations",
+                      icon: <BookOutlined />,
+                    },
+                  ],
+                },
+                {
+                  key: "3",
+                  label: "Gestion du Personnel",
+                  icon: <UserOutlined />,
+                  children: [
+                    {
+                      key: "31",
+                      label: "Staff",
+                      icon: <UserOutlined />,
+                    },
+                    {
+                      key: "32",
+                      label: "Période",
+                      icon: <FieldTimeOutlined />,
+                    },
+                    {
+                      key: "33",
+                      label: "Paiement",
+                      icon: <FundOutlined />,
+                    },
+                    // {
+                    //   key: "34",
+                    //   label: "Coach",
+                    //   icon: (
+                    //     <img
+                    //       width="18"
+                    //       height="18"
+                    //       src="https://img.icons8.com/ink/48/coach.png"
+                    //       alt="coach"
+                    //     />
+                    //   ),
+                    // },
+                    {
+                      key: "35",
+                      label: "Contrat Staff",
+                      icon: <ReconciliationOutlined />,
+                    },
+                  ],
+                },
+                {
+                  key: "41",
+                  label: "Record",
+                  icon: <CopyOutlined />,
+                },
+                {
+                  key: "40",
+                  label: "Deconnexion",
+                  icon: <LogoutOutlined />,
+                  onClick: () => {
+                    localStorage.removeItem("jwtToken");
+                    navigate("/");
+                    console.log("Logging out");
                   },
-                  {
-                    key: "152",
-                    label: "Salle",
-                    icon: <LayoutOutlined />,
+                },
+              ]
+            : [
+                {
+                  key: "40",
+                  label: "Coachs",
+                  icon: <AppstoreOutlined />,
+                  children: [
+                    {
+                      key: "36",
+                      label: "Pointage",
+                      icon: <UserOutlined />,
+                    },
+                    {
+                      key: "37",
+                      label: "Cours",
+                      icon: <ContactsOutlined />,
+                    },
+                    {
+                      key: "38",
+                      label: "Séances",
+                      icon: <BookOutlined />,
+                    },
+                  ],
+                },
+                {
+                  key: "40",
+                  label: "Deconnexion",
+                  icon: <LogoutOutlined />,
+                  onClick: () => {
+                    localStorage.removeItem("jwtToken");
+                    navigate("/");
+                    console.log("Logging out");
                   },
-                  {
-                    key: "153",
-                    label: "Cours",
-                    icon: (
-                      <img
-                        width="17"
-                        height="17"
-                        src="https://img.icons8.com/ios/50/book--v1.png"
-                        alt="book--v1"
-                      />
-                    ),
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            key: "2",
-            label: "Gestion des clients",
-            icon: <AppstoreOutlined />,
-            children: [
-              {
-                key: "21",
-                label: "Clients",
-                icon: <UserOutlined />,
-              },
-              {
-                key: "22",
-                label: "Contrats",
-                icon: <ContactsOutlined />,
-              },
-              {
-                key: "23",
-                label: "Réservations",
-                icon: <BookOutlined />,
-              },
-            ],
-          },
-          {
-            key: "3",
-            label: "Gestion du Personnel",
-            icon: <UserOutlined />,
-            children: [
-              {
-                key: "31",
-                label: "Staff",
-                icon: <UserOutlined />,
-              },
-              {
-                key: "32",
-                label: "Période",
-                icon: <FieldTimeOutlined />,
-              },
-              {
-                key: "33",
-                label: "Paiement",
-                icon: <FundOutlined />,
-              },
-              {
-                key: "34",
-                label: "Coach",
-                icon: (
-                  <img
-                    width="18"
-                    height="18"
-                    src="https://img.icons8.com/ink/48/coach.png"
-                    alt="coach"
-                  />
-                ),
-              },
-              {
-                key: "35",
-                label: "Contrat Staff",
-                icon: <ReconciliationOutlined />,
-              },
-            ],
-          },
-          {
-            key: "40",
-            label: "Logout",
-            icon: <LogoutOutlined />,
-            onClick: () => {
-              localStorage.removeItem("jwtToken");
-              navigate("/");
-              console.log("Logging out");
-            },
-          },
-        ]}
+                },
+              ]
+        }
       />
       <div className="w-full">{renderComponent()}</div>
     </div>

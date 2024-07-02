@@ -21,6 +21,7 @@ import {
 } from "@ant-design/icons";
 import moment from "moment";
 import { handlePrintContractStaff } from "../../../utils/printable/contraStaff";
+import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
 const TableCours = () => {
   const [data, setData] = useState([]);
@@ -40,6 +41,8 @@ const TableCours = () => {
   const [contarctStaff, setcontarctStaff] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [changedFields, setChangedFields] = useState([]);
+  const [isFormChanged, setIsFormChanged] = useState(false);
 
   // State for room related data
   const [ClientData, setClientData] = useState({
@@ -132,6 +135,14 @@ const TableCours = () => {
             genre: "",
             image: "",
           });
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "cours"
+          );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -191,8 +202,8 @@ const TableCours = () => {
         // Ensure each row has a unique key
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id_cour || index, 
-          nom_cours: item.nom_cour, 
+          key: item.id_cour || index,
+          nom_cours: item.nom_cour,
         }));
 
         setData(processedData);
@@ -272,6 +283,7 @@ const TableCours = () => {
       );
       setEditingClient(clientToEdit);
       form.setFieldsValue(clientToEdit);
+      setChangedFields([]);
       setIsModalVisible(true);
     }
   };
@@ -302,6 +314,16 @@ const TableCours = () => {
         setData(updatedData);
         setFilteredData(updatedData);
         message.success("Client mis à jour avec succès");
+        const id_staff = JSON.parse(localStorage.getItem("data"));
+        const res = await addNewTrace(
+          id_staff[0].id_employe,
+          "Modification",
+          getCurrentDate(),
+          `${JSON.stringify(changedFields)}`,
+          "cours"
+        );
+        setChangedFields([]);
+        setIsFormChanged(false);
         setIsModalVisible(false);
         setEditingClient(null);
         setSelectedRowKeys([]);
@@ -312,13 +334,14 @@ const TableCours = () => {
       }
     } catch (error) {
       console.error("Error updating client:", error);
-      message.error("An error occurred while updating the client");
+      message.error("An error occurred while updating the cours");
     }
   };
 
   const handleModalCancel = () => {
     setIsModalVisible(false);
     setEditingClient(null);
+    setChangedFields([]);
   };
 
   const handleDelete = async () => {
@@ -342,6 +365,14 @@ const TableCours = () => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Supprimer",
+            getCurrentDate(),
+            `${JSON.stringify(clientToDelete)}`,
+            "cours"
+          );
         });
 
         await Promise.all(promises);
@@ -370,6 +401,36 @@ const TableCours = () => {
     console.log(e);
   };
 
+  const handleFormChange = (changedValues, allValues) => {
+    const formatFieldName = (name) => {
+      return name.replace("_", " ");
+    };
+
+    setChangedFields((prevFields) => {
+      const updatedFields = [...prevFields];
+      Object.keys(changedValues).forEach((key) => {
+        const newField = {
+          name: formatFieldName(key),
+          oldValue: editingClient[key], // Use editingClient instead of selectedRecord
+          newValue: changedValues[key],
+        };
+        const existingIndex = updatedFields.findIndex(
+          (field) => field.name === newField.name
+        );
+        if (existingIndex !== -1) {
+          // Update existing field
+          updatedFields[existingIndex] = newField;
+        } else {
+          // Add new field
+          updatedFields.push(newField);
+        }
+      });
+      return updatedFields;
+    });
+
+    setIsFormChanged(true);
+  };
+
   return (
     <div className="w-full p-2">
       <Modal
@@ -382,7 +443,10 @@ const TableCours = () => {
         footer={null}
       >
         {/* Display the details of the selected course here */}
-        <p><span className="font-medium">Description</span>: {selectedCourse?.description}</p>
+        <p>
+          <span className="font-medium">Description</span>:{" "}
+          {selectedCourse?.description}
+        </p>
         <p>Reglement: {selectedCourse?.reglement}</p>
         <p>Genre: {selectedCourse?.genre}</p>
         {/* Add other details as needed */}
@@ -398,7 +462,11 @@ const TableCours = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+              selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -406,10 +474,14 @@ const TableCours = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+              selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Delete Contrat Staff"
-                description="Are you sure to delete this cour"
+                title="Supprimer le cours"
+                description="Êtes-vous sûr de supprimer ce cours"
                 onConfirm={confirm}
                 onCancel={cancel}
                 okText="Yes"
@@ -425,13 +497,18 @@ const TableCours = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
-              type="default"
-              onClick={showDrawerR}
-              icon={<UserAddOutlined />}
-            >
-              Ajoute Cours
-            </Button>}
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire")&& (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajoute Cours
+                </Button>
+              )}
           </div>
           <Drawer
             title="Saisir un nouveau Cours"
@@ -512,7 +589,7 @@ const TableCours = () => {
                             .localeCompare((optionB?.label ?? "").toLowerCase())
                         }
                         options={[
-                          { value: "Home", label: "Home" },
+                          { value: "Homme", label: "Homme" },
                           { value: "Femme", label: "Femme" },
                           { value: "Mixte", label: "Mixte" },
                           { value: "Junior", label: "Junior" },
@@ -551,9 +628,12 @@ const TableCours = () => {
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
+        okButtonProps={{ disabled: !isFormChanged }}
+        okText="Soumettre"
+        cancelText="Annuler"
       >
         <div className="h-96 overflow-y-auto">
-          <Form form={form} layout="vertical">
+          <Form onValuesChange={handleFormChange} form={form} layout="vertical">
             <Form.Item name="nom_cour" label="Nom cours">
               <Input rules={[{ required: true, message: "Nom cours" }]} />
             </Form.Item>

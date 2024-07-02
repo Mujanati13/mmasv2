@@ -186,3 +186,73 @@ export const getCurrentTime = () => {
   const minutes = date.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 };
+
+export async function addNewTrace(
+  id_staff,
+  type_operation,
+  date_operation,
+  description,
+  cible
+) {
+  const url = "https://fithouse.pythonanywhere.com/api/trace/";
+
+  const data = {
+    id_staff: id_staff,
+    cible: cible,
+    type_operation: type_operation,
+    date_operation: date_operation,
+    description: description,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    Alert.alert("Error", error.message);
+    console.error("There was an error!", error);
+  }
+}
+
+export async function addNewTraceDetail(id_trace, name, old_value, new_value) {
+  const url = "https://fithouse.pythonanywhere.com/api/trace_details/";
+
+  const data = {
+    id_trace: id_trace,
+    name: name,
+    old_value: old_value,
+    new_value: new_value,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    Alert.alert("Success", "Trace detail added successfully!");
+    return responseData;
+  } catch (error) {
+    Alert.alert("Error", error.message);
+    console.error("There was an error!", error);
+  }
+}

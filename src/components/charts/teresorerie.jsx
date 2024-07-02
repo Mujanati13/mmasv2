@@ -37,7 +37,7 @@ function Teresorerie() {
       const result = await response.json();
       setData(result.data);
     } catch (error) {
-      message.error("Failed to fetch data");
+      message.error("Échec de la récupération des données");
     } finally {
       setLoading(false);
     }
@@ -47,13 +47,16 @@ function Teresorerie() {
     handleDateChange([defaultStartDate, defaultEndDate]); // Pass array instead of object
   }, []); // Run only once on component mount
 
+  const hasPermission = () => {
+    const userData = JSON.parse(localStorage.getItem("data"));
+    return userData && userData[0].fonction === "Administration";
+  };
+
   return (
     <div className="w-[55%] h-60 bg-white shadow-sm rounded-md p-4">
       <div className="flex items-center justify-between">
-        <div className="font-medium">Teresorerie</div>
-        <RangePicker
-          onChange={handleDateChange}
-        />
+        <div className="font-medium">Trésorerie</div>
+        <RangePicker onChange={handleDateChange} />
       </div>
       <div className="w-full mt-5 flex items-center justify-between">
         <div className="w-40 h-40 bg-green-50 rounded-md p-3">
@@ -64,18 +67,34 @@ function Teresorerie() {
             <div className="text-sm font-normal">Recette</div>
           </div>
           <div className="font-medium mt-5">
-            {data ? `${data.solde_recette} MAD` : "Loading..."}
+            {data ? (
+              hasPermission() ? (
+                `${data.solde_recette} MAD`
+              ) : (
+                <div className="text-sm">Vous n'avez pas la permission de voir ceci</div>
+              )
+            ) : (
+              "Chargement..."
+            )}
           </div>
         </div>
         <div className="w-40 h-40 bg-red-50 rounded-md p-3">
           <div className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-full bg-red-200 flex justify-center ">
-              <DotChartOutlined />{" "}
+              <DotChartOutlined />
             </div>
-            <div className="text-sm font-normal">Depenses</div>
+            <div className="text-sm font-normal">Dépenses</div>
           </div>
           <div className="font-medium mt-5">
-            {data ? `${data.solde_peroid} MAD` : "Loading..."}
+            {data ? (
+              hasPermission() ? (
+                `${data.solde_peroid} MAD`
+              ) : (
+                <div className="text-sm">Vous n'avez pas la permission de voir ceci</div>
+              )
+            ) : (
+              "Chargement..."
+            )}
           </div>
         </div>
         <div className="w-40 h-40 bg-purple-50 rounded-md p-3">
@@ -83,11 +102,19 @@ function Teresorerie() {
             <div className="h-8 w-8 rounded-full bg-purple-200 flex justify-center ">
               <LineChartOutlined />
             </div>
+            <div className="text-sm font-normal">Solde période</div>
           </div>
           <div className="font-medium mt-5">
-            {data ? `${data.solde_recette} MAD` : "Loading..."}
+            {data ? (
+              hasPermission() ? (
+                `${data.solde_recette} MAD`
+              ) : (
+                <div className="text-sm">Vous n'avez pas la permission de voir ceci</div>
+              )
+            ) : (
+              "Chargement..."
+            )}
           </div>
-          <div className="text-sm font-normal mt-5">Solde de la periode</div>
         </div>
       </div>
     </div>

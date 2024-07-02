@@ -23,6 +23,7 @@ import {
   PlusOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
+import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
 const TableAbonnement = () => {
   const [data1, setData1] = useState([]);
@@ -53,6 +54,9 @@ const TableAbonnement = () => {
   const [showCategorieModal, setShowCategorieModal] = useState(false);
   const [selectedAbonnement, setSelectedAbonnement] = useState(null);
   const [selectedCategorie, setSelectedCategorie] = useState(null);
+  const [changedFields, setChangedFields] = useState([]);
+  const [isFormChanged, setIsFormChanged] = useState(false);
+
   // State for room related data
   const [ClientData, setClientData] = useState({
     type_abonnement: "",
@@ -168,6 +172,14 @@ const TableAbonnement = () => {
               namecat_conrat: "",
               duree_mois: null,
             });
+            const id_staff = JSON.parse(localStorage.getItem("data"));
+            const res = await addNewTrace(
+              id_staff[0].id_employe,
+              "Ajout",
+              getCurrentDate(),
+              `${JSON.stringify(ClientData)}`,
+              "abonnements"
+            );
             onCloseR();
           } else {
             message.warning(res.msg);
@@ -187,8 +199,10 @@ const TableAbonnement = () => {
   };
 
   const addCtegeries = async () => {
-    if(CategoireData.duree_mois >= 12){
-      message.warning("La durée doit être saisie comme étant de 12 mois ou moins")
+    if (CategoireData.duree_mois >= 12) {
+      message.warning(
+        "La durée doit être saisie comme étant de 12 mois ou moins"
+      );
     }
     try {
       const response = await fetch(
@@ -416,6 +430,7 @@ const TableAbonnement = () => {
       setEditingClient(clientToEdit);
       form.setFieldsValue(clientToEdit);
       setIsModalVisible(true);
+      setChangedFields([]);
     }
   };
 
@@ -443,6 +458,20 @@ const TableAbonnement = () => {
       if (response.ok) {
         const updatedClient = await response.json();
         if (updatedClient == "Upadated Successfully!!") {
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Modification",
+            getCurrentDate(),
+            `${JSON.stringify(changedFields)}`,
+            "abonnements"
+          );
+          console.log("====================================");
+          console.log(res);
+          console.log("====================================");
+          setChangedFields([]);
+          setIsFormChanged(false);
+
           const updatedData = data.map((client) =>
             client.key === editingClient.key ? updatedClient : client
           );
@@ -463,7 +492,6 @@ const TableAbonnement = () => {
       }
     } catch (error) {
       console.error("Error updating client:", error);
-      message.error("An error occurred while updating the client");
     }
   };
 
@@ -528,10 +556,13 @@ const TableAbonnement = () => {
   const handleModalCancel = () => {
     setIsModalVisible(false);
     setEditingClient(null);
+    setChangedFields([]);
+    setIsFormChanged(false)
   };
   const handleModalCancel1 = () => {
     setIsModalVisible1(false);
     setEditingClient(null);
+    setChangedFields([]);
   };
 
   const handleDelete = async () => {
@@ -555,6 +586,14 @@ const TableAbonnement = () => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Supprimer",
+            getCurrentDate(),
+            `${JSON.stringify(clientToDelete)}`,
+            "abonnements"
+          );
         });
 
         await Promise.all(promises);
@@ -565,12 +604,13 @@ const TableAbonnement = () => {
         setData(updatedData);
         setFilteredData(updatedData);
         setSelectedRowKeys([]);
+
         message.success(
           `${selectedRowKeys.length} abonnement(s) supprimé(s) avec succès`
         );
       } catch (error) {
         console.error("Error deleting clients:", error);
-        message.error("An error occurred while deleting clients");
+        message.error("An error occurred while deleting abonnements");
       }
     }
   };
@@ -628,6 +668,36 @@ const TableAbonnement = () => {
     console.log(e);
   };
 
+  const handleFormChange = (changedValues, allValues) => {
+    const formatFieldName = (name) => {
+      return name.replace("_", " ");
+    };
+
+    setChangedFields((prevFields) => {
+      const updatedFields = [...prevFields];
+      Object.keys(changedValues).forEach((key) => {
+        const newField = {
+          name: formatFieldName(key),
+          oldValue: editingClient[key], // Use editingClient instead of selectedRecord
+          newValue: changedValues[key],
+        };
+        const existingIndex = updatedFields.findIndex(
+          (field) => field.name === newField.name
+        );
+        if (existingIndex !== -1) {
+          // Update existing field
+          updatedFields[existingIndex] = newField;
+        } else {
+          // Add new field
+          updatedFields.push(newField);
+        }
+      });
+      return updatedFields;
+    });
+
+    setIsFormChanged(true);
+  };
+
   return (
     <div className="w-full p-2">
       <AbonnementDetailsModal
@@ -658,7 +728,8 @@ const TableAbonnement = () => {
             />
           </div>
           <div className="flex items-center space-x-6">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -666,7 +737,8 @@ const TableAbonnement = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length >= 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer l'abonnement"
                 description="Êtes-vous sûr de supprimer cet abonnement"
@@ -680,7 +752,8 @@ const TableAbonnement = () => {
             ) : (
               ""
             )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&selectedRowKeys.length === 1 ? (
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+            selectedRowKeys.length === 1 ? (
               <div className="flex items-center space-x-4">
                 <EyeOutlined
                   style={{ cursor: "pointer" }}
@@ -701,20 +774,24 @@ const TableAbonnement = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
-              type="default"
-              onClick={showDrawerR}
-              icon={<UserAddOutlined />}
-            >
-              Ajout abonnement
-            </Button>}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach&&<Button
-              type="default"
-              onClick={showDrawerC}
-              icon={<BorderOuterOutlined />}
-            >
-              Type d'abonnement
-            </Button>}
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajout abonnement
+              </Button>
+            )}
+            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+              <Button
+                type="default"
+                onClick={showDrawerC}
+                icon={<BorderOuterOutlined />}
+              >
+                Type d'abonnement
+              </Button>
+            )}
           </div>
           <Drawer
             title="Saisir un nouveau abonnement"
@@ -950,9 +1027,12 @@ const TableAbonnement = () => {
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
+        okButtonProps={{ disabled: !isFormChanged }}
+        okText="Soumettre"
+        cancelText="Annuler"
       >
         <div className="h-96 overflow-y-auto">
-          <Form form={form} layout="vertical">
+          <Form form={form} onValuesChange={handleFormChange} layout="vertical">
             <Form.Item name="type_abonnement" label="Type abonnement">
               <Input rules={[{ required: true, message: "Nom salle" }]} />
             </Form.Item>
