@@ -58,6 +58,7 @@ const transformReservations = (reservations) => {
     coach: reservation.coach,
     allDay: false,
     resource: reservation.salle,
+    day: reservation.day_name
   }));
 };
 
@@ -78,6 +79,8 @@ export const TableReservationCoachs = () => {
   const [isAbsenceModalVisible, setIsAbsenceModalVisible] = useState(false);
   const [selectedAbsentClient, setSelectedAbsentClient] = useState(null);
   const [absenceReason, setAbsenceReason] = useState("");
+  const [presenceData, setPresenceData] = useState([]);
+  const [absenceReasons, setAbsenceReasons] = useState({});
   const [ReservationData, setReservationData] = useState({
     id_client: null,
     id_seance: null,
@@ -94,11 +97,22 @@ export const TableReservationCoachs = () => {
     } else {
       setClientPresence((prev) => ({ ...prev, [clientId]: checked }));
       await updateClientPresence(clientId, checked);
+      // Clear absence reason when marked as present
+      setevent((prev) =>
+        prev.map((item) =>
+          item.key === clientId ? { ...item, absenceReason: "" } : item
+        )
+      );
     }
   };
   const handleAbsenceReasonSubmit = async () => {
     setClientPresence((prev) => ({ ...prev, [selectedAbsentClient]: false }));
     await updateClientPresence(selectedAbsentClient, false, absenceReason);
+    setevent((prev) =>
+      prev.map((item) =>
+        item.key === selectedAbsentClient ? { ...item, absenceReason } : item
+      )
+    );
     setIsAbsenceModalVisible(false);
     setAbsenceReason("");
     setSelectedAbsentClient(null);
@@ -288,19 +302,26 @@ export const TableReservationCoachs = () => {
     console.log("====================================");
     const authToken = localStorage.getItem("jwtToken");
     try {
-      const response = await fetch(
-        `https://fithouse.pythonanywhere.com/api/Etudiant_by_resevation?id_seance=${e.id_seance}`,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-      const data = await response.json();
-      console.log(data); // You can handle the fetched client data here
-      setSelectedEventIdSeance(data.data);
+      const [clientResponse, presenceResponse] = await Promise.all([
+        fetch(
+          `https://fithouse.pythonanywhere.com/api/Etudiant_by_resevation?id_seance=${e.id_seance}`,
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        ),
+        fetchPresenceData(e.id_seance, formatDateToYearMonthDay(e.start)),
+      ]);
+
+      const clientData = await clientResponse.json();
+      const presenceData = await presenceResponse;
+
+      console.log(clientData);
+      setSelectedEventIdSeance(clientData.data);
+      setPresenceData(presenceData);
     } catch (error) {
-      console.error("Error fetching client data:", error);
+      console.error("Error fetching data:", error);
     }
   };
 
@@ -315,14 +336,32 @@ export const TableReservationCoachs = () => {
   };
 
   useEffect(() => {
-    const dataSource = selectedEventIdSeance.map((obj) => ({
-      key: obj.id_client, // or any unique identifier
-      fullName: `${obj.nom_client} ${obj.prenom_client}`,
-      mail: obj.mail,
-      presence: "",
-    }));
+    const dataSource = selectedEventIdSeance.map((obj) => {
+      const presenceInfo =
+        presenceData.find((p) => p.id_etd === obj.id_client) || {};
+      return {
+        key: obj.id_client,
+        fullName: `${obj.nom_client} ${obj.prenom_client}`,
+        mail: obj.mail,
+        presence: presenceInfo.presence || false,
+        absenceReason: presenceInfo.motif_annulation || "",
+      };
+    });
     setevent(dataSource);
-  }, [selectedEventIdSeance]);
+  }, [selectedEventIdSeance, presenceData]);
+
+  const fetchPresenceData = async (id_seance, date_presence) => {
+    try {
+      const response = await fetch(
+        `https://fithouse.pythonanywhere.com/api/presences_etds/?id_seance=${id_seance}&date_presence=${date_presence}`
+      );
+      const data = await response.json();
+      return data.data;
+    } catch (error) {
+      console.error("Error fetching presence data:", error);
+      return [];
+    }
+  };
 
   return (
     <div className="w-full p-2">
@@ -347,151 +386,6 @@ export const TableReservationCoachs = () => {
         <div className=" w-52">
           <Input prefix={<SearchOutlined />} placeholder="Search Reservation" />
         </div>
-        {/*  <div>
-          <>
-            <div className="flex items-center space-x-3">
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<FileAddOutlined />}
-              >
-                Ajouter Réservation
-              </Button>
-            </div>
-            <Drawer
-              title="Saisir une nouvelle réservation"
-              // width={720}
-              size="default"
-              onClose={onCloseR}
-              closeIcon={false}
-              open={open1}
-              bodyStyle={{
-                paddingBottom: 80,
-              }}
-            >
-              <div>
-                <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                  <div className="">
-                    <div className="grid grid-cols-2 gap-4 mt-5">
-                      <div className="flex flex-col">
-                        <label htmlFor="">Client</label>
-                        <Select
-                          className="w-full"
-                          showSearch
-                          onChange={(value) => {
-                            setReservationData({
-                              ...ReservationData,
-                              id_client: value,
-                            });
-                            fetchSeance(value, ReservationData.cour);
-                          }}
-                          placeholder="Client"
-                          optionFilterProp="children"
-                          filterOption={(input, option) =>
-                            (option?.label ?? "").includes(input)
-                          }
-                          filterSort={(optionA, optionB) =>
-                            (optionA?.label ?? "")
-                              .toLowerCase()
-                              .localeCompare(
-                                (optionB?.label ?? "").toLowerCase()
-                              )
-                          }
-                          options={clients.map((client) => ({
-                            value: client.id_client,
-                            label: `${client.nom_client} ${client.prenom_client}`,
-                          }))}
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <label htmlFor="">Cours</label>
-                        <Select
-                          className="w-full"
-                          showSearch
-                          onChange={(value) => {
-                            setReservationData({
-                              ...ReservationData,
-                              cour: value,
-                            });
-                            fetchSeance(ReservationData.id_client, value);
-                          }}
-                          placeholder="Cours"
-                          optionFilterProp="children"
-                          filterOption={(input, option) =>
-                            (option?.label ?? "").includes(input)
-                          }
-                          filterSort={(optionA, optionB) =>
-                            (optionA?.label ?? "")
-                              .toLowerCase()
-                              .localeCompare(
-                                (optionB?.label ?? "").toLowerCase()
-                              )
-                          }
-                          options={Cour.map((cour) => ({
-                            value: cour.id_cour,
-                            label: `${cour.nom_cour}`,
-                          }))}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col mt-5">
-                      <label htmlFor="">Seance</label>
-                      <Select
-                        className="w-full"
-                        showSearch
-                        disabled={Seance.length <= 0}
-                        onChange={(value) => {
-                          const selectedSeance = Seance.find(
-                            (seance) => seance.id_seance === value
-                          );
-                          setSelectedSeance(selectedSeance);
-                          setReservationData({
-                            ...ReservationData,
-                            id_seance: value,
-                          });
-                        }}
-                        placeholder="Seance"
-                        optionFilterProp="children"
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").includes(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={Seance.map((seance) => ({
-                          value: seance.id_seance,
-                          label: `${seance.cour} ${seance.day_name} ${seance.heure_debut} ${seance.heure_fin}`,
-                        }))}
-                      />
-                    </div>
-                    <div className="mt-5">
-                      <label htmlFor="">Creneau</label>
-                      <input
-                        disabled={true}
-                        className="w-full"
-                        value={selectedSeance.date_reservation}
-                      />
-                    </div>
-                    <div>
-                      Du {selectedSeance.heure_debut} à{" "}
-                      {selectedSeance.heure_fin}
-                    </div>
-                  </div>
-                  <Space className="mt-10">
-                    <Button danger onClick={onCloseR}>
-                      Annuler
-                    </Button>
-                    <Button onClick={handleReservationSubmit} type="default">
-                      Enregistrer
-                    </Button>
-                  </Space>
-                </div>
-              </div>
-            </Drawer>
-          </>
-        </div> */}
       </div>
       <div className="mt-5">
         <Calendar
@@ -560,6 +454,7 @@ export const TableReservationCoachs = () => {
         visible={isModalVisible}
         onOk={handleModalCancel}
         onCancel={handleModalCancel}
+        footer={[]}
       >
         <div className="h-96 overflow-y-auto mt-10">
           <div>
@@ -580,6 +475,10 @@ export const TableReservationCoachs = () => {
           <div>
             <span className="font-medium">Salle</span>:{" "}
             {SeancInfos.resource && SeancInfos.resource}
+          </div>
+          <div>
+            <span className="font-medium">Jour</span>:{" "}
+            {SeancInfos.day && SeancInfos.day}
           </div>
 
           <div className="h-96 overflow-y-auto mt-10">
@@ -603,24 +502,27 @@ export const TableReservationCoachs = () => {
                   render: (_, record) => (
                     <div>
                       <Switch
-                        checked={clientPresence[record.key] || false}
+                        checked={clientPresence[record.key] || record.presence}
                         onChange={(checked) =>
                           handlePresenceChange(checked, record.key)
                         }
                       />
-                      {!clientPresence[record.key] && (
-                        <span className="ml-2 text-red-500">
-                          {record.absenceReason || "Absente"}
-                        </span>
-                      )}
                     </div>
                   ),
+                },
+                {
+                  title: "Motif d'absence",
+                  dataIndex: "absenceReason",
+                  key: "absenceReason",
+                  render: (text, record) =>
+                    !clientPresence[record.key] && !record.presence
+                      ? text
+                      : "-",
                 },
               ]}
               dataSource={event}
               pagination={false}
               bordered
-              // style={{ height: "400px", overflowY: "auto" }}
               size="small"
             />
           </div>

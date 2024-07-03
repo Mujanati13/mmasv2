@@ -125,6 +125,10 @@ const TableSeance = () => {
   const [display, setDisplay] = useState(true);
   const [displayValue, setDisplayValue] = useState("Tableau");
   const id_staff = JSON.parse(localStorage.getItem("data"));
+  const [disableSalleCoach, setDisableSalleCoach] = useState(true);
+  const [occupiedSessions, setOccupiedSessions] = useState([]);
+  const [availableSalles, setAvailableSalles] = useState([]);
+  const [availableCoaches, setAvailableCoaches] = useState([]);
   // State for room related data
   const [ClientData, setClientData] = useState({
     id_cour: null,
@@ -187,37 +191,40 @@ const TableSeance = () => {
     return endTime > startTime;
   };
 
-  const updateAvailableOptions = (unavailableCoaches, unavailableRooms) => {
-    const availableCoaches = Coach.filter(coach => !unavailableCoaches.includes(coach.value));
-    const availableRooms = Salle.filter(room => !unavailableRooms.includes(room.value));
-    
-    setCoach(availableCoaches);
-    setSalle(availableRooms);
-  };
+  const checkAndFetchAvailability = async () => {
+    if (ClientData.jour && ClientData.heure_debut && ClientData.heure_fin) {
+      try {
+        const response = await fetch(
+          `https://fithouse.pythonanywhere.com/api/sallesProfnondispo/?jour=${ClientData.jour}&heur_debut=${ClientData.heure_debut}&heur_fin=${ClientData.heure_fin}`,
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        const data = await response.json();
+        setOccupiedSessions(data.data);
 
-  const checkAvailability = async (jour, heure_debut, heure_fin) => {
-    const authToken = localStorage.getItem("jwtToken");
-    try {
-      const response = await fetch(
-        `https://fithouse.pythonanywhere.com/api/sallesProfnondispo/?jour=${jour}&heur_debut=${heure_debut}&heur_fin=${heure_fin}`,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch availability data');
+        // Filter available salles and coaches
+        const availableSalles = Salle.filter(
+          (salle) =>
+            !data.data.some((session) => session.id_salle === salle.value)
+        );
+
+        const availableCoaches = Coach.filter(
+          (coach) =>
+            !data.data.some((session) => session.id_coach === coach.value)
+        );
+
+        // Update the state with available salles and coaches
+        setAvailableSalles(availableSalles);
+        setAvailableCoaches(availableCoaches);
+        setDisableSalleCoach(false);
+      } catch (error) {
+        console.error("Error fetching availability:", error);
       }
-      const data = await response.json();
-      const unavailableCoaches = data.data.map(seance => seance.id_coach);
-      const unavailableRooms = data.data.map(seance => seance.id_salle);
-      return { unavailableCoaches, unavailableRooms };
-    
-    } catch (error) {
-      console.error("Error checking availability:", error);
-      message.error("An error occurred while checking availability");
-      return null;
+    } else {
+      setDisableSalleCoach(true);
     }
   };
 
@@ -235,78 +242,60 @@ const TableSeance = () => {
         message.warning("L'heure de fin doit être après l'heure de début");
         return;
       }
-
-      const availabilityData = await checkAvailability(
-        ClientData.jour,
-        ClientData.heure_debut,
-        ClientData.heure_fin
+      const id_staff = JSON.parse(localStorage.getItem("data"));
+      // ClientData.id_coach = id_staff[0].id_employe
+      console.log("====================================");
+      console.log(ClientData.id_coach);
+      console.log("====================================");
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/seance/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          },
+          body: JSON.stringify(ClientData),
+        }
       );
-    
-      if (availabilityData) {
-        const { unavailableCoaches, unavailableRooms } = availabilityData;
-    
-        // Update available options
-        updateAvailableOptions(unavailableCoaches, unavailableRooms);
-    
-        if (unavailableCoaches.includes(ClientData.id_coach)) {
-          message.warning("Le coach sélectionné n'est pas disponible à cette heure");
-          return;
+      if (response.ok) {
+        const res = await response.json();
+        if (res.msg == "Added successfully!!") {
+          message.success("Séance ajoutée avec succès");
+          setAdd(Math.random() * 1000);
+          setClientData({
+            id_cour: null,
+            id_coach: null,
+            id_salle: null,
+            capacity: null,
+            jour: null,
+            heure_debut: null,
+            heure_fin: null,
+            cour: "",
+            coach: "",
+            salle: "",
+            genre: "",
+            day_name: "",
+            date_reservation: getCurrentDate(),
+            nb_reservations: 0,
+          });
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "seance"
+          );
+          onCloseR();
+        } else {
+          message.warning(res.msg);
+          console.log(res);
         }
-    
-        if (unavailableRooms.includes(ClientData.id_salle)) {
-          message.warning("La salle sélectionnée n'est pas disponible à cette heure");
-          return;
-        }
+      } else {
+        console.log(response);
+        message.error("Error adding Seance");
       }
-      // const response = await fetch(
-      //   "https://fithouse.pythonanywhere.com/api/seance/",
-      //   {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //       Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-      //     },
-      //     body: JSON.stringify(ClientData),
-      //   }
-      // );
-      // if (response.ok) {
-      //   const res = await response.json();
-      //   if (res.msg == "Added successfully!!") {
-      //     message.success("Séance ajoutée avec succès");
-      //     setAdd(Math.random() * 1000);
-      //     setClientData({
-      //       id_cour: null,
-      //       id_coach: null,
-      //       id_salle: null,
-      //       capacity: null,
-      //       jour: null,
-      //       heure_debut: null,
-      //       heure_fin: null,
-      //       cour: "",
-      //       coach: "",
-      //       salle: "",
-      //       genre: "",
-      //       day_name: "",
-      //       date_reservation: getCurrentDate(),
-      //       nb_reservations: 0,
-      //     });
-      //     const id_staff = JSON.parse(localStorage.getItem("data"));
-      //     const res = await addNewTrace(
-      //       id_staff[0].id_employe,
-      //       "Ajout",
-      //       getCurrentDate(),
-      //       `${JSON.stringify(ClientData)}`,
-      //       "seance"
-      //     );
-      //     onCloseR();
-      //   } else {
-      //     message.warning(res.msg);
-      //     console.log(res);
-      //   }
-      // } else {
-      //   console.log(response);
-      //   message.error("Error adding Seance");
-      // }
     } catch (error) {
       console.log(error);
       message.error("An error occurred:", error);
@@ -335,6 +324,7 @@ const TableSeance = () => {
       date_reservation: getCurrentDate(),
       nb_reservations: 0,
     });
+    setDisableSalleCoach(true);
   };
 
   // Function to handle form submission in the room drawer
@@ -805,7 +795,7 @@ const TableSeance = () => {
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                 "secretaire") &&
-              selectedRowKeys.length === 1 ? (
+            selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -817,7 +807,7 @@ const TableSeance = () => {
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                 "secretaire") &&
-              selectedRowKeys.length >= 1 ? (
+            selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer la séance"
                 description="Êtes-vous sûr de supprimer cette séance ?"
@@ -844,8 +834,8 @@ const TableSeance = () => {
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&&
-              display ? (
+                "secretaire") &&
+            display ? (
               <Button
                 type="default"
                 onClick={showDrawerR}
@@ -926,68 +916,6 @@ const TableSeance = () => {
                     </div>
                     <div>
                       <label htmlFor="civilite" className="block font-medium">
-                        *Salle
-                      </label>
-                      <Select
-                        id="Salle"
-                        value={ClientData.salle}
-                        showSearch
-                        placeholder="Salle"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, option) => {
-                          const sale = SalleDetils.filter(
-                            (sal) => sal.id_salle === value
-                          );
-                          ClientData.capacity = sale[0].capacity;
-                          setClientData({
-                            ...ClientData,
-                            id_salle: value,
-                            salle: option.label,
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={Salle}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="civilite" className="block font-medium">
-                        *Coach
-                      </label>
-                      <Select
-                        id="Coach"
-                        showSearch
-                        placeholder="Coach"
-                        className="w-full"
-                        value={ClientData.coach}
-                        optionFilterProp="children"
-                        onChange={(value, option) =>
-                          setClientData({
-                            ...ClientData,
-                            id_coach: value,
-                            coach: option.label,
-                          })
-                        }
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={Coach}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="civilite" className="block font-medium">
                         *Jour de la semaine
                       </label>
                       <Select
@@ -997,13 +925,14 @@ const TableSeance = () => {
                         placeholder="Jour de la semaine "
                         className="w-full"
                         optionFilterProp="children"
-                        onChange={(value, option) =>
+                        onChange={(value, option) => {
                           setClientData({
                             ...ClientData,
-                            jour: value,
+                            jour: parseInt(value),
                             day_name: option.label,
-                          })
-                        }
+                          });
+                          checkAndFetchAvailability();
+                        }}
                         filterOption={(input, option) =>
                           (option?.label ?? "").startsWith(input)
                         }
@@ -1031,6 +960,7 @@ const TableSeance = () => {
                               ...ClientData,
                               heure_debut: selectedTime,
                             });
+                            checkAndFetchAvailability();
                           }}
                         />
                       </div>
@@ -1048,9 +978,68 @@ const TableSeance = () => {
                               ...ClientData,
                               heure_fin: selectedTime,
                             });
+                            checkAndFetchAvailability();
                           }}
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label htmlFor="civilite" className="block font-medium">
+                        *Salle
+                      </label>
+                      <Select
+                        id="Salle"
+                        value={ClientData.salle}
+                        showSearch
+                        placeholder="Salle"
+                        className="w-full"
+                        optionFilterProp="children"
+                        disabled={disableSalleCoach}
+                        onChange={(value, option) => {
+                          const sale = SalleDetils.filter(
+                            (sal) => sal.id_salle === value
+                          );
+                          ClientData.capacity = sale[0].capacity;
+                          setClientData({
+                            ...ClientData,
+                            id_salle: value,
+                            salle: option.label,
+                          });
+                        }}
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        options={disableSalleCoach ? [] : availableSalles}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="civilite" className="block font-medium">
+                        *Coach
+                      </label>
+                      <Select
+                        id="Coach"
+                        showSearch
+                        placeholder="Coach"
+                        className="w-full"
+                        value={ClientData.coach}
+                        optionFilterProp="children"
+                        disabled={disableSalleCoach}
+                        onChange={(value, option) =>
+                          setClientData({
+                            ...ClientData,
+                            id_coach: value,
+                            coach: option.label,
+                          })
+                        }
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        options={disableSalleCoach ? [] : availableCoaches}
+                      />
                     </div>
                     <div>
                       <label>Capacity</label>
