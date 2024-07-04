@@ -357,7 +357,7 @@ const TableRecord = () => {
   return (
     <div className="w-full p-2">
       <Modal
-        title="Description Détails"
+        title="Détails de opération"
         visible={isDescriptionModalVisible}
         onCancel={handleDescriptionModalCancel}
         footer={null}
@@ -375,7 +375,18 @@ const TableRecord = () => {
                     title: "Champ",
                     dataIndex: "field",
                     key: "field",
-                    render: (text) => <span className="font-bold">{text.replace("_"," ")}</span>,
+                    render: (text) => {
+                      // Remove "id" prefix and capitalize first letter
+                      const formattedText = text
+                        .replace(/^id_?/i, "")
+                        .replace(/_/g, " ");
+                      const capitalizedText =
+                        formattedText.charAt(0).toUpperCase() +
+                        formattedText.slice(1);
+                      return (
+                        <span className="font-bold">{capitalizedText}</span>
+                      );
+                    },
                   },
                   {
                     title: "Valeur",
@@ -406,13 +417,13 @@ const TableRecord = () => {
               size="small"
               columns={[
                 {
-                  title: "Name",
+                  title: "Champ",
                   dataIndex: "name",
                   key: "name",
                   render: (name) => <span className="font-bold">{name}</span>,
                 },
                 {
-                  title: "Old Value",
+                  title: "Ancienne valeur",
                   dataIndex: "oldValue",
                   key: "oldValue",
                   render: (oldValue) => (
@@ -422,7 +433,7 @@ const TableRecord = () => {
                   ),
                 },
                 {
-                  title: "New Value",
+                  title: "Nouvelle valeur",
                   dataIndex: "newValue",
                   key: "newValue",
                   render: (newValue) => (

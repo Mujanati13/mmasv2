@@ -186,9 +186,11 @@ const TableSeance = () => {
   };
 
   const isValidTimeRange = () => {
-    const startTime = new Date(`2000-01-01T${ClientData.heure_debut}`);
-    const endTime = new Date(`2000-01-01T${ClientData.heure_fin}`);
-    return endTime > startTime;
+    if (ClientData.heure_debut && ClientData.heure_fin) {
+      const startTime = new Date(`2000-01-01T${ClientData.heure_debut}`);
+      const endTime = new Date(`2000-01-01T${ClientData.heure_fin}`);
+      return endTime > startTime;
+    }
   };
 
   const checkAndFetchAvailability = async () => {
