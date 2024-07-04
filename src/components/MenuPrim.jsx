@@ -444,7 +444,7 @@ const MenuPrime = () => {
                 },
                 {
                   key: "41",
-                  label: "Record",
+                  label: "Journal des événement",
                   icon: <CopyOutlined />,
                 },
                 {
