@@ -54,7 +54,7 @@ function Birthday() {
   };
 
   return (
-    <div className="w-[53%] h-72 overflow-auto bg-white shadow-sm rounded-md pl-4 pr-4 pb-4 pt-4 border border-red-50 bottom-1">
+    <div className="w-[53%] h-96 overflow-auto bg-white shadow-sm rounded-md pl-4 pr-4 pb-4 pt-4 border border-red-50 bottom-1">
       <div className="flex items-center justify-between">
         <div className="font-medium">Clients à fêter</div>
         {!displayAll && (
@@ -69,7 +69,7 @@ function Birthday() {
       </div>
       <div className="mt-5">
         {soonBirthdayClients
-          .slice(0, displayAll ? soonBirthdayClients.length : 3)
+          .slice(0, displayAll ? soonBirthdayClients.length : 4)
           .map((client) => (
             <div key={client.id_client}>
               <div className="flex items-center justify-between">

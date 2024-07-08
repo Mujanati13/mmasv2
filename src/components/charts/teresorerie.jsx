@@ -9,6 +9,8 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import moment from "moment"; // Import moment library
+import DemoDualAxes from "./dudLine";
+import ContratsType from "./echeance";
 
 function Teresorerie() {
   const [data, setData] = useState(null);
@@ -53,70 +55,83 @@ function Teresorerie() {
   };
 
   return (
-    <div className="w-[55%] h-60 bg-white shadow-sm rounded-md p-4">
-      <div className="flex items-center justify-between">
-        <div className="font-medium">Trésorerie</div>
-        <RangePicker onChange={handleDateChange} />
-      </div>
-      <div className="w-full mt-5 flex items-center justify-between">
-        <div className="w-40 h-40 bg-green-50 rounded-md p-3">
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-green-200 flex justify-center ">
-              <BarChartOutlined />
-            </div>
-            <div className="text-sm font-normal">Recette</div>
+    <div className="w-[55%] h-60 bg-white shadow-sm rounded-md">
+      {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+      "Administration" ? (
+        <div>
+          <div className="flex items-center justify-between">
+            <div className="font-medium">Trésorerie</div>
+            <RangePicker onChange={handleDateChange} />
           </div>
-          <div className="font-medium mt-5">
-            {data ? (
-              hasPermission() ? (
-                `${data.solde_recette} MAD`
-              ) : (
-                <div className="text-sm">Vous n'avez pas la permission de voir ceci</div>
-              )
-            ) : (
-              "Chargement..."
-            )}
+          <div className="w-full mt-5 flex items-center justify-between">
+            <div className="w-40 h-40 bg-green-50 rounded-md p-3">
+              <div className="flex items-center space-x-2">
+                <div className="h-8 w-8 rounded-full bg-green-200 flex justify-center ">
+                  <BarChartOutlined />
+                </div>
+                <div className="text-sm font-normal">Recette</div>
+              </div>
+              <div className="font-medium mt-5">
+                {data ? (
+                  hasPermission() ? (
+                    `${data.solde_recette} MAD`
+                  ) : (
+                    <div className="text-sm">
+                      Vous n'avez pas la permission de voir ceci
+                    </div>
+                  )
+                ) : (
+                  "Chargement..."
+                )}
+              </div>
+            </div>
+            <div className="w-40 h-40 bg-red-50 rounded-md p-3">
+              <div className="flex items-center space-x-2">
+                <div className="h-8 w-8 rounded-full bg-red-200 flex justify-center ">
+                  <DotChartOutlined />
+                </div>
+                <div className="text-sm font-normal">Dépenses</div>
+              </div>
+              <div className="font-medium mt-5">
+                {data ? (
+                  hasPermission() ? (
+                    `${data.solde_peroid} MAD`
+                  ) : (
+                    <div className="text-sm">
+                      Vous n'avez pas la permission de voir ceci
+                    </div>
+                  )
+                ) : (
+                  "Chargement..."
+                )}
+              </div>
+            </div>
+            <div className="w-40 h-40 bg-purple-50 rounded-md p-3">
+              <div className="flex items-center space-x-2">
+                <div className="h-8 w-8 rounded-full bg-purple-200 flex justify-center ">
+                  <LineChartOutlined />
+                </div>
+                <div className="text-sm font-normal">Solde période</div>
+              </div>
+              <div className="font-medium mt-5">
+                {data ? (
+                  hasPermission() ? (
+                    `${data.solde_recette} MAD`
+                  ) : (
+                    <div className="text-sm">
+                      Vous n'avez pas la permission de voir ceci
+                    </div>
+                  )
+                ) : (
+                  "Chargement..."
+                )}
+              </div>
+            </div>
           </div>
         </div>
-        <div className="w-40 h-40 bg-red-50 rounded-md p-3">
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-red-200 flex justify-center ">
-              <DotChartOutlined />
-            </div>
-            <div className="text-sm font-normal">Dépenses</div>
-          </div>
-          <div className="font-medium mt-5">
-            {data ? (
-              hasPermission() ? (
-                `${data.solde_peroid} MAD`
-              ) : (
-                <div className="text-sm">Vous n'avez pas la permission de voir ceci</div>
-              )
-            ) : (
-              "Chargement..."
-            )}
-          </div>
-        </div>
-        <div className="w-40 h-40 bg-purple-50 rounded-md p-3">
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-purple-200 flex justify-center ">
-              <LineChartOutlined />
-            </div>
-            <div className="text-sm font-normal">Solde période</div>
-          </div>
-          <div className="font-medium mt-5">
-            {data ? (
-              hasPermission() ? (
-                `${data.solde_recette} MAD`
-              ) : (
-                <div className="text-sm">Vous n'avez pas la permission de voir ceci</div>
-              )
-            ) : (
-              "Chargement..."
-            )}
-          </div>
-        </div>
-      </div>
+      ) : (
+        <ContratsType/>
+      )}
     </div>
   );
 }

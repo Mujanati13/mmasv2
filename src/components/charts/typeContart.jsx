@@ -4,13 +4,11 @@ import { Pie } from "@ant-design/plots";
 const TypeContart = () => {
   const [data, setData] = useState([]);
   const [labels, setLabels] = useState([]);
-  const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
+  const authToken = localStorage.getItem("jwtToken");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch authentication token from your authentication mechanism
-
         const response = await fetch(
           "https://fithouse.pythonanywhere.com/api/clients/contracts/type/",
           {
@@ -36,37 +34,64 @@ const TypeContart = () => {
   }, []);
 
   const config = {
-    data: data.map((value, index) => ({ value, name: labels[index] })),
-    angleField: "value",
-    colorField: "name",
-    legend: false,
+    appendPadding: 20,
+    data: data.map((value, index) => ({ value, type: labels[index] })),
+    angleField: 'value',
+    colorField: 'type',
+    radius: 0.9,
     innerRadius: 0.6,
-    labels: [
-      { text: "name", style: { fontSize: 10, fontWeight: "bold", fill: "#000" } }, // Set fill color to black (#000)
+    label: {
+      type: 'outer',
+      content: '{name} {percentage}',
+      style: {
+        fontSize: 16,
+        textAlign: 'center',
+      },
+    },
+    interactions: [
       {
-        text: (d, i, data) => (i < data.length - 3 ? d.value : ""),
-        style: {
-          fontSize: 5,
-          dy: 12,
-        },
+        type: 'element-selected',
+      },
+      {
+        type: 'element-active',
       },
     ],
-    style: {
-      stroke: "#ffffff",
-      inset: 1,
-      radius: 10,
-      color: "#000" 
-    },
-    scale: {
-      color: {
-        palette: "spectral",
-        offset: (t) => t * 0.8 + 0.1,
+    statistic: {
+      title: {
+        style: {
+          fontSize: '24px',
+          lineHeight: '32px',
+        },
+        content: 'Contract Types',
+      },
+      content: {
+        style: {
+          fontSize: '20px',
+        },
       },
     },
-    height: 250,
+    legend: {
+      position: 'bottom',
+      itemName: {
+        style: {
+          fontSize: 14,
+        },
+      },
+    },
+    height: 350,
+    width: 350,
   };
 
-  return <Pie {...config} />;
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',  // This ensures the container takes full viewport height
+    }}>
+      <Pie {...config} />
+    </div>
+  );
 };
 
 export default TypeContart;

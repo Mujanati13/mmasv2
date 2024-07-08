@@ -56,13 +56,13 @@ const ContratsType = () => {
   };
 
   return (
-    <div className="w-[40%] overflow-auto overflow-ellipsis h-80 bg-white shadow-sm rounded-md pl-4 pr-4 pb-4 pt-4 border border-red-50 bottom-1">
+    <div className="w-full overflow-auto overflow-ellipsis h-60 bg-white shadow-sm rounded-md pl-4 pr-4 pb-4 pt-4 border border-red-50 bottom-1">
       <div className="font-medium">Contrats à échéance</div>
       <div className="mt-4 flex justify-center">
         <Segmented
-          default="Expirés"
-          defaultValue="Expirés"
-          defaultChecked="Expirés"
+          default="Bientôt expirés"
+          defaultValue="Bientôt expirés"
+          defaultChecked="Bientôt expirés"
           options={[
             {
               label: "Expirés",
