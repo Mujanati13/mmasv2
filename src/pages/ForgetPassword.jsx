@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { UserOutlined, KeyOutlined } from "@ant-design/icons";
 import { Button, Input, Watermark, message } from "antd";
 import { Endpoint } from "../utils/endPoint";
-import logoSportx from "../assets/logo/Logo-sportx.png";
+import logoSportx from "../assets/logo/logo.jpg";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function ForgetPassword() {

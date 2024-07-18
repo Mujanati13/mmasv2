@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import logoSportx from "../assets/logo/Logo-sportx.png";
+// import logoSportx from "../assets/logo/Logo-sportx.png";
 import AdminIcon from "../assets/logo/admin-svgrepo.svg";
 import { Link, useNavigate } from "react-router-dom";
 import Login from "./Login";

@@ -295,6 +295,7 @@ const MenuPrime = () => {
         className=""
         onClick={onClick}
         mode="inline"
+        // theme=""
         defaultSelectedKeys={["231"]}
         openKeys={stateOpenKeys}
         onOpenChange={onOpenChange}

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { UserOutlined, KeyOutlined } from "@ant-design/icons";
-import { Button, Input, Watermark, message, Segmented } from "antd";
+import { Button, Input, message } from "antd";
 import { Endpoint } from "../utils/endPoint";
-import logoSportx from "../assets/logo/Logo-sportx.png";
 import { Link, useNavigate } from "react-router-dom";
+import logo from "../assets/logo/logo.jpg"; // Import the image using ES6 import
 
 export default function Login() {
   const navigate = useNavigate();
@@ -84,10 +84,10 @@ export default function Login() {
     <div className="w-full h-screen">
       <div className="flex justify-center mt-10">
         <img
-          height={60}
-          width={60}
+          height={100}
+          width={100}
           className=""
-          src={logoSportx}
+          src={logo}
           alt="logo sportx"
         />
       </div>
