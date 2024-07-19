@@ -149,9 +149,9 @@ const TableTransication = () => {
       }
 
       const id_staff = JSON.parse(localStorage.getItem("data"));
-      ClientData.id_admin = 4;
-      ClientData.id_staff = id_staff[0].id_employe;
-      ClientData.admin = "Test";
+      ClientData.id_admin = id_staff[0].id_employe;
+      // ClientData.id_staff = ;
+      // ClientData.admin = "Test";
       console.log(ClientData);
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/transactions/",

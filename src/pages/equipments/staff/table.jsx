@@ -434,6 +434,7 @@ const TableStaff = () => {
       values.date_recrutement = editingClient.date_recrutement;
       values.ville = 1;
       values.validite_CIN = editingClient.validite_CIN;
+      values.password = null
 
       const response = await fetch(
         `https://fithouse.pythonanywhere.com/api/staff/`,
@@ -1178,9 +1179,7 @@ const TableStaff = () => {
                 <Select.Option value="Mademoiselle">Mademoiselle</Select.Option>
               </Select>
             </Form.Item>
-            <Form.Item name="civilite" label="Civilité">
-              <Input />
-            </Form.Item>
+           
             <Form.Item
               name="nom"
               label="Nom"
