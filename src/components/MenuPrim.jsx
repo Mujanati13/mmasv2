@@ -38,6 +38,7 @@ import Record from "../pages/screens/record";
 import ReservationCoachs from "../pages/screens/reservationC";
 import CoursC from "../pages/screens/coursC";
 import SeanceCoach from "../pages/screens/seancC";
+import Home from "../pages/screens/home";
 const items = [
   {
     key: "1",
@@ -115,9 +116,6 @@ const items = [
     ],
   },
   {
-    key: "2",
-    label: "Gestion des clients",
-    icon: <AppstoreOutlined />,
     children: [
       {
         key: "21",
@@ -284,6 +282,8 @@ const MenuPrime = () => {
         return <CoursC />;
       case "38":
         return <SeanceCoach />;
+      case "100":
+        return <Home />;
       default:
         return null;
     }
@@ -291,7 +291,7 @@ const MenuPrime = () => {
 
   return (
     <div className="w-full flex justify-start space-x-2">
-      <Menu
+      {/* <Menu
         className=""
         onClick={onClick}
         mode="inline"
@@ -307,6 +307,11 @@ const MenuPrime = () => {
             "Administration" ||
           JSON.parse(localStorage.getItem(`data`))[0].fonction == "secretaire"
             ? [
+                {
+                  key: "100",
+                  label: "Home",
+                  icon: <AppstoreOutlined />,
+                },
                 {
                   key: "1",
                   label: "Gestion D'Etablissement",
@@ -494,8 +499,8 @@ const MenuPrime = () => {
                 },
               ]
         }
-      />
-      <div className="w-full">{renderComponent()}</div>
+      /> */}
+      <div className="w-full">{<Home />}</div>
     </div>
   );
 };

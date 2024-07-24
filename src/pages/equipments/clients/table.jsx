@@ -22,6 +22,7 @@ import {
   EditOutlined,
   EyeOutlined,
   PlusOutlined,
+  DownloadOutlined 
 } from "@ant-design/icons";
 import {
   addNewTrace,
@@ -29,6 +30,7 @@ import {
   validateEmail,
   validateMoroccanPhoneNumber,
 } from "../../../utils/helper";
+import * as XLSX from "xlsx";
 
 const TableClient = () => {
   const [data, setData] = useState([]);
@@ -567,6 +569,24 @@ const TableClient = () => {
     setIsFormChanged(true);
   };
 
+  const exportToExcel = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning("Please select at least one client to export");
+      return;
+    }
+
+    const selectedData = data.filter((item) =>
+      selectedRowKeys.includes(item.key)
+    );
+
+    const ws = XLSX.utils.json_to_sheet(selectedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Clients");
+
+    // Generate Excel File & Download
+    XLSX.writeFile(wb, "clients_export.xlsx");
+  };
+
   return (
     <div className="w-full p-2">
       <Modal
@@ -609,7 +629,7 @@ const TableClient = () => {
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                 "secretaire") &&
-              selectedRowKeys.length === 1 ? (
+            selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -617,6 +637,7 @@ const TableClient = () => {
             ) : (
               ""
             )}
+
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
@@ -639,9 +660,14 @@ const TableClient = () => {
               "Administration" ||
               JSON.parse(localStorage.getItem("data"))[0].fonction ===
                 "secretaire") &&
-            selectedRowKeys.length >= 1 ? (
+            selectedRowKeys.length == 1 ? (
               <PrinterOutlined disabled={true} />
             ) : null}
+            {selectedRowKeys.length >= 1 && (
+              <Button onClick={exportToExcel} icon={<DownloadOutlined />}>
+                Export to Excel
+              </Button>
+            )}
           </div>
         </div>
         {/* add new client  */}

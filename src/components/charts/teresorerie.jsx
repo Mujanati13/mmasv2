@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Space, Input, DatePicker, message } from "antd";
+import { Button, Space, Input, DatePicker, message, Select } from "antd";
 const { RangePicker } = DatePicker;
 import {
   FileTextOutlined,
@@ -8,18 +8,19 @@ import {
   DotChartOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import moment from "moment"; // Import moment library
+import moment from "moment";
 import DemoDualAxes from "./dudLine";
 import ContratsType from "./echeance";
 
 function Teresorerie() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [paymentType, setPaymentType] = useState("all");
 
   const defaultStartDate = moment().startOf("month");
   const defaultEndDate = moment().endOf("month");
 
-  const handleDateChange = async (dates) => {
+  const handleDateChange = async (dates, paymentType) => {
     if (!dates || dates.length !== 2) {
       return;
     }
@@ -31,7 +32,7 @@ function Teresorerie() {
       const response = await fetch(
         `https://fithouse.pythonanywhere.com/api/stat/tresorerie?start_date=${startDate.format(
           "YYYY-MM-DD"
-        )}&end_date=${endDate.format("YYYY-MM-DD")}`
+        )}&end_date=${endDate.format("YYYY-MM-DD")}&payment_type=${paymentType}`
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -46,8 +47,12 @@ function Teresorerie() {
   };
 
   useEffect(() => {
-    handleDateChange([defaultStartDate, defaultEndDate]); // Pass array instead of object
-  }, []); // Run only once on component mount
+    handleDateChange([defaultStartDate, defaultEndDate], paymentType);
+  }, [paymentType]);
+
+  const handlePaymentTypeChange = (value) => {
+    setPaymentType(value);
+  };
 
   const hasPermission = () => {
     const userData = JSON.parse(localStorage.getItem("data"));
@@ -61,7 +66,21 @@ function Teresorerie() {
         <div>
           <div className="flex items-center justify-between">
             <div className="font-medium">Trésorerie</div>
-            <RangePicker onChange={handleDateChange} />
+            <Space>
+              <RangePicker 
+                onChange={(dates) => handleDateChange(dates, paymentType)} 
+              />
+              <Select
+                defaultValue="all"
+                style={{ width: 120 }}
+                onChange={handlePaymentTypeChange}
+              >
+                <Select.Option value="all">Tous</Select.Option>
+                <Select.Option value="cash">Espèces</Select.Option>
+                <Select.Option value="card">Carte</Select.Option>
+                <Select.Option value="transfer">Virement</Select.Option>
+              </Select>
+            </Space>
           </div>
           <div className="w-full mt-5 flex items-center justify-between">
             <div className="w-40 h-40 bg-green-50 rounded-md p-3">

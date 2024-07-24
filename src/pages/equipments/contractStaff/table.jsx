@@ -17,6 +17,7 @@ import {
   UserAddOutlined,
   DeleteOutlined,
   PrinterOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
 import { handlePrintContractStaff } from "../../../utils/printable/contraStaff";
@@ -38,6 +39,8 @@ const TableContractStaff = () => {
   const [add, setAdd] = useState(false);
   const [contarctClient, setcontarctClient] = useState([]);
   const [contarctStaff, setcontarctStaff] = useState([]);
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+  const [selectedContractDetails, setSelectedContractDetails] = useState(null);
 
   // State for room related data
   const [ClientData, setClientData] = useState({
@@ -49,6 +52,59 @@ const TableContractStaff = () => {
     employe: "",
     image: "",
   });
+
+  const showContractDetails = (record) => {
+    setSelectedContractDetails(record);
+    setIsDetailModalVisible(true);
+  };
+
+  const handleDetailModalCancel = () => {
+    setIsDetailModalVisible(false);
+    setSelectedContractDetails(null);
+  };
+
+  const getDetailData = (contract) => {
+    const orderMap = {
+      "Full Name": 1,
+      "Image": 2,
+      "Contract Type": 3,
+      "Start Date": 4,
+      "End Date": 5,
+      "Salary": 6,
+      "Employee ID": 7,
+      "Contract ID": 8
+    };
+  
+    const detailData = [
+      { field: "Nom complet", value: contract.employe },
+      // { field: "Photo", value: contract.image },
+      { field: "Type de contrat", value: contract.type_contrat },
+      { field: "Date de début", value: contract.date_debut },
+      { field: "Date de fin", value: contract.date_fin || "Indéterminée" },
+      { field: "Salaire", value: `${contract.salaire} MAD` }
+    ];
+  
+    return detailData
+      .sort((a, b) => orderMap[a.field] - orderMap[b.field])
+      .map((item, index) => ({
+        key: index,
+        field: item.field,
+        value: item.value
+      }));
+  };
+
+  const detailColumns = [
+    {
+      title: "Champ",
+      dataIndex: "field",
+      key: "field",
+    },
+    {
+      title: "Valeur",
+      dataIndex: "value",
+      key: "value",
+    },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -263,28 +319,37 @@ const TableContractStaff = () => {
 
         // Generate columns based on the desired keys
         const desiredKeys = [
-          "employe",
-          "type_contrat",
-          "salaire",
-          "date_debut",
-          "date_fin",
+          { key: "employe", title: "Employé" },
+          { key: "type_contrat", title: "Type de contrat" },
+          { key: "salaire", title: "Salaire" },
+          { key: "date_debut", title: "Date de début" },
+          { key: "date_fin", title: "Date de fin" },
+          { key: "action", title: "Action" }
         ];
-        const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
+        
+        const generatedColumns = desiredKeys.map(({ key, title }) => ({
+          title: title,
           dataIndex: key,
-          key,
+          key: key,
           render: (text, record) => {
-            if (
-              (key === "date_fin" && text == "2060-01-01") ||
-              (key === "date_fin" && text == null)
-            ) {
-              return <Tag>-</Tag>;
-            } else if (key === "date_inscription") {
+            if (key === "date_fin" && (text === "2060-01-01" || text == null)) {
+              return <Tag>Indéterminée</Tag>;
+            } else if (key === "date_debut" || key === "date_fin") {
               return <Tag>{text}</Tag>;
+            } else if (key === "salaire") {
+              return `${text} MAD`;
+            } else if (key === "action") {
+              return (
+                <EyeOutlined
+                  onClick={() => showContractDetails(record)}
+                  style={{ cursor: "pointer" }}
+                />
+              );
             }
             return text;
           },
         }));
+        
         setColumns(generatedColumns);
         setLoading(false);
       } catch (error) {
@@ -447,6 +512,22 @@ const TableContractStaff = () => {
 
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Personnel contractuel Détails"
+        visible={isDetailModalVisible}
+        onCancel={handleDetailModalCancel}
+        footer={null}
+        width={800}
+      >
+        {selectedContractDetails && (
+          <Table
+            columns={detailColumns}
+            dataSource={getDetailData(selectedContractDetails)}
+            pagination={false}
+            size="small"
+          />
+        )}
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
@@ -462,7 +543,7 @@ const TableContractStaff = () => {
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                 "secretaire") &&
-              selectedRowKeys.length >= 1 ? (
+            selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer le personnel de contact"
                 description="Etes-vous sûr de supprimer Contrat Staff"
@@ -479,8 +560,8 @@ const TableContractStaff = () => {
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&&
-              selectedRowKeys.length == 1 ? (
+                "secretaire") &&
+            selectedRowKeys.length == 1 ? (
               <PrinterOutlined onClick={handlePrint} disabled={true} />
             ) : (
               ""
@@ -493,15 +574,15 @@ const TableContractStaff = () => {
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&& (
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<UserAddOutlined />}
-                >
-                  Ajoute Contrat Staff
-                </Button>
-              )}
+                "secretaire") && (
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajoute Contrat Staff
+              </Button>
+            )}
           </div>
           <Drawer
             title="Saisir un nouveau Contrat Staff"

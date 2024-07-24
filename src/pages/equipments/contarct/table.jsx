@@ -6,8 +6,10 @@ import {
   Select,
   message,
   Popconfirm,
+  Modal,
   Drawer,
   Button,
+  Spin,
   DatePicker,
 } from "antd";
 import {
@@ -15,6 +17,7 @@ import {
   DeleteOutlined,
   PrinterOutlined,
   FileAddOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import Box from "@mui/material/Box";
 import Stepper from "@mui/material/Stepper";
@@ -48,6 +51,11 @@ const TableContract = () => {
   const [changedFields, setChangedFields] = useState([]);
   const [isFormChanged, setIsFormChanged] = useState(false);
 
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [selectedContract, setSelectedContract] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [transactionModalVisible, setTransactionModalVisible] = useState(false);
+  const [transactionData, setTransactionData] = useState([]);
   // State for contract related data
   const [ContractData, setContractData] = useState({
     id_client: "",
@@ -66,6 +74,16 @@ const TableContract = () => {
     id_admin: null,
   });
 
+  const handleViewDetails = (record) => {
+    setSelectedContract(record);
+    setIsModalVisible(true);
+    setTransactionData([]); // Reset transaction data when opening a new contract
+  };
+
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    setSelectedContract(null);
+  };
   const fetchClients = async () => {
     try {
       const response = await fetch(
@@ -75,6 +93,25 @@ const TableContract = () => {
       setClients(data.data);
     } catch (error) {
       console.error("Error fetching clients:", error);
+    }
+  };
+
+  const fetchTransactions = async (id_contrat) => {
+    try {
+      const response = await fetch(
+        `https://Jyssr.pythonanywhere.com/api/transaction_by_contrat_id/?id_contrat=${id_contrat}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+      const data = await response.json();
+      setTransactionData(data.data);
+      setTransactionModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      message.error("An error occurred while fetching transactions");
     }
   };
 
@@ -547,53 +584,62 @@ const TableContract = () => {
           "https://fithouse.pythonanywhere.com/api/contrat/",
           {
             headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+              Authorization: `Bearer ${authToken}`,
             },
           }
         );
         const jsonData = await response.json();
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id_contrat || index, // Assuming each item has a unique id, otherwise use index
+          key: item.id_contrat || index,
         }));
         console.log(processedData);
         setData(processedData);
         setFilteredData(processedData);
 
-        // Generate columns based on the desired keys
+        // Updated desiredKeys with more meaningful French names
         const desiredKeys = [
-          "client",
-          "Prenom_client",
-          "abonnement",
-          "date_debut",
-          "date_fin",
+          { key: "client", label: "Nom" },
+          { key: "Prenom_client", label: "Prénom" },
+          { key: "abonnement", label: "Type d'Abonnement" },
+          { key: "reduction", label: "Réduction" },
+          { key: "type", label: "Genre" },
+          { key: "date_debut", label: "Date de Début" },
+          { key: "date_fin", label: "Date de Fin" },
+          { key: "cat_abn", label: "Catégorie d'Abonnement" },
+          { key: "actions", label: "Actions" },
         ];
-        const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
+
+        const generatedColumns = desiredKeys.map(({ key, label }) => ({
+          title: label,
           dataIndex: key,
           key,
           render: (text, record) => {
-            if (key === "sitewebetablissement") {
+            if (key === "reduction") {
+              return `${text} MAD`;
+            } else if (key === "actions") {
               return (
-                <a href={text} target="_blank" rel="noopener noreferrer">
-                  {text}
-                </a>
+                <EyeOutlined
+                  onClick={() => handleViewDetails(record)}
+                  style={{ cursor: "pointer" }}
+                />
               );
-            } else if (key == "date_inscription") {
-              return <Tag>{text}</Tag>;
             }
             return text;
           },
         }));
+
         setColumns(generatedColumns);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setLoading(false);
       }
     };
 
     fetchData();
   }, [authToken, add]);
+
   // Function to capitalize the first letter of a string
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -675,8 +721,178 @@ const TableContract = () => {
     console.log(e);
   };
 
+  const detailColumns = [
+    {
+      title: "Champ",
+      dataIndex: "property",
+      key: "property",
+    },
+    {
+      title: "Valeur",
+      dataIndex: "value",
+      key: "value",
+      render: (text) => {
+        if (typeof text === "boolean") {
+          return text ? "Oui" : "Non";
+        }
+        return text || "Non spécifié";
+      },
+    },
+  ];
+
+  const getDetailData = (contract) => {
+    if (!contract) return [];
+
+    return [
+      // { key: "section1", property: "Informations Personnelles", value: "" },
+      {
+        key: "fullName",
+        property: "Nom Complet du Client",
+        value: `${contract.client || ""} ${
+          contract.Prenom_client || ""
+        }`.trim(),
+      },
+      { key: "type", property: "Genre", value: contract.type },
+      // { key: "section2", property: "Informations du Contrat", value: "" },
+      {
+        key: "numcontrat",
+        property: "Numéro de Contrat",
+        value: contract.numcontrat,
+      },
+      {
+        key: "date_debut",
+        property: "Date",
+        value: "de " + contract.date_debut + " à " + contract.date_fin,
+      },
+      // { key: "date_fin", property: "Date de Fin", value: contract.date_fin  },
+      {
+        key: "etablissemnt",
+        property: "Établissement",
+        value: contract.etablissemnt,
+      },
+      {
+        key: "abonnement",
+        property: "Type d'Abonnement",
+        value: contract.abonnement,
+      },
+      {
+        key: "cat_abn",
+        property: "Catégorie d'Abonnement",
+        value: contract.cat_abn,
+      },
+      // { key: "section3", property: "Informations Financières", value: "" },
+      {
+        key: "reduction",
+        property: "Réduction",
+        value:
+          contract.reduction !== undefined
+            ? `${contract.reduction} MAD`
+            : undefined,
+      },
+      {
+        key: "reste",
+        property: "Montant Restant",
+        value:
+          contract.reste !== undefined ? `${contract.reste} MAD` : undefined,
+      },
+    ];
+  };
+
+  const detailData = selectedContract
+    ? Object.entries(selectedContract)
+        .filter(([key]) => !key.startsWith("id_")) // Filter out properties starting with 'id_'
+        .map(([key, value]) => ({
+          key,
+          property:
+            key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "),
+          value:
+            typeof value === "object" ? JSON.stringify(value) : String(value),
+        }))
+    : [];
+
+  const handlePrintReceipt = (transaction) => {
+    setSelectedTransaction(transaction);
+    // You would implement the actual printing logic here.
+    // For now, we'll just show a message
+    message.success("Preparing to print receipt...");
+    // TODO: Implement actual receipt printing logic
+  };
+
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Détails du Contrat Client"
+        visible={isModalVisible}
+        onCancel={handleModalClose}
+        footer={null}
+        width={800}
+      >
+        <Button
+          type=""
+          className="mb-5 mt-5"
+          onClick={() => fetchTransactions(selectedContract?.id_contrat)}
+        >
+          Afficher les transactions
+        </Button>
+        {selectedContract ? (
+          <Table
+            columns={detailColumns}
+            dataSource={getDetailData(selectedContract)}
+            pagination={false}
+            size="small"
+            className="mt-3"
+          />
+        ) : (
+          <div className="flex justify-center items-center h-64">
+            <Spin size="large" />
+          </div>
+        )}
+      </Modal>
+      <Modal
+        title="Détails des Transactions"
+        visible={transactionModalVisible}
+        onCancel={() => setTransactionModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        <Table
+          columns={[
+            { title: "Date", dataIndex: "date", key: "date" },
+            {
+              title: "Type",
+              dataIndex: "Type",
+              key: "Type",
+              render: (text) => (text ? "Entrée" : "Sortie"),
+            },
+            { title: "Montant", dataIndex: "montant", key: "montant" },
+            {
+              title: "Mode de règlement",
+              dataIndex: "Mode_reglement",
+              key: "Mode_reglement",
+            },
+            {
+              title: "Description",
+              dataIndex: "description",
+              key: "description",
+            },
+            {
+              title: "Actions",
+              key: "actions",
+              render: (_, record) => (
+                <Button
+                  icon={<PrinterOutlined />}
+                  onClick={() => handlePrintReceipt(record)}
+                >
+                  Imprimer Reçu
+                </Button>
+              ),
+            },
+          ]}
+          dataSource={transactionData}
+          pagination={false}
+          size="small"
+        />
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
@@ -693,7 +909,7 @@ const TableContract = () => {
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                 "secretaire") &&
-              selectedRowKeys.length >= 1 ? (
+            selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer le contact"
                 description="Êtes-vous sûr de supprimer ce contact ?"
@@ -711,7 +927,7 @@ const TableContract = () => {
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                 "secretaire") &&
-              selectedRowKeys.length >= 1 ? (
+            selectedRowKeys.length >= 1 ? (
               <PrinterOutlined onClick={handlePrint} disabled={true} />
             ) : (
               ""
@@ -723,17 +939,17 @@ const TableContract = () => {
           <>
             <div className="flex items-center space-x-3">
               {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") && (
-                  <Button
-                    type="default"
-                    onClick={showDrawerR}
-                    icon={<FileAddOutlined />}
-                  >
-                    Ajouter Contrat
-                  </Button>
-                )}
+                "Administration" ||
+                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                  "secretaire") && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<FileAddOutlined />}
+                >
+                  Ajouter Contrat
+                </Button>
+              )}
             </div>
             <Drawer
               title="Saisir un nouveau Contrat"
