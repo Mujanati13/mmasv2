@@ -280,20 +280,26 @@ const TableAbonnement = () => {
           "https://fithouse.pythonanywhere.com/api/abonnement/",
           {
             headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+              Authorization: `Bearer ${authToken}`,
             },
           }
         );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const jsonData = await response.json();
-
+  
         // Ensure each row has a unique key
-        const processedData = jsonData.data.map((item, index) => ({
+        const processedData = jsonData.data.map((item) => ({
           ...item,
-          key: item.id_abn || index, // Assuming each item has a unique id, otherwise use index
+          key: item.id_abn, // Use id_abn as the key
         }));
-
+  
         setData(processedData);
         setFilteredData(processedData);
+  
         // Generate columns based on the desired keys
         const desiredKeys = [
           "type_abonnement",
@@ -301,29 +307,49 @@ const TableAbonnement = () => {
           "namecat_conrat",
           "duree_mois",
         ];
+        
         const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
+          title: getColumnTitle(key),
           dataIndex: key,
           key,
           render: (text, record) => {
-            if (key === "description") {
-              return <div>{text}</div>;
-            } else if (key === "date_inscription") {
-              return <Tag>{text}</Tag>;
+            if (key === "tarif") {
+              return `${text} MAD`;
+            } else if (key === "duree_mois") {
+              return `${text} mois`;
+            } else if (key === "actions") {
+              return (
+                <Space size="middle">
+                </Space>
+              );
             }
             return text;
           },
         }));
+        
         setColumns(generatedColumns);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        message.error("Erreur lors de la récupération des données");
+      } finally {
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, [authToken, update, add]);
+  
+  // Helper function to get column titles
+  const getColumnTitle = (key) => {
+    const titles = {
+      type_abonnement: "Type d'abonnement",
+      tarif: "Tarif",
+      namecat_conrat: "Catégorie de contrat",
+      duree_mois: "Durée",
+      actions: "Actions"
+    };
+    return titles[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
   useEffect(() => {
     const fetchData = async () => {

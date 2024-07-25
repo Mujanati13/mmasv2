@@ -13,6 +13,7 @@ import {
   Space,
   Tooltip,
   Upload,
+  DatePicker,
 } from "antd";
 import {
   SearchOutlined,
@@ -22,7 +23,7 @@ import {
   EditOutlined,
   EyeOutlined,
   PlusOutlined,
-  DownloadOutlined 
+  DownloadOutlined,
 } from "@ant-design/icons";
 import {
   addNewTrace,
@@ -50,6 +51,15 @@ const TableClient = () => {
   const [imagePath, setimagePath] = useState("");
   const [changedFields, setChangedFields] = useState([]);
   const [isFormChanged, setIsFormChanged] = useState(false);
+  const [isExportModalVisible, setIsExportModalVisible] = useState(false);
+  const [exportFilters, setExportFilters] = useState({
+    statut: null, // null means all statuses
+    date_inscription_start: null,
+    date_inscription_end: null,
+    blackliste: null, // null means both blacklisted and non-blacklisted
+    date_naissance_start: null,
+    date_naissance_end: null,
+  });
   const [formErrors, setFormErrors] = useState({
     tel: "",
     mail: "",
@@ -138,6 +148,72 @@ const TableClient = () => {
       <div style={{ marginTop: 8 }}>Upload</div>
     </div>
   );
+
+  const showExportModal = () => {
+    setIsExportModalVisible(true);
+  };
+  const handleExport = () => {
+    const filteredData = data.filter((item) => {
+      // Status filter
+      if (
+        exportFilters.statut !== null &&
+        item.statut !== exportFilters.statut
+      ) {
+        return false;
+      }
+
+      // Date d'inscription filter
+      if (
+        exportFilters.date_inscription_start &&
+        new Date(item.date_inscription) <
+          new Date(exportFilters.date_inscription_start)
+      ) {
+        return false;
+      }
+      if (
+        exportFilters.date_inscription_end &&
+        new Date(item.date_inscription) >
+          new Date(exportFilters.date_inscription_end)
+      ) {
+        return false;
+      }
+
+      // Blackliste filter
+      if (
+        exportFilters.blackliste !== null &&
+        item.blackliste !== exportFilters.blackliste
+      ) {
+        return false;
+      }
+
+      // Date de naissance filter
+      if (
+        exportFilters.date_naissance_start &&
+        new Date(item.date_naissance) <
+          new Date(exportFilters.date_naissance_start)
+      ) {
+        return false;
+      }
+      if (
+        exportFilters.date_naissance_end &&
+        new Date(item.date_naissance) >
+          new Date(exportFilters.date_naissance_end)
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(filteredData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Clients");
+
+    // Generate Excel File & Download
+    XLSX.writeFile(wb, "clients_export.xlsx");
+
+    setIsExportModalVisible(false);
+  };
 
   const handlePhoneChange = (e) => {
     const value = e.target.value;
@@ -315,32 +391,44 @@ const TableClient = () => {
         setData(processedData);
         setFilteredData(processedData);
 
-        // Generate columns based on the desired keys
         const desiredKeys = [
-          "nom_client",
-          "nom_ville",
+          "nom_complet",
           "tel",
           "mail",
           "adresse",
           "date_inscription",
-          "",
+          "actions",
         ];
+
         const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
+          title: (() => {
+            switch (key) {
+              case "nom_complet":
+                return "Nom & Prenom";
+              case "tel":
+                return "Téléphone";
+              case "mail":
+                return "Mail";
+              case "adresse":
+                return "Adresse";
+              case "date_inscription":
+                return "Date d'inscription";
+              case "actions":
+                return "Actions";
+              default:
+                return capitalizeFirstLetter(key.replace(/\_/g, " "));
+            }
+          })(),
           dataIndex: key,
           key,
           render: (text, record) => {
-            if (key === "sitewebetablissement") {
-              return (
-                <a href={text} target="_blank" rel="noopener noreferrer">
-                  {text}
-                </a>
-              );
+            if (key === "nom_complet") {
+              return `${record.nom_client} ${record.prenom_client}`;
             } else if (key === "date_inscription") {
               return <Tag>{text}</Tag>;
-            } else if (key === "") {
+            } else if (key === "actions") {
               return (
-                <Tooltip title="View Details">
+                <Tooltip title="Voir les détails">
                   <EyeOutlined
                     onClick={() => {
                       setSelectedClient(record);
@@ -590,27 +678,151 @@ const TableClient = () => {
   return (
     <div className="w-full p-2">
       <Modal
-        title="Client Details"
+        title="Exporter les Clients"
+        visible={isExportModalVisible}
+        onOk={handleExport}
+        onCancel={() => setIsExportModalVisible(false)}
+        okText="Exporter"
+        cancelText="Annuler"
+      >
+        <Form layout="vertical">
+          <Form.Item label="Statut">
+            <Select
+              value={exportFilters.statut}
+              onChange={(value) =>
+                setExportFilters({ ...exportFilters, statut: value })
+              }
+            >
+              <Select.Option value={null}>Tous</Select.Option>
+              <Select.Option value={true}>Actif</Select.Option>
+              <Select.Option value={false}>Inactif</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item label="Date d'inscription">
+            <Space>
+              <DatePicker
+                placeholder="Date de début"
+                value={
+                  exportFilters.date_inscription_start
+                    ? moment(exportFilters.date_inscription_start)
+                    : null
+                }
+                onChange={(date) =>
+                  setExportFilters({
+                    ...exportFilters,
+                    date_inscription_start: date
+                      ? date.format("YYYY-MM-DD")
+                      : null,
+                  })
+                }
+              />
+              <DatePicker
+                placeholder="Date de fin"
+                value={
+                  exportFilters.date_inscription_end
+                    ? moment(exportFilters.date_inscription_end)
+                    : null
+                }
+                onChange={(date) =>
+                  setExportFilters({
+                    ...exportFilters,
+                    date_inscription_end: date
+                      ? date.format("YYYY-MM-DD")
+                      : null,
+                  })
+                }
+              />
+            </Space>
+          </Form.Item>
+
+          <Form.Item label="Liste noire">
+            <Select
+              value={exportFilters.blackliste}
+              onChange={(value) =>
+                setExportFilters({ ...exportFilters, blackliste: value })
+              }
+            >
+              <Select.Option value={null}>Tous</Select.Option>
+              <Select.Option value={true}>Sur liste noire</Select.Option>
+              <Select.Option value={false}>Pas sur liste noire</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item label="Date de naissance">
+            <Space>
+              <DatePicker
+                placeholder="Date de début"
+                value={
+                  exportFilters.date_naissance_start
+                    ? moment(exportFilters.date_naissance_start)
+                    : null
+                }
+                onChange={(date) =>
+                  setExportFilters({
+                    ...exportFilters,
+                    date_naissance_start: date
+                      ? date.format("YYYY-MM-DD")
+                      : null,
+                  })
+                }
+              />
+              <DatePicker
+                placeholder="Date de fin"
+                value={
+                  exportFilters.date_naissance_end
+                    ? moment(exportFilters.date_naissance_end)
+                    : null
+                }
+                onChange={(date) =>
+                  setExportFilters({
+                    ...exportFilters,
+                    date_naissance_end: date ? date.format("YYYY-MM-DD") : null,
+                  })
+                }
+              />
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+      <Modal
+        title="Détails du client"
         visible={isDetailsModalVisible}
         onCancel={handleDetailsModalCancel}
         footer={null}
+        width={600}
       >
         {selectedClient && (
-          <div>
-            <p>Civilité: {selectedClient.civilite}</p>
-            <p>Nom: {selectedClient.nom_client}</p>
-            <p>Prénom: {selectedClient.prenom_client}</p>
-            <p>Adresse: {selectedClient.adresse}</p>
-            <p>Téléphone: {selectedClient.tel}</p>
-            <p>Email: {selectedClient.mail}</p>
-            <p>CIN: {selectedClient.cin}</p>
-            <p>Ville: {selectedClient.ville}</p>
-            <p>Date de naissance: {selectedClient.date_naissance}</p>
-            <p>Date d'inscription: {selectedClient.date_inscription}</p>
-            <p>Status: {selectedClient.statut ? "Active" : "Inactive"}</p>
-            <p>Blackliste: {selectedClient.blackliste ? "Oui" : "Non"}</p>
-            <p>Newsletter: {selectedClient.newsletter ? "Oui" : "Non"}</p>
-          </div>
+          <Table
+            columns={[
+              {
+                title: "Champ",
+                dataIndex: "field",
+                key: "field",
+                width: "40%",
+              },
+              { title: "Valeur", dataIndex: "value", key: "value" },
+            ]}
+            dataSource={[
+              { key: "1", field: "Civilité", value: selectedClient.civilite },
+              {
+                key: "2",
+                field: "Nom complet",
+                value: `${selectedClient.nom_client} ${selectedClient.prenom_client}`,
+              },
+              { key: "3", field: "Adresse", value: selectedClient.adresse },
+              { key: "4", field: "Téléphone", value: selectedClient.tel },
+              { key: "5", field: "Mail", value: selectedClient.mail },
+              {
+                key: "9",
+                field: "Date d'inscription",
+                value: selectedClient.date_inscription,
+              },
+            ]}
+            pagination={false}
+            size="small"
+            bordered
+          />
         )}
       </Modal>
 
@@ -663,11 +875,9 @@ const TableClient = () => {
             selectedRowKeys.length == 1 ? (
               <PrinterOutlined disabled={true} />
             ) : null}
-            {selectedRowKeys.length >= 1 && (
-              <Button onClick={exportToExcel} icon={<DownloadOutlined />}>
-                Export to Excel
-              </Button>
-            )}
+            <Button onClick={showExportModal} icon={<DownloadOutlined />}>
+              Exporter vers Excel{" "}
+            </Button>
           </div>
         </div>
         {/* add new client  */}

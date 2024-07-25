@@ -434,23 +434,43 @@ const TableCours = () => {
   return (
     <div className="w-full p-2">
       <Modal
-        title={`Details of ${selectedCourse?.nom_cour}`}
-        visible={isViewModalVisible}
-        onCancel={() => {
-          setIsViewModalVisible(false);
-          setSelectedCourse(null);
-        }}
-        footer={null}
-      >
-        {/* Display the details of the selected course here */}
-        <p>
-          <span className="font-medium">Description</span>:{" "}
-          {selectedCourse?.description}
-        </p>
-        <p>Reglement: {selectedCourse?.reglement}</p>
-        <p>Genre: {selectedCourse?.genre}</p>
-        {/* Add other details as needed */}
-      </Modal>
+      title={`Détails de ${selectedCourse?.nom_cour}`}
+      visible={isViewModalVisible}
+      onCancel={() => {
+        setIsViewModalVisible(false);
+        setSelectedCourse(null);
+      }}
+      footer={null}
+    >
+      <Table
+        columns={[
+          {
+            title: 'Nom du Cours',
+            dataIndex: 'nom_cour',
+            key: 'nom_cour',
+          },
+          {
+            title: 'Description',
+            dataIndex: 'description',
+            key: 'description',
+          },
+          {
+            title: 'Règlement',
+            dataIndex: 'reglement',
+            key: 'reglement',
+          },
+          {
+            title: 'Genre',
+            dataIndex: 'genre',
+            key: 'genre',
+          },
+          // Add other details columns as needed
+        ]}
+        dataSource={selectedCourse ? [selectedCourse] : []}
+        pagination={false}
+        rowKey="id_cour"
+      />
+    </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">

@@ -267,20 +267,27 @@ const TableSalle = () => {
           }
         );
         const jsonData = await response.json();
-
+  
         // Ensure each row has a unique key
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
           key: item.id_salle || index, // Assuming each item has a unique id, otherwise use index
         }));
-
+  
         setData(processedData);
         setFilteredData(processedData);
-
+  
         // Generate columns based on the desired keys
         const desiredKeys = ["nom_salle", "category", "capacity", ""];
         const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
+          title: capitalizeFirstLetter(
+            {
+              nom_salle: "Nom de la Salle",
+              category: "Catégorie",
+              capacity: "Capacité",
+              "": "Actions",
+            }[key]
+          ), // Capitalize the first letter
           dataIndex: key,
           key,
           render: (text, record) => {
@@ -310,10 +317,11 @@ const TableSalle = () => {
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, [authToken, update, add]);
-
+  
+  
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -682,10 +690,13 @@ const TableSalle = () => {
     setIsFormChanged(true);
   };
 
+  // Create the data source for the table
+
+
   return (
     <div className="w-full p-2">
       <Modal
-        title={`Details of ${selectedRoom?.nom_salle}`}
+        title={`Les détails de ${selectedRoom?.nom_salle}`}
         visible={isViewModalVisible}
         onCancel={() => {
           setIsViewModalVisible(false);
@@ -693,10 +704,29 @@ const TableSalle = () => {
         }}
         footer={null}
       >
-        {/* Display the details of the selected room here */}
-        <p>Category: {selectedRoom?.category}</p>
-        <p>Capacity: {selectedRoom?.capacity}</p>
-        {/* Add other details as needed */}
+       <Table
+        columns={[
+          {
+            title: 'Nom de la Salle',
+            dataIndex: 'nom_salle',
+            key: 'nom_salle',
+          },
+          {
+            title: 'Catégorie',
+            dataIndex: 'category',
+            key: 'category',
+          },
+          {
+            title: 'Capacité',
+            dataIndex: 'capacity',
+            key: 'capacity',
+          },
+          // Add other details columns as needed
+        ]}
+        dataSource={selectedRoom ? [selectedRoom] : []}
+        pagination={false}
+        rowKey="id_salle"
+      />
       </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">

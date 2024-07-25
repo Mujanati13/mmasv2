@@ -466,6 +466,7 @@ const TablePayemnt = () => {
   };
 
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -490,7 +491,14 @@ const TablePayemnt = () => {
         // Generate columns based on the desired keys
         const desiredKeys = ["nom_periode", "staff", "fonction", "type"];
         const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/_/g, " ")),
+          title: capitalizeFirstLetter(
+            {
+              nom_periode: "Période",
+              staff: "Personnel",
+              fonction: "Fonction",
+              type: "Type",
+            }[key]
+          ),
           dataIndex: key,
           key,
           render: (text, record) => {
@@ -516,7 +524,7 @@ const TablePayemnt = () => {
 
         generatedColumns.push({
           title: "",
-          key: "",
+          key: "actions",
           render: (text, record) => (
             <EyeOutlined
               style={{ cursor: "pointer" }}
@@ -534,6 +542,7 @@ const TablePayemnt = () => {
 
     fetchData();
   }, [authToken, add]);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -662,31 +671,39 @@ const TablePayemnt = () => {
   return (
     <div className="w-full p-2">
       <Modal
-        title="Data de paiement"
+        title="Détails de paiement"
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
-        {selectedPaymentData && (
-          <div>
-            <div className="flex items-center space-x-1">
-              <div className="font-semibold">Staff:</div>
-              <div>{selectedPaymentData.staff}</div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="font-semibold">Salaries:</div>
-              <div>{parseInt(selectedPaymentData.salaire)}</div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="font-semibold">Prime:</div>
-              <div>{selectedPaymentData.prime}</div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="font-semibold">Period:</div>
-              <div>{selectedPaymentData.nom_periode}</div>
-            </div>
-          </div>
-        )}
+        <Table
+          columns={[
+            {
+              title: "Staff",
+              dataIndex: "staff",
+              key: "staff",
+            },
+            {
+              title: "Salaires",
+              dataIndex: "salaire",
+              key: "salaire",
+              render: (text) => parseInt(text),
+            },
+            {
+              title: "Prime",
+              dataIndex: "prime",
+              key: "prime",
+            },
+            {
+              title: "Période",
+              dataIndex: "nom_periode",
+              key: "nom_periode",
+            },
+          ]}
+          dataSource={selectedPaymentData ? [selectedPaymentData] : []}
+          pagination={false}
+          rowKey="id_paiement"
+        />
       </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
@@ -718,8 +735,8 @@ const TablePayemnt = () => {
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&&
-              selectedRowKeys.length >= 1 ? (
+                "secretaire") &&
+            selectedRowKeys.length >= 1 ? (
               <PrinterOutlined onClick={handlePrint} disabled={true} />
             ) : (
               ""
@@ -731,17 +748,17 @@ const TablePayemnt = () => {
           <>
             <div className="flex items-center space-x-3">
               {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") && (
-                  <Button
-                    type="default"
-                    onClick={showDrawerR}
-                    icon={<FileAddOutlined />}
-                  >
-                    Ajouter Paiement
-                  </Button>
-                )}
+                "Administration" ||
+                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                  "secretaire") && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<FileAddOutlined />}
+                >
+                  Ajouter Paiement
+                </Button>
+              )}
             </div>
             <Drawer
               title="Saisir un nouveau Paiement"

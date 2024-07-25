@@ -336,22 +336,21 @@ const TableStaff = () => {
         setData(processedData);
         setFilteredData(processedData);
 
-        // Generate columns based on the desired keys
         const desiredKeys = [
-          "nom",
-          "prenom",
+          "nom_complet",
+          "fonction",
           "tel",
           "mail",
-          "adresse",
           "date_recrutement",
-          "",
+          "actions",
         ];
+
         const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
+          title: getColumnTitle(key),
           dataIndex: key,
           key,
           render: (text, record) => {
-            if (key === "") {
+            if (key === "actions") {
               return (
                 <EyeOutlined
                   style={{ fontSize: "16px", color: "#08c" }}
@@ -359,9 +358,25 @@ const TableStaff = () => {
                 />
               );
             }
+            if (key === "nom_complet") {
+              return `${record.prenom} ${record.nom}`;
+            }
             return text;
           },
         }));
+
+        // Helper function to get column titles
+        function getColumnTitle(key) {
+          const titles = {
+            nom_complet: "Nom complet",
+            fonction: "Fonction",
+            tel: "Téléphone",
+            mail: "Mail",
+            date_recrutement: "Date de recrutement",
+            actions: "Actions",
+          };
+          return titles[key] || key.charAt(0).toUpperCase() + key.slice(1);
+        }
         setColumns(generatedColumns);
         setLoading(false);
       } catch (error) {
@@ -434,7 +449,7 @@ const TableStaff = () => {
       values.date_recrutement = editingClient.date_recrutement;
       values.ville = 1;
       values.validite_CIN = editingClient.validite_CIN;
-      values.password = null
+      values.password = null;
 
       const response = await fetch(
         `https://fithouse.pythonanywhere.com/api/staff/`,
@@ -618,21 +633,48 @@ const TableStaff = () => {
   return (
     <div className="w-full p-2">
       <Modal
-        title="Détails de l'entraîneur"
+        title="Détails du membre du personnel"
         visible={isDetailsModalVisible}
         onCancel={() => setIsDetailsModalVisible(false)}
         footer={null}
+        width={600}
       >
         {detailsData && (
-          <div>
-            <p>Nom: {detailsData.nom}</p>
-            <p>Prénom: {detailsData.prenom}</p>
-            <p>Téléphone: {detailsData.tel}</p>
-            <p>Email: {detailsData.mail}</p>
-            <p>Adresse: {detailsData.adresse}</p>
-            <p>Date de recrutement: {detailsData.date_recrutement}</p>
-            {/* Add more details as needed */}
-          </div>
+          <Table
+            columns={[
+              {
+                title: "Champ",
+                dataIndex: "field",
+                key: "field",
+                render: (text, record, index) => <strong>{text}</strong>,
+              },
+              {
+                title: "Valeur",
+                dataIndex: "value",
+                key: "value",
+              },
+            ]}
+            dataSource={[
+              {
+                key: 1,
+                field: "Nom complet",
+                value: `${detailsData.prenom} ${detailsData.nom}`,
+              },
+              { key: 2, field: "Fonction", value: detailsData.fonction },
+              { key: 3, field: "Téléphone", value: detailsData.tel },
+              { key: 4, field: "Mail", value: detailsData.mail },
+              { key: 5, field: "Adresse", value: detailsData.adresse },
+              {
+                key: 7,
+                field: "Date de recrutement",
+                value: detailsData.date_recrutement,
+              },
+             
+            ]}
+            pagination={false}
+            showHeader={false}
+            size="small"
+          />
         )}
       </Modal>
       <div className="flex items-center justify-between mt-3">
@@ -649,7 +691,8 @@ const TableStaff = () => {
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") && selectedRowKeys.length === 1 ? (
+                "secretaire") &&
+            selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -658,8 +701,10 @@ const TableStaff = () => {
               ""
             )}
             {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administartion" || JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "secretaire" && selectedRowKeys.length >= 1 ? (
+              "Administartion" ||
+            (JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "secretaire" &&
+              selectedRowKeys.length >= 1) ? (
               <Popconfirm
                 title="Supprimer le personnel"
                 description="Êtes-vous sûr de supprimer ce personnel ?"
@@ -1179,7 +1224,7 @@ const TableStaff = () => {
                 <Select.Option value="Mademoiselle">Mademoiselle</Select.Option>
               </Select>
             </Form.Item>
-           
+
             <Form.Item
               name="nom"
               label="Nom"

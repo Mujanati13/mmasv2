@@ -11,6 +11,7 @@ import {
   Button,
   Spin,
   DatePicker,
+  Checkbox,
 } from "antd";
 import {
   SearchOutlined,
@@ -18,7 +19,9 @@ import {
   PrinterOutlined,
   FileAddOutlined,
   EyeOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
+import * as XLSX from "xlsx";
 import Box from "@mui/material/Box";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
@@ -48,10 +51,11 @@ const TableContract = () => {
   const [abonnements, setAbonnements] = useState([]);
   const [tarif, setTarif] = useState(0);
   const [add, setAdd] = useState(0);
-  const [changedFields, setChangedFields] = useState([]);
-  const [isFormChanged, setIsFormChanged] = useState(false);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportFields, setExportFields] = useState({});
+  const [exportDateRange, setExportDateRange] = useState([null, null]);
+  const [exportModeReglement, setExportModeReglement] = useState([]);
 
-  const [viewModalVisible, setViewModalVisible] = useState(false);
   const [selectedContract, setSelectedContract] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [transactionModalVisible, setTransactionModalVisible] = useState(false);
@@ -84,6 +88,42 @@ const TableContract = () => {
     setIsModalVisible(false);
     setSelectedContract(null);
   };
+
+  const handleExport = () => {
+    // Filter data based on date range and Mode_reglement
+    const filteredData = data.filter((item) => {
+      const itemDate = new Date(item.date_debut);
+      const dateRangeFilter =
+        (!exportDateRange[0] || itemDate >= exportDateRange[0].toDate()) &&
+        (!exportDateRange[1] || itemDate <= exportDateRange[1].toDate());
+      const modeReglementFilter =
+        exportModeReglement.length === 0 ||
+        exportModeReglement.includes(item.Mode_reglement);
+      return dateRangeFilter && modeReglementFilter;
+    });
+
+    // Filter fields based on user selection
+    const exportData = filteredData.map((item) => {
+      const exportItem = {};
+      Object.keys(exportFields).forEach((field) => {
+        if (exportFields[field]) {
+          exportItem[field] = item[field];
+        }
+      });
+      return exportItem;
+    });
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Contrats");
+
+    // Save to file
+    XLSX.writeFile(wb, "contrats_export.xlsx");
+  };
+
   const fetchClients = async () => {
     try {
       const response = await fetch(
@@ -818,8 +858,53 @@ const TableContract = () => {
     // TODO: Implement actual receipt printing logic
   };
 
+  const modeReglementOptions = ["Chèques", "Espèces", "Prélèvements", "Autre"];
+
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Options d'exportation"
+        visible={exportModalVisible}
+        onOk={() => {
+          setExportModalVisible(false);
+          handleExport();
+        }}
+        onCancel={() => setExportModalVisible(false)}
+        okText="Exporter"
+        cancelText="Annuler"
+      >
+        <div>
+          <h4>Sélectionnez les champs à exporter :</h4>
+          {columns.map((column) => (
+            <Checkbox
+              key={column.key}
+              onChange={(e) =>
+                setExportFields({
+                  ...exportFields,
+                  [column.key]: e.target.checked,
+                })
+              }
+            >
+              {column.title}
+            </Checkbox>
+          ))}
+        </div>
+        <div style={{ marginTop: "20px" }}>
+          <h4>Sélectionnez la plage de dates :</h4>
+          <DatePicker.RangePicker
+            onChange={(dates) => setExportDateRange(dates)}
+            placeholder={["Date de début", "Date de fin"]}
+            format="DD/MM/YYYY"
+          />
+        </div>
+        <div style={{ marginTop: "20px" }}>
+          <h4>Sélectionnez le mode de règlement :</h4>
+          <Checkbox.Group
+            options={modeReglementOptions}
+            onChange={(checkedValues) => setExportModeReglement(checkedValues)}
+          />
+        </div>
+      </Modal>
       <Modal
         title="Détails du Contrat Client"
         visible={isModalVisible}
@@ -932,6 +1017,12 @@ const TableContract = () => {
             ) : (
               ""
             )}
+            <Button
+              onClick={() => setExportModalVisible(true)}
+              icon={<DownloadOutlined />}
+            >
+              Export to Excel
+            </Button>
           </div>
         </div>
         {/* add contract */}
