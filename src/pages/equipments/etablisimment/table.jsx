@@ -19,6 +19,7 @@ const TableEtablissement = () => {
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
   const [changedFields, setChangedFields] = useState([]);
   const [isFormChanged, setIsFormChanged] = useState(false);
+  const [villes, setVilles] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,6 +35,18 @@ const TableEtablissement = () => {
         );
         const jsonData = await response.json();
         setData(jsonData.data);
+
+        // Fetch villes data
+        const villesResponse = await fetch(
+          "https://fithouse.pythonanywhere.com/api/villes/",
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        const villesData = await villesResponse.json();
+        setVilles(villesData.data);
 
         // Generate columns based on the desired keys
         const desiredKeys = [
@@ -207,7 +220,6 @@ const TableEtablissement = () => {
         {selectedRecord && !editMode && (
           <div>
             <p>Adresse: {selectedRecord.adresse_etablissement}</p>
-            <p>Ville: {selectedRecord.ville}</p>
             <p>Téléphone: {selectedRecord.teletablissement}</p>
             <p>Email: {selectedRecord.mailetablissement}</p>
             <p>Description: {selectedRecord.description}</p>
@@ -285,17 +297,11 @@ const TableEtablissement = () => {
             </Form.Item>
             <Form.Item name="ville" label="Ville">
               <Select>
-                <Select.Option value="1">Fes</Select.Option>
-                <Select.Option value="2">Rabat</Select.Option>
-                <Select.Option value="2">Rabat</Select.Option>
-                <Select.Option value="3">Casablanca</Select.Option>
-                <Select.Option value="4">Marrakech</Select.Option>
-                <Select.Option value="5">Agadir</Select.Option>
-                <Select.Option value="6">Tangier</Select.Option>
-                <Select.Option value="7">Meknes</Select.Option>
-                <Select.Option value="8">Oujda</Select.Option>
-                <Select.Option value="9">Kenitra</Select.Option>
-                <Select.Option value="10">Tetouan</Select.Option>
+                {villes.map((ville) => (
+                  <Select.Option key={ville.id} value={ville.id.toString()}>
+                    {ville.nom_ville}
+                  </Select.Option>
+                ))}
               </Select>
             </Form.Item>
             <Form.Item name="teletablissement" label="Téléphone">

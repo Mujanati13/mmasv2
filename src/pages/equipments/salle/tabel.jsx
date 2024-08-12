@@ -93,7 +93,7 @@ const TableSalle = () => {
     };
 
     fetchData();
-  }, []);
+  }, [add1]);
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -196,7 +196,7 @@ const TableSalle = () => {
       if (response.ok) {
         const res = await response.json();
         if (res == "Added Successfully!!") {
-          message.success("categorie added successfully");
+          message.success("catégorie ajoutée avec succès");
           setAdd1(Math.random() * 1000);
           setCategoireData({ nom_category: "" });
           //   onCloseC();
@@ -267,16 +267,16 @@ const TableSalle = () => {
           }
         );
         const jsonData = await response.json();
-  
+
         // Ensure each row has a unique key
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
           key: item.id_salle || index, // Assuming each item has a unique id, otherwise use index
         }));
-  
+
         setData(processedData);
         setFilteredData(processedData);
-  
+
         // Generate columns based on the desired keys
         const desiredKeys = ["nom_salle", "category", "capacity", ""];
         const generatedColumns = desiredKeys.map((key) => ({
@@ -285,7 +285,7 @@ const TableSalle = () => {
               nom_salle: "Nom de la Salle",
               category: "Catégorie",
               capacity: "Capacité",
-              "": "Actions",
+              "": "Action",
             }[key]
           ), // Capitalize the first letter
           dataIndex: key,
@@ -317,11 +317,10 @@ const TableSalle = () => {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, [authToken, update, add]);
-  
-  
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -692,7 +691,6 @@ const TableSalle = () => {
 
   // Create the data source for the table
 
-
   return (
     <div className="w-full p-2">
       <Modal
@@ -704,36 +702,36 @@ const TableSalle = () => {
         }}
         footer={null}
       >
-       <Table
-        columns={[
-          {
-            title: 'Nom de la Salle',
-            dataIndex: 'nom_salle',
-            key: 'nom_salle',
-          },
-          {
-            title: 'Catégorie',
-            dataIndex: 'category',
-            key: 'category',
-          },
-          {
-            title: 'Capacité',
-            dataIndex: 'capacity',
-            key: 'capacity',
-          },
-          // Add other details columns as needed
-        ]}
-        dataSource={selectedRoom ? [selectedRoom] : []}
-        pagination={false}
-        rowKey="id_salle"
-      />
+        <Table
+          columns={[
+            {
+              title: "Nom de la Salle",
+              dataIndex: "nom_salle",
+              key: "nom_salle",
+            },
+            {
+              title: "Catégorie",
+              dataIndex: "category",
+              key: "category",
+            },
+            {
+              title: "Capacité",
+              dataIndex: "capacity",
+              key: "capacity",
+            },
+            // Add other details columns as needed
+          ]}
+          dataSource={selectedRoom ? [selectedRoom] : []}
+          pagination={false}
+          rowKey="id_salle"
+        />
       </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
             <Input
               prefix={<SearchOutlined />}
-              placeholder="Search salle"
+              placeholder="Rechercher salle"
               value={searchText}
               onChange={handleSearch}
             />
@@ -769,27 +767,27 @@ const TableSalle = () => {
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&& (
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<UserAddOutlined />}
-                >
-                  Ajout salle
-                </Button>
-              )}
+                "secretaire") && (
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajout salle
+              </Button>
+            )}
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                 "secretaire") && (
-                <Button
-                  type="default"
-                  onClick={showDrawerC}
-                  icon={<BorderOuterOutlined />}
-                >
-                  Ajout categorie
-                </Button>
-              )}
+              <Button
+                type="default"
+                onClick={showDrawerC}
+                icon={<BorderOuterOutlined />}
+              >
+                Ajout categorie
+              </Button>
+            )}
           </div>
           <Drawer
             title="Saisir un nouveau salle"
@@ -819,15 +817,22 @@ const TableSalle = () => {
                       ></Input>
                     </div>
                     <div>
-                      <div>*Capacity</div>
+                      <div>*Capacité</div>
                       <Input
                         value={ClientData.capacity}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            capacity: value.target.value,
-                          })
-                        }
+                        onChange={(value) => {
+                          const newValue = value.target.value;
+                          if (newValue >= 0 && newValue <= 150) {
+                            setClientData({
+                              ...ClientData,
+                              capacity: newValue,
+                            });
+                          } else {
+                            message.warning(
+                              "La valeur doit être comprise entre 0 et 150"
+                            );
+                          }
+                        }}
                         placeholder="Capacity"
                       ></Input>
                     </div>
@@ -863,11 +868,11 @@ const TableSalle = () => {
                   </div>
                 </div>
                 <Space className="mt-10">
-                  <Button danger onClick={onCloseR}>
-                    Annuler
-                  </Button>
                   <Button onClick={handleRoomSubmit} type="default">
                     Enregistrer
+                  </Button>
+                  <Button danger onClick={onCloseR}>
+                    Annuler
                   </Button>
                 </Space>
               </div>
@@ -901,10 +906,11 @@ const TableSalle = () => {
                       ></Input>
                     </div>
                     <Tooltip title="Ajoute un nouveau categorie">
-                      <PlusOutlined
+                      <Button
+                        icon={<PlusOutlined />}
                         className="cursor-pointer"
                         onClick={addCtegeries}
-                      />
+                      >Ajouter</Button>
                     </Tooltip>
                   </div>
                 </div>
@@ -914,7 +920,7 @@ const TableSalle = () => {
                 <div className="flex items-center space-x-6">
                   <Input
                     prefix={<SearchOutlined />}
-                    placeholder="Search salle"
+                    placeholder="Rechercher une catégorie"
                     className="w-48"
                     value={searchText1}
                     onChange={handleSearch2}
@@ -929,8 +935,8 @@ const TableSalle = () => {
                   )}
                   {selectedRowKeys1.length >= 1 ? (
                     <Popconfirm
-                      title="Delete Contrat categorie"
-                      description="Are you sure to delete this categorie"
+                      title="Supprimer la catégorie"
+                      description="Etes-vous sûr de vouloir supprimer cette catégorie"
                       onConfirm={confirm1}
                       onCancel={cancel}
                       okText="Yes"

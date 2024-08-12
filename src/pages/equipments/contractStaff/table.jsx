@@ -156,17 +156,8 @@ const TableContractStaff = () => {
         (client) => client.id_employe === ContractData.id_employe
       );
       handlePrintContractStaff(
-        Client.nom,
-        Client.prenom,
-        Client.mail,
-        Client.adresse,
-        Client.adresse,
-        Client.tel,
-        Client.cin,
-        Client.date_naissance,
-        ContractData.date_debut,
-        ContractData.type_contrat,
-        ContractData.salaire
+        Client,
+        ContractData
       );
     });
   };
@@ -513,7 +504,7 @@ const TableContractStaff = () => {
   return (
     <div className="w-full p-2">
       <Modal
-        title="Personnel contractuel Détails"
+        title="Détails du contrat"
         visible={isDetailModalVisible}
         onCancel={handleDetailModalCancel}
         footer={null}
@@ -545,7 +536,7 @@ const TableContractStaff = () => {
                 "secretaire") &&
             selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Supprimer le personnel de contact"
+                title="Supprimer le contact"
                 description="Etes-vous sûr de supprimer Contrat Staff"
                 onConfirm={confirm}
                 onCancel={cancel}

@@ -6,75 +6,75 @@ import { DatePicker, Spin } from "antd";
 const { RangePicker } = DatePicker;
 
 const DemoDualAxes = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [dateRange, setDateRange] = useState([
+  const [donnees, setDonnees] = useState([]);
+  const [chargement, setChargement] = useState(false);
+  const [plageDate, setPlageDate] = useState([
     moment().subtract(1, "month"),
     moment(),
   ]);
-  const authToken = localStorage.getItem("jwtToken");
+  const jetonAuth = localStorage.getItem("jwtToken");
 
   useEffect(() => {
-    fetchData();
-  }, [dateRange]);
+    recupererDonnees();
+  }, [plageDate]);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const recupererDonnees = async () => {
+    setChargement(true);
     try {
-      const [start, end] = dateRange;
-      const response = await fetch(
-        `https://fithouse.pythonanywhere.com/api/reservations/date/course/?start_date=${start.format(
+      const [debut, fin] = plageDate;
+      const reponse = await fetch(
+        `https://fithouse.pythonanywhere.com/api/reservations/date/course/?start_date=${debut.format(
           "YYYY-MM-DD"
-        )}&end_date=${end.format("YYYY-MM-DD")}`,
+        )}&end_date=${fin.format("YYYY-MM-DD")}`,
         {
           headers: {
-            Authorization: authToken,
+            Authorization: jetonAuth,
           },
         }
       );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+      if (!reponse.ok) {
+        throw new Error("La réponse du réseau n'était pas correcte");
       }
-      const jsonData = await response.json();
+      const donneesJson = await reponse.json();
 
-      const weeklyData = processData(jsonData);
-      setData(weeklyData);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
+      const donneesHebdomadaires = traiterDonnees(donneesJson);
+      setDonnees(donneesHebdomadaires);
+    } catch (erreur) {
+      console.error("Échec de la récupération des données:", erreur);
     } finally {
-      setLoading(false);
+      setChargement(false);
     }
   };
 
-  const processData = (jsonData) => {
-    const weeklyData = {};
+  const traiterDonnees = (donneesJson) => {
+    const donneesHebdomadaires = {};
 
-    Object.entries(jsonData).forEach(([date, courses]) => {
-      const week = moment(date).format("YYYY-[W]WW");
-      if (!weeklyData[week]) {
-        weeklyData[week] = { value: 0, count: 0 };
+    Object.entries(donneesJson).forEach(([date, cours]) => {
+      const semaine = moment(date).format("YYYY-[S]WW");
+      if (!donneesHebdomadaires[semaine]) {
+        donneesHebdomadaires[semaine] = { valeur: 0, nombre: 0 };
       }
-      weeklyData[week].value += Object.values(courses).reduce(
+      donneesHebdomadaires[semaine].valeur += Object.values(cours).reduce(
         (acc, val) => acc + val,
         0
       );
-      weeklyData[week].count += 1;
+      donneesHebdomadaires[semaine].nombre += 1;
     });
 
-    return Object.entries(weeklyData)
-      .map(([week, { value, count }]) => ({
-        year: week,
-        value,
-        count,
+    return Object.entries(donneesHebdomadaires)
+      .map(([semaine, { valeur, nombre }]) => ({
+        annee: semaine,
+        valeur,
+        nombre,
       }))
       .sort((a, b) =>
-        moment(a.year, "YYYY-[W]WW").diff(moment(b.year, "YYYY-[W]WW"))
+        moment(a.annee, "YYYY-[S]WW").diff(moment(b.annee, "YYYY-[S]WW"))
       );
   };
 
-  const config = {
-    data,
-    xField: "year",
+  const configuration = {
+    data: donnees,
+    xField: "annee",
     legend: {
       position: "top",
     },
@@ -82,7 +82,7 @@ const DemoDualAxes = () => {
     children: [
       {
         type: "line",
-        yField: "value",
+        yField: "valeur",
         smooth: true,
         style: {
           stroke: "#5B8FF9",
@@ -99,14 +99,14 @@ const DemoDualAxes = () => {
         },
         axis: {
           y: {
-            title: "Total Reservations",
+            title: "Réservations Totales",
             style: { titleFill: "#5B8FF9" },
           },
         },
       },
       {
         type: "line",
-        yField: "count",
+        yField: "nombre",
         smooth: true,
         style: {
           stroke: "#5AD8A6",
@@ -124,7 +124,7 @@ const DemoDualAxes = () => {
         axis: {
           y: {
             position: "right",
-            title: "Number of Courses",
+            title: "Nombre de Cours",
             style: { titleFill: "#5AD8A6" },
           },
         },
@@ -132,7 +132,7 @@ const DemoDualAxes = () => {
     ],
     xAxis: {
       label: {
-        formatter: (v) => moment(v, "YYYY-[W]WW").format("MMM DD"),
+        formatter: (v) => moment(v, "YYYY-[S]WW").format("DD MMM"),
       },
     },
     tooltip: {
@@ -141,18 +141,22 @@ const DemoDualAxes = () => {
     },
   };
 
-  const handleDateRangeChange = (dates) => {
-    setDateRange(dates);
+  const gererChangementPlageDates = (dates) => {
+    setPlageDate(dates);
   };
 
   return (
     <div>
       <RangePicker
-        value={dateRange}
-        onChange={handleDateRangeChange}
+        // value={plageDate}
+        onChange={gererChangementPlageDates}
         style={{ marginBottom: 10 }}
       />
-      {loading ? <Spin size="small" className="ml-3" /> : <DualAxes className="w-full" {...config} />}
+      {chargement ? (
+        <Spin size="small" className="ml-3" />
+      ) : (
+        <DualAxes className="w-full" {...configuration} />
+      )}
     </div>
   );
 };

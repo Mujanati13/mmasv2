@@ -134,7 +134,7 @@ const TableAbonnement = () => {
     };
 
     fetchData();
-  }, []);
+  }, [add1]);
 
   // Validation function to check if all required fields are filled for the room form
   const isRoomFormValid = () => {
@@ -284,22 +284,22 @@ const TableAbonnement = () => {
             },
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const jsonData = await response.json();
-  
+
         // Ensure each row has a unique key
         const processedData = jsonData.data.map((item) => ({
           ...item,
           key: item.id_abn, // Use id_abn as the key
         }));
-  
+
         setData(processedData);
         setFilteredData(processedData);
-  
+
         // Generate columns based on the desired keys
         const desiredKeys = [
           "type_abonnement",
@@ -307,7 +307,7 @@ const TableAbonnement = () => {
           "namecat_conrat",
           "duree_mois",
         ];
-        
+
         const generatedColumns = desiredKeys.map((key) => ({
           title: getColumnTitle(key),
           dataIndex: key,
@@ -318,15 +318,12 @@ const TableAbonnement = () => {
             } else if (key === "duree_mois") {
               return `${text} mois`;
             } else if (key === "actions") {
-              return (
-                <Space size="middle">
-                </Space>
-              );
+              return <Space size="middle"></Space>;
             }
             return text;
           },
         }));
-        
+
         setColumns(generatedColumns);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -335,10 +332,10 @@ const TableAbonnement = () => {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, [authToken, update, add]);
-  
+
   // Helper function to get column titles
   const getColumnTitle = (key) => {
     const titles = {
@@ -346,9 +343,12 @@ const TableAbonnement = () => {
       tarif: "Tarif",
       namecat_conrat: "Catégorie de contrat",
       duree_mois: "Durée",
-      actions: "Actions"
+      actions: "Actions",
     };
-    return titles[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return (
+      titles[key] ||
+      key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+    );
   };
 
   useEffect(() => {
@@ -583,7 +583,7 @@ const TableAbonnement = () => {
     setIsModalVisible(false);
     setEditingClient(null);
     setChangedFields([]);
-    setIsFormChanged(false)
+    setIsFormChanged(false);
   };
   const handleModalCancel1 = () => {
     setIsModalVisible1(false);
@@ -748,7 +748,7 @@ const TableAbonnement = () => {
           <div className="w-52">
             <Input
               prefix={<SearchOutlined />}
-              placeholder="Search abonnements"
+              placeholder="recherche abonnements"
               value={searchText}
               onChange={handleSearch}
             />
@@ -843,7 +843,7 @@ const TableAbonnement = () => {
                             type_abonnement: value.target.value,
                           })
                         }
-                        placeholder="Nom salle"
+                        placeholder="Discipline "
                       ></Input>
                     </div>
                     <div>
@@ -928,7 +928,7 @@ const TableAbonnement = () => {
                             type_contrat: value.target.value,
                           })
                         }
-                        placeholder="Type contrat"
+                        placeholder="Type abonnement "
                       ></Input>
                     </div>
                     <div>
@@ -950,20 +950,28 @@ const TableAbonnement = () => {
                       <Input
                         value={CategoireData.duree_mois}
                         type="number"
-                        onChange={(value) =>
-                          setCategoireData({
-                            ...CategoireData,
-                            duree_mois: value.target.value,
-                          })
-                        }
-                        placeholder="Duree mois"
-                      ></Input>
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value <= 12) {
+                            setCategoireData({
+                              ...CategoireData,
+                              duree_mois: value,
+                            });
+                          } else {
+                            message.warning(
+                              "La durée ne peut pas dépasser 12 mois"
+                            );
+                          }
+                        }}
+                        placeholder="Durée mois"
+                      />
                     </div>
                     <Tooltip title="Ajoute un nouveau abonnement">
-                      <PlusOutlined
+                      <Button
+                        icon={<PlusOutlined />}
                         className="cursor-pointer"
                         onClick={addCtegeries}
-                      />
+                      >Ajoute</Button>
                     </Tooltip>
                   </div>
                 </div>
@@ -973,7 +981,7 @@ const TableAbonnement = () => {
                 <div className="flex items-center space-x-6">
                   <Input
                     prefix={<SearchOutlined />}
-                    placeholder="Search type"
+                    placeholder="recherche type"
                     className="w-48"
                     value={searchText1}
                     onChange={handleSearch2}

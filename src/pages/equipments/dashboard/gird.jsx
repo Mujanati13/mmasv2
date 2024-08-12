@@ -34,7 +34,7 @@ function GridDashborad() {
         ) : (
           ""
         )}
-        <div className="w-full h-60"><DemoDualAxes /></div>
+        <div className="w-full h-60 mt-5"><DemoDualAxes /></div>
       </div>
     </div>
   );

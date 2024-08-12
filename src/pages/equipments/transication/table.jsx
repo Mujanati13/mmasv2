@@ -10,17 +10,24 @@ import {
   Button,
   Drawer,
   Space,
+  Switch,
+  Descriptions,
+  Segmented,
+  Checkbox,
+  DatePicker,
 } from "antd";
 import {
   SearchOutlined,
   UserAddOutlined,
   EyeOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
 import {
   addNewTrace,
   formatDateToYearMonthDay,
   getCurrentDate,
 } from "../../../utils/helper";
+import * as XLSX from "xlsx";
 
 const TableTransication = () => {
   const [data, setData] = useState([]);
@@ -39,9 +46,260 @@ const TableTransication = () => {
   const [idClient, setIdClient] = useState([]);
   const [ContractClient, setContractClient] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [attribut, Setattribut] = useState({
-    years: "",
-    month: "",
+  const [isTransactionService, setIsTransactionService] = useState(false);
+  const [services, setServices] = useState([]);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedTransactionDetails, setSelectedTransactionDetails] =
+    useState(null);
+  const [isTransactionDepense, setIsTransactionDepense] = useState(false);
+  const [fournisseurs, setFournisseurs] = useState([]);
+  const [transactionType, setTransactionType] = useState("regular");
+  const [reservations, setReservations] = useState([]);
+  const [contractClients, setContractClients] = useState([]);
+
+  const showTransactionDetails = (record) => {
+    setSelectedTransactionDetails(record);
+    setDetailModalVisible(true);
+  };
+  const [isExportModalVisible, setIsExportModalVisible] = useState(false);
+  const [exportFilters, setExportFilters] = useState({
+    services: true,
+    abonnements: true,
+    depenses: true,
+    dateStart: null,
+    dateEnd: null,
+  });
+
+  const showExportModal = () => {
+    setIsExportModalVisible(true);
+  };
+
+  const handleExportModalCancel = () => {
+    setIsExportModalVisible(false);
+  };
+
+  const handleExportModalOk = () => {
+    exportData();
+    setIsExportModalVisible(false);
+  };
+
+  const exportData = async () => {
+    try {
+      let allData = [];
+
+      if (exportFilters.services) {
+        const serviceData = await fetchDataFromAPI(
+          "https://fithouse.pythonanywhere.com/api/transaction_service/"
+        );
+        allData = [...allData, ...serviceData];
+      }
+
+      if (exportFilters.abonnements) {
+        const abonnementData = await fetchDataFromAPI(
+          "https://fithouse.pythonanywhere.com/api/transactions/"
+        );
+        allData = [...allData, ...abonnementData];
+      }
+
+      if (exportFilters.depenses) {
+        const depenseData = await fetchDataFromAPI(
+          "https://fithouse.pythonanywhere.com/api/transaction_depense/"
+        );
+        allData = [...allData, ...depenseData];
+      }
+
+      // Filter data based on date range
+      const filteredData = allData.filter((item) => {
+        const itemDate = new Date(item.date);
+        return (
+          (!exportFilters.dateStart || itemDate >= exportFilters.dateStart) &&
+          (!exportFilters.dateEnd || itemDate <= exportFilters.dateEnd)
+        );
+      });
+
+      // Create worksheet
+      const ws = XLSX.utils.json_to_sheet(filteredData);
+
+      // Create workbook and add the worksheet
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Transactions");
+
+      // Generate Excel file
+      XLSX.writeFile(wb, "transactions_export.xlsx");
+
+      message.success("Data exported successfully!");
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      message.error("An error occurred while exporting data");
+    }
+  };
+
+  const fetchDataFromAPI = async (url) => {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const jsonData = await response.json();
+    return jsonData.data || [];
+  };
+
+  const TransactionDetailsModal = ({ visible, onClose, transaction }) => {
+    if (!transaction) return null;
+
+    return (
+      <Modal
+        visible={visible}
+        onCancel={onClose}
+        footer={null}
+        title={`Détails de la ${
+          isTransactionService ? "Transaction de Service" : "Transaction"
+        }`}
+        width={700}
+      >
+        <Descriptions bordered column={1}>
+          {transactionType == "depense" ? (
+            <>
+              <Descriptions.Item label="Date">
+                {formatDateToYearMonthDay(transaction.date)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Type">
+                {transaction.type}
+              </Descriptions.Item>
+              <Descriptions.Item label="Montant">
+                {transaction.montant}
+              </Descriptions.Item>
+              <Descriptions.Item label="Mode de règlement">
+                {transaction.mode_reglement}
+              </Descriptions.Item>
+              <Descriptions.Item label="Description">
+                {transaction.description}
+              </Descriptions.Item>
+              <Descriptions.Item label="Fournisseur">
+                {transaction.societe}
+              </Descriptions.Item>
+            </>
+          ) : transactionType == "service" ? (
+            <>
+              <Descriptions.Item label="Date">
+                {formatDateToYearMonthDay(transaction.date)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Type">
+                {transaction.type}
+              </Descriptions.Item>
+              <Descriptions.Item label="Montant">
+                {transaction.montant}
+              </Descriptions.Item>
+              <Descriptions.Item label="Mode de règlement">
+                {transaction.mode_reglement}
+              </Descriptions.Item>
+              <Descriptions.Item label="Description">
+                {transaction.description}
+              </Descriptions.Item>
+              <Descriptions.Item label="Réduction">
+                {transaction.reduction}
+              </Descriptions.Item>
+            </>
+          ) : (
+            <>
+              <Descriptions.Item label="Date">
+                {formatDateToYearMonthDay(transaction.date)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Type">
+                {transaction.Type ? "Entrée" : "Sortie"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Montant">
+                {transaction.montant}
+              </Descriptions.Item>
+              <Descriptions.Item label="Mode de règlement">
+                {transaction.mode_reglement}
+              </Descriptions.Item>
+              <Descriptions.Item label="Description">
+                {transaction.description}
+              </Descriptions.Item>
+              <Descriptions.Item label="Client">
+                {transaction.client}
+              </Descriptions.Item>
+              <Descriptions.Item label="Admin">
+                {transaction.admin}
+              </Descriptions.Item>
+              <Descriptions.Item label="Reste">
+                {transaction.Reste}
+              </Descriptions.Item>
+              <Descriptions.Item label="Reste précédent">
+                {transaction.rest_pre}
+              </Descriptions.Item>
+            </>
+          )}
+        </Descriptions>
+      </Modal>
+    );
+  };
+
+  const fetchFournisseurs = async () => {
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/fournisseur/",
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+      const data = await response.json();
+      setFournisseurs(data.data);
+    } catch (error) {
+      console.error("Error fetching fournisseurs:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchReservations();
+  }, []);
+
+  const fetchReservations = async () => {
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/reservationService/",
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch reservations");
+      }
+      const data = await response.json();
+      setReservations(data.data || []);
+    } catch (error) {
+      console.error("Error fetching reservations:", error);
+      message.error("Failed to load reservations");
+    }
+  };
+
+  const [transactionData, setTransactionData] = useState({
+    date: getCurrentDate(),
+    Type: true,
+    montant: null,
+    mode_reglement: "",
+    description: "",
+    id_contrat: null,
+    id_admin: localStorage.getItem("data")[0].id_employe,
+    client: "",
+    image: "",
+    admin: localStorage.getItem("data")[0].login,
+    Reste: null,
+    rest_pre: null,
+    // Additional fields for transaction service
+    type: "",
+    reduction: null,
+    id_reserv: null,
+    id_service: null,
+    mode_reservation: "admin",
   });
 
   // State for room related data
@@ -49,7 +307,7 @@ const TableTransication = () => {
     date: getCurrentDate(),
     Type: true,
     montant: null,
-    Mode_reglement: "",
+    mode_reglement: "",
     description: "",
     id_contrat: null,
     id_admin: localStorage.getItem("data")[0].id_admin,
@@ -59,28 +317,6 @@ const TableTransication = () => {
     Reste: null,
     rest_pre: null,
   });
-
-  const TransactionDetailsModal = ({ visible, onClose, transaction }) => {
-    return (
-      <Modal
-        visible={visible}
-        onCancel={onClose}
-        footer={null}
-        title="Transaction Details"
-      >
-        <div>
-          <p>Client: {transaction?.client}</p>
-          <p>Date: {formatDateToYearMonthDay(transaction?.date)}</p>
-          <p>Type: {transaction?.Type ? "Entrée" : "Sortie"}</p>
-          <p>Montant: {transaction?.montant}</p>
-          <p>Mode de règlement: {transaction?.Mode_reglement}</p>
-          <p>Description: {transaction?.description}</p>
-          <p>Reste: {transaction?.Reste}</p>
-          {/* Add more transaction details as needed */}
-        </div>
-      </Modal>
-    );
-  };
 
   useEffect(() => {
     const fecthConn = async () => {
@@ -109,27 +345,6 @@ const TableTransication = () => {
     fecthConn();
   }, [idClient]);
 
-  const fetchClients = async () => {
-    try {
-      const response = await fetch(
-        "https://fithouse.pythonanywhere.com/api/client_contrat/ "
-      );
-      const data = await response.json();
-      const seenClients = new Set();
-      const uniqueData = [];
-
-      data.data.forEach((item) => {
-        if (!seenClients.has(item.id_client)) {
-          seenClients.add(item.id_client);
-          uniqueData.push(item);
-        }
-      });
-      setClients(uniqueData);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-    }
-  };
-
   // Validation function to check if all required fields are filled for the room form
   const isRoomFormValid = () => {
     return true;
@@ -139,150 +354,95 @@ const TableTransication = () => {
     fetchClients();
   }, []);
 
-  // Function to add a new chamber
-  const addClient = async () => {
-    try {
-      // Check if the form is valid before submitting
-      if (!isRoomFormValid()) {
-        message.error("Please fill in all required fields for the chamber.");
-        return;
-      }
-
-      const id_staff = JSON.parse(localStorage.getItem("data"));
-      ClientData.id_admin = id_staff[0].id_employe;
-      // ClientData.id_staff = ;
-      // ClientData.admin = "Test";
-      console.log(ClientData);
-      const response = await fetch(
-        "https://fithouse.pythonanywhere.com/api/transactions/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(ClientData),
-        }
-      );
-      if (response.ok) {
-        const res = await response.json();
-        if (res.msg == "Added Successfully!!e") {
-          message.success("Transition ajoutée avec succès");
-          setAdd(Math.random() * 1000);
-          setClientData({
-            date: getCurrentDate(),
-            Type: true,
-            montant: null,
-            Mode_reglement: "",
-            description: "",
-            id_contrat: null,
-            id_admin: localStorage.getItem("data")[0].id_admin,
-            client: "",
-            image: "",
-            admin: localStorage.getItem("data")[0].login,
-            Reste: null,
-            rest_pre: null,
-          });
-          const id_staff = JSON.parse(localStorage.getItem("data"));
-          const res = await addNewTrace(
-            id_staff[0].id_employe,
-            "Ajout",
-            getCurrentDate(),
-            `${JSON.stringify(ClientData)}`,
-            "transctions"
-          );
-          console.log("====================================");
-          console.log(res);
-          console.log("====================================");
-          onCloseR();
-        } else {
-          message.warning(res.msg);
-          console.log(res);
-        }
-      } else {
-        console.log(response);
-        message.error("Error adding chamber");
-      }
-    } catch (error) {
-      console.log(error);
-      message.error("An error occurred:", error);
-    }
-  };
-
-  const showDrawerR = () => {
-    setOpen1(true);
-  };
-
-  const onCloseR = () => {
-    setOpen1(false);
-    setClientData({
-      date: getCurrentDate(),
-      Type: true,
-      montant: null,
-      Mode_reglement: "",
-      description: "",
-      id_contrat: null,
-      id_admin: localStorage.getItem("data")[0].id_admin,
-      client: "",
-      image: "",
-      admin: localStorage.getItem("data")[0].login,
-      Reste: null,
-      rest_pre: null,
-    });
-  };
-
-  // Function to handle form submission in the room drawer
-  const handleRoomSubmit = () => {
-    if (parseFloat(ClientData.montant) > parseFloat(ClientData.Reste)) {
-      message.error("Le montant ne peut pas être supérieur au reste à payer.");
-      return;
-    }
-    addClient();
-  };
-
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://fithouse.pythonanywhere.com/api/transactions/",
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-            },
-          }
-        );
+        let url;
+
+        switch (transactionType) {
+          case "service":
+            url =
+              "https://fithouse.pythonanywhere.com/api/transaction_service/";
+            break;
+          case "depense":
+            url =
+              "https://fithouse.pythonanywhere.com/api/transaction_depense/";
+            break;
+          default:
+            url = "https://fithouse.pythonanywhere.com/api/transactions/";
+        }
+
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
         const jsonData = await response.json();
 
-        // Ensure each row has a unique key
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id_tran || index, // Assuming each item has a unique id, otherwise use index
+          key:
+            item.id_tran ||
+            item.id_tran_service ||
+            item.id_tran_depense ||
+            index,
         }));
 
         setData(processedData);
         setFilteredData(processedData);
 
-        // Generate columns based on the desired keys
-        const desiredKeys = ["client", "date", "Type"];
+        let desiredKeys;
+        console.log(transactionType);
+
+        switch (transactionType) {
+          case "service":
+            desiredKeys = [
+              "date",
+              "type",
+              "montant",
+              "mode_reglement",
+              "description",
+            ];
+            break;
+          case "depense":
+            // desiredKeys = ["date", "type", "montant", "mode_reglement", "description", "societe"];
+            break;
+          default:
+          // desiredKeys = ["client", "date", "Type", "montant"];
+        }
+
         const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
+          title: capitalizeFirstLetter(key.replace(/\_/g, " ")),
           dataIndex: key,
           key,
           render: (text, record) => {
-            if (key === "Type") {
-              return (
-                <a href={text} target="_blank" rel="noopener noreferrer">
-                  {text == true ? "Entre" : "Sortie"}
-                </a>
-              );
+            if (key === "Type" || key === "type") {
+              return transactionType === "service"
+                ? text
+                : text
+                ? "Entrée"
+                : "Sortie";
             } else if (key === "date") {
-              return <>{formatDateToYearMonthDay(text)}</>;
+              return formatDateToYearMonthDay(text);
             }
             return text;
           },
         }));
+
+        generatedColumns.push({
+          title: "Actions",
+          key: "actions",
+          render: (_, record) => (
+            <EyeOutlined
+              style={{ cursor: "pointer" }}
+              onClick={() => showTransactionDetails(record)}
+            />
+          ),
+        });
+
         setColumns(generatedColumns);
         setLoading(false);
       } catch (error) {
@@ -292,22 +452,21 @@ const TableTransication = () => {
     };
 
     fetchData();
-  }, [authToken, update, add]);
-
+  }, [authToken, update, add, transactionType]);
   // Function to capitalize the first letter of a string
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
   // Handle search input change
-  const handleSearch = (e) => {
-    const value = e.target.value.toLowerCase();
-    setSearchText(value);
-    const filtered = data.filter((item) =>
-      item.client.toLowerCase().startsWith(value)
-    );
-    setFilteredData(filtered);
-  };
+  // const handleSearch = (e) => {
+  //   const value = e.target.value.toLowerCase();
+  //   setSearchText(value);
+  //   const filtered = data.filter((item) =>
+  //     item.client.toLowerCase().startsWith(value)
+  //   );
+  //   setFilteredData(filtered);
+  // };
 
   // Row selection object indicates the need for row selection
   const rowSelection = {
@@ -435,64 +594,482 @@ const TableTransication = () => {
     console.log(e);
   };
 
+  useEffect(() => {
+    fetchData();
+    fetchClients();
+    fetchServices();
+    fetchFournisseurs();
+  }, [authToken, update, add, transactionType]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      let url;
+      switch (transactionType) {
+        case "service":
+          url = "https://fithouse.pythonanywhere.com/api/transaction_service/";
+          break;
+        case "depense":
+          url = "https://fithouse.pythonanywhere.com/api/transaction_depense/";
+          break;
+        default:
+          url = "https://fithouse.pythonanywhere.com/api/transactions/";
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const jsonData = await response.json();
+
+      const processedData = jsonData.data.map((item, index) => ({
+        ...item,
+        key:
+          item.id_tran || item.id_tran_service || item.id_tran_depense || index,
+      }));
+
+      setData(processedData);
+      setFilteredData(processedData);
+
+      let desiredKeys;
+      switch (transactionType) {
+        case "service":
+          desiredKeys = [
+            "date",
+            "type",
+            "montant",
+            "mode_reglement",
+            "description",
+          ];
+          break;
+        case "depense":
+          desiredKeys = [
+            "date",
+            "type",
+            "montant",
+            "mode_reglement",
+            "description",
+            "societe",
+          ];
+          break;
+        default:
+          desiredKeys = ["client", "date", "Type", "montant"];
+      }
+
+      const generatedColumns = desiredKeys.map((key) => ({
+        title: capitalizeFirstLetter(key.replace(/\_/g, " ")),
+        dataIndex: key,
+        key,
+        render: (text, record) => {
+          if (key === "Type" || key === "type") {
+            return transactionType === "service"
+              ? text
+              : text
+              ? "Entrée"
+              : "Sortie";
+          } else if (key === "date") {
+            return formatDateToYearMonthDay(text);
+          }
+          return text;
+        },
+      }));
+
+      generatedColumns.push({
+        title: "Actions",
+        key: "actions",
+        render: (_, record) => (
+          <EyeOutlined
+            style={{ cursor: "pointer" }}
+            onClick={() => showTransactionDetails(record)}
+          />
+        ),
+      });
+
+      setColumns(generatedColumns);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setLoading(false);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/client_contrat/"
+      );
+      const data = await response.json();
+      setContractClients(data.data);
+      const seenClients = new Set();
+      const uniqueData = [];
+
+      data.data.forEach((item) => {
+        if (!seenClients.has(item.id_client)) {
+          seenClients.add(item.id_client);
+          uniqueData.push(item);
+        }
+      });
+      setClients(uniqueData);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
+  };
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/service/"
+      );
+      const data = await response.json();
+      console.log("services:" + data.data);
+
+      setServices(data.data);
+    } catch (error) {
+      console.error("Error fetching services:", error);
+    }
+  };
+
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchText(value);
+    const filtered = data.filter((item) =>
+      isTransactionService
+        ? item.type.toLowerCase().includes(value)
+        : item.client.toLowerCase().includes(value)
+    );
+    setFilteredData(filtered);
+  };
+
+  const handleAdd = async () => {
+    const idadmin = await JSON.parse(localStorage.getItem("data"))[0]
+      .id_employe;
+
+    try {
+      let url;
+      if (transactionType == "service") {
+        url = "https://fithouse.pythonanywhere.com/api/transaction_service/";
+      } else if (transactionType == "depense") {
+        url = "https://fithouse.pythonanywhere.com/api/transaction_depense/";
+      } else {
+        url = "https://fithouse.pythonanywhere.com/api/transactions/";
+      }
+
+      const discountedAmount =
+        transactionData.montant -
+        transactionData.montant * (parseFloat(transactionData.reduction) / 100);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          ...transactionData,
+          id_admin: idadmin,
+          montant: discountedAmount, // Use the discounted amount
+        }),
+      });
+
+      if (response.ok) {
+        const res = await response.json();
+        if (
+          res.msg === "Added Successfully!!" ||
+          res.msg == "Added Successfully!!e" ||
+          res == "Added Successfully!!"
+        ) {
+          message.success(
+            `${
+              isTransactionService
+                ? "Transaction service"
+                : isTransactionDepense
+                ? "Transaction dépense"
+                : "Transaction"
+            } ajoutée avec succès`
+          );
+          setAdd(Math.random() * 1000);
+          resetTransactionData();
+          onCloseR();
+
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(transactionData)}`,
+            isTransactionService
+              ? "transaction_services"
+              : isTransactionDepense
+              ? "transaction_depenses"
+              : "transactions"
+          );
+        } else {
+          message.warning(res.msg);
+        }
+      } else {
+        message.error("Error adding transaction");
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+      message.error("An error occurred while adding the transaction");
+    }
+  };
+
+  const resetTransactionData = () => {
+    setTransactionData({
+      date: getCurrentDate(),
+      Type: true,
+      montant: null,
+      mode_reglement: "",
+      description: "",
+      id_contrat: null,
+      id_admin: localStorage.getItem("data")[0].id_admin,
+      client: "",
+      image: "",
+      admin: localStorage.getItem("data")[0].login,
+      Reste: null,
+      rest_pre: null,
+      type: "",
+      reduction: 0,
+      id_reserv: null,
+      id_service: null,
+    });
+  };
+
+  const showDrawerR = () => {
+    setOpen1(true);
+  };
+
+  const onCloseR = () => {
+    setOpen1(false);
+    resetTransactionData();
+  };
+
+  const handleRoomSubmit = () => {
+    if (
+      !isTransactionService &&
+      parseFloat(transactionData.montant) > parseFloat(transactionData.Reste)
+    ) {
+      message.error("Le montant ne peut pas être supérieur au reste à payer.");
+      return;
+    }
+    handleAdd();
+  };
+
+  const findServiceTarif = (serviceId) => {
+    const service = services.find((s) => s.ID_service === serviceId);
+    return service ? service.Tarif : 0;
+  };
+
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Export Transactions"
+        visible={isExportModalVisible}
+        onOk={handleExportModalOk}
+        onCancel={handleExportModalCancel}
+      >
+        <Form layout="vertical">
+          <Form.Item label="Transaction Types">
+            <Checkbox
+              checked={exportFilters.services}
+              onChange={(e) =>
+                setExportFilters({
+                  ...exportFilters,
+                  services: e.target.checked,
+                })
+              }
+            >
+              Services
+            </Checkbox>
+            <Checkbox
+              checked={exportFilters.abonnements}
+              onChange={(e) =>
+                setExportFilters({
+                  ...exportFilters,
+                  abonnements: e.target.checked,
+                })
+              }
+            >
+              Abonnements
+            </Checkbox>
+            <Checkbox
+              checked={exportFilters.depenses}
+              onChange={(e) =>
+                setExportFilters({
+                  ...exportFilters,
+                  depenses: e.target.checked,
+                })
+              }
+            >
+              Dépenses
+            </Checkbox>
+          </Form.Item>
+          <Form.Item label="Date Range">
+            <DatePicker.RangePicker
+              onChange={(dates) => {
+                setExportFilters({
+                  ...exportFilters,
+                  dateStart: dates ? dates[0].toDate() : null,
+                  dateEnd: dates ? dates[1].toDate() : null,
+                });
+              }}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+      {/* <Modal
+        visible={visible}
+        onCancel={onClose}
+        footer={null}
+        title={`Détails de la ${
+          isTransactionService ? "Transaction de Service" : "Transaction"
+        }`}
+        width={700}
+      >
+        <Descriptions bordered column={1}>
+          {isTransactionService ? (
+            <>
+              <Descriptions.Item label="ID">
+                {transaction.id_tran_service}
+              </Descriptions.Item>
+              <Descriptions.Item label="Date">
+                {formatDateToYearMonthDay(transaction.date)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Type">
+                {transaction.type}
+              </Descriptions.Item>
+              <Descriptions.Item label="Montant">
+                {transaction.montant}
+              </Descriptions.Item>
+              <Descriptions.Item label="Mode de règlement">
+                {transaction.mode_reglement}
+              </Descriptions.Item>
+              <Descriptions.Item label="Description">
+                {transaction.description}
+              </Descriptions.Item>
+              <Descriptions.Item label="Réduction">
+                {transaction.reduction}
+              </Descriptions.Item>
+              <Descriptions.Item label="ID Réservation">
+                {transaction.id_reserv}
+              </Descriptions.Item>
+              <Descriptions.Item label="ID Service">
+                {transaction.id_service}
+              </Descriptions.Item>
+              <Descriptions.Item label="ID Contrat">
+                {transaction.id_contrat}
+              </Descriptions.Item>
+              <Descriptions.Item label="ID Admin">
+                {transaction.id_admin}
+              </Descriptions.Item>
+            </>
+          ) : (
+            <>
+              <Descriptions.Item label="ID">
+                {transaction.id_tran}
+              </Descriptions.Item>
+              <Descriptions.Item label="Date">
+                {formatDateToYearMonthDay(transaction.date)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Type">
+                {transaction.Type ? "Entrée" : "Sortie"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Montant">
+                {transaction.montant}
+              </Descriptions.Item>
+              <Descriptions.Item label="Mode de règlement">
+                {transaction.Mode_reglement}
+              </Descriptions.Item>
+              <Descriptions.Item label="Description">
+                {transaction.description}
+              </Descriptions.Item>
+              <Descriptions.Item label="ID Contrat">
+                {transaction.id_contrat}
+              </Descriptions.Item>
+              <Descriptions.Item label="ID Admin">
+                {transaction.id_admin}
+              </Descriptions.Item>
+              <Descriptions.Item label="Client">
+                {transaction.client}
+              </Descriptions.Item>
+              <Descriptions.Item label="Image">
+                {transaction.image}
+              </Descriptions.Item>
+              <Descriptions.Item label="Admin">
+                {transaction.admin}
+              </Descriptions.Item>
+              <Descriptions.Item label="Reste">
+                {transaction.Reste}
+              </Descriptions.Item>
+              <Descriptions.Item label="Reste précédent">
+                {transaction.rest_pre}
+              </Descriptions.Item>
+            </>
+          )}
+        </Descriptions>
+      </Modal> */}
       <TransactionDetailsModal
-        visible={isModalVisible}
-        onClose={() => {
-          setIsModalVisible(false);
-          setSelectedTransaction(null);
-        }}
-        transaction={selectedTransaction}
+        visible={detailModalVisible}
+        onClose={() => setDetailModalVisible(false)}
+        transaction={selectedTransactionDetails}
       />
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
             <Input
               prefix={<SearchOutlined />}
-              placeholder="Search transaction"
+              placeholder={`Search ${
+                isTransactionService ? "transaction service" : "transaction"
+              }`}
               value={searchText}
               onChange={handleSearch}
             />
           </div>
           <div className="flex items-center space-x-6">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
-              selectedRowKeys.length == 1 ? (
-              <EyeOutlined
-                style={{ cursor: "pointer" }}
-                onClick={() => {
-                  setSelectedTransaction(
-                    data.find((item) => item.key === selectedRowKeys[0])
-                  );
-                  setIsModalVisible(true);
-                }}
-              />
-            ) : (
-              ""
-            )}
+            <Segmented
+              options={[
+                { label: "Abonnement", value: "regular" },
+                { label: "Service", value: "service" },
+                { label: "Dépense", value: "depense" },
+              ]}
+              value={transactionType}
+              onChange={(value) => setTransactionType(value)}
+            />
+            <Button
+              type="default"
+              onClick={showExportModal}
+              icon={<ExportOutlined />}
+            >
+              Export
+            </Button>
           </div>
         </div>
-        {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ===
               "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ===
                 "secretaire") && (
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<UserAddOutlined />}
-                >
-                  Ajoute Transication
-                </Button>
-              )}
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajouter{" "}
+                {isTransactionService ? "transaction service" : "transaction"}
+              </Button>
+            )}
           </div>
           <Drawer
-            title="Saisir une nouvelle transaction"
+            title={`Saisir une nouvelle ${
+              transactionType === "service"
+                ? "transaction service"
+                : transactionType === "depense"
+                ? "transaction dépense"
+                : "transaction"
+            }`}
             width={720}
             onClose={onCloseR}
             closeIcon={false}
@@ -501,23 +1078,24 @@ const TableTransication = () => {
               paddingBottom: 80,
             }}
           >
-            <div>
-              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                <div className="">
-                  <div className="grid grid-cols-2 gap-4 mt-5">
+            <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+              <div className="grid grid-cols-2 gap-4 mt-5">
+                {transactionType === "regular" && (
+                  <>
                     <div>
-                      <label htmlFor="Année" className="block font-medium">
+                      <label htmlFor="client" className="block font-medium">
                         *Client
                       </label>
                       <Select
-                        id="ville"
+                        id="client"
+                        value={transactionData.client}
                         showSearch
                         placeholder="Client"
                         className="w-full"
                         optionFilterProp="children"
                         onChange={(value, option) => {
-                          setClientData({
-                            ...ClientData,
+                          setTransactionData({
+                            ...transactionData,
                             client: option.label,
                           });
                           setIdClient(value);
@@ -525,91 +1103,228 @@ const TableTransication = () => {
                         filterOption={(input, option) =>
                           (option?.label ?? "").startsWith(input)
                         }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={clients.map((cli) => {
-                          return {
-                            label: cli.client + " " + cli.Prenom_client,
-                            value: cli.id_client,
-                          };
-                        })}
+                        options={clients.map((cli) => ({
+                          label: `${cli.client} ${cli.Prenom_client}`,
+                          value: cli.id_client,
+                        }))}
                       />
                     </div>
                     <div>
-                      <label htmlFor="Année" className="block font-medium">
+                      <label htmlFor="contrat" className="block font-medium">
                         *Contrat
                       </label>
                       <Select
-                        id="ville"
-                        disabled={
-                          ContractClient && ContractClient.length > 0
-                            ? false
-                            : true
-                        }
+                        id="contrat"
+                        disabled={ContractClient.length === 0}
                         showSearch
                         placeholder="Contrat"
                         className="w-full"
                         optionFilterProp="children"
                         onChange={(value) => {
-                          const con = ContractClient.filter(
-                            (f) => f.id_contrat == value
+                          const con = ContractClient.find(
+                            (f) => f.id_contrat === value
                           );
-                          console.log(con);
-                          setClientData({
-                            ...ClientData,
+                          setTransactionData({
+                            ...transactionData,
                             id_contrat: value,
-                            Reste: con[0].reste,
-                            rest_pre: con[0].reste,
+                            Reste: con.reste,
+                            rest_pre: con.reste,
                           });
                         }}
                         filterOption={(input, option) =>
                           (option?.label ?? "").startsWith(input)
                         }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={ContractClient.map((cli) => {
-                          return {
-                            label: cli.abonnement + "-" + cli.cat_abn,
-                            value: cli.id_contrat,
-                          };
-                        })}
+                        options={ContractClient.map((cli) => ({
+                          label: `${cli.abonnement}-${cli.cat_abn}`,
+                          value: cli.id_contrat,
+                        }))}
                       />
                     </div>
                     <div>
-                      <div>Le rest Precedant</div>
+                      <label
+                        htmlFor="restPrecedant"
+                        className="block font-medium"
+                      >
+                        Le reste précédent
+                      </label>
                       <Input
-                        value={ClientData.rest_pre}
-                        onChange={(v) => {
-                          setClientData({
-                            ...ClientData,
-                            Reste: v.target.value,
+                        id="restPrecedant"
+                        value={transactionData.rest_pre}
+                        onChange={(e) => {
+                          setTransactionData({
+                            ...transactionData,
+                            rest_pre: e.target.value,
+                            Reste: e.target.value,
                           });
                         }}
-                        placeholder="Le rest Precedant"
+                        placeholder="Le reste précédent"
                         type="number"
-                      ></Input>
+                      />
                     </div>
                     <div>
-                      <div>Montant</div>
+                      <label htmlFor="restActuel" className="block font-medium">
+                        Le reste actuel
+                      </label>
                       <Input
-                        value={ClientData.montant}
-                        onChange={(v) => {
-                          const newMontant = parseFloat(v.target.value);
-                          if (newMontant > parseFloat(ClientData.Reste)) {
+                        id="restActuel"
+                        value={transactionData.Reste - transactionData.montant}
+                        readOnly
+                        placeholder="Le reste actuel"
+                        type="number"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="type" className="block font-medium">
+                        *Type
+                      </label>
+                      <Select
+                        id="type"
+                        value={transactionData.Type ? "Entrée" : "Sortie"}
+                        showSearch
+                        placeholder="Type"
+                        className="w-full"
+                        optionFilterProp="children"
+                        onChange={(value) =>
+                          setTransactionData({
+                            ...transactionData,
+                            Type: value === "Entrée",
+                          })
+                        }
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        options={[
+                          { label: "Entrée", value: "Entrée" },
+                          { label: "Sortie", value: "Sortie" },
+                        ]}
+                      />
+                    </div>
+                  </>
+                )}
+                {transactionType === "service" && (
+                  <>
+                    <div>
+                      <label htmlFor="service" className="block font-medium">
+                        *Service
+                      </label>
+                      <Select
+                        id="service"
+                        showSearch
+                        placeholder="Service"
+                        className="w-full"
+                        optionFilterProp="children"
+                        onChange={(value, options) => {
+                          const serviceTarif = findServiceTarif(value);
+                          console.log(serviceTarif + " hlll");
+                          setTransactionData({
+                            ...transactionData,
+                            id_service: value,
+                            montant: serviceTarif, // Set the montant to the service's tarif
+                          });
+                        }}
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        options={services.map((service) => ({
+                          label: service.service,
+                          value: service.ID_service,
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="reservation"
+                        className="block font-medium"
+                      >
+                        Réservation
+                      </label>
+                      <Select
+                        id="reservation"
+                        showSearch
+                        placeholder="Sélectionnez une réservation"
+                        className="w-full"
+                        optionFilterProp="children"
+                        onChange={(value, option) => {
+                          setTransactionData({
+                            ...transactionData,
+                            id_reserv: value,
+                            id_service: option.service_id,
+                            id_client: option.client_id,
+                          });
+                        }}
+                        filterOption={(input, option) =>
+                          option.children
+                            .toLowerCase()
+                            .indexOf(input.toLowerCase()) >= 0
+                        }
+                      >
+                        {reservations.map((reservation) => (
+                          <Select.Option
+                            key={reservation.id_rsv_srvc}
+                            value={reservation.id_rsv_srvc}
+                            service_id={reservation.id_service}
+                            client_id={reservation.id_client}
+                          >
+                            {reservation.service} - {reservation.client} -{" "}
+                            {reservation.date_presence}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div>
+                      <label htmlFor="contrat" className="block font-medium">
+                        *Client
+                      </label>
+                      <Select
+                        id="contrat"
+                        showSearch
+                        placeholder="Contrat"
+                        className="w-full"
+                        optionFilterProp="children"
+                        onChange={(value) => {
+                          const con = contractClients.find(
+                            (f) => f.id_contrat === value
+                          );
+                          setTransactionData({
+                            ...transactionData,
+                            id_contrat: value,
+                          });
+                        }}
+                        filterOption={(input, option) =>
+                          (option?.label ?? "").startsWith(input)
+                        }
+                        options={contractClients.map((cli) => ({
+                          label: `${cli.client} ${cli.Prenom_client}`,
+                          value: cli.id_contrat,
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="montant" className="block font-medium">
+                        Montant
+                      </label>
+                      <Input
+                        id="montant"
+                        disabled={true}
+                        value={transactionData.montant}
+                        onChange={(e) => {
+                          const newMontant = parseFloat(e.target.value);
+                          if (
+                            transactionType === "regular" &&
+                            newMontant > parseFloat(transactionData.Reste)
+                          ) {
                             message.warning(
                               "Le montant ne peut pas dépasser le reste à payer."
                             );
                             return;
                           }
-                          setClientData({
-                            ...ClientData,
-                            montant: v.target.value,
+                          setTransactionData({
+                            ...transactionData,
+                            montant: e.target.value,
                           });
                         }}
                         placeholder="Montant"
@@ -617,124 +1332,225 @@ const TableTransication = () => {
                       />
                     </div>
                     <div>
-                      <div>Le rest actuel</div>
-                      <Input
-                        value={ClientData.Reste - ClientData.montant}
-                        onChange={(v) => {
-                          setClientData({
-                            ...ClientData,
-                            Reste: v.target.value,
-                          });
-                        }}
-                        placeholder="Le rest Precedant"
-                        type="number"
-                      ></Input>
-                    </div>
-                    <div>
-                      <div>Description</div>
-                      <Input
-                        value={ClientData.description}
-                        onChange={(v) => {
-                          setClientData({
-                            ...ClientData,
-                            description: v.target.value,
-                          });
-                        }}
-                        placeholder="Description"
-                      ></Input>
-                    </div>
-                    <div>
-                      <label htmlFor="Année" className="block font-medium">
-                        *Mode de Reglement
+                      <label htmlFor="reduction" className="block font-medium">
+                        Réduction (%)
                       </label>
-                      <Select
-                        id="ville"
-                        value={ClientData.Mode_reglement}
-                        showSearch
-                        placeholder="Contrat"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            Mode_reglement: value,
+                      <Input
+                        id="reduction"
+                        value={transactionData.reduction}
+                        onChange={(e) => {
+                          const newReduction = parseFloat(e.target.value);
+                          if (
+                            isNaN(newReduction) ||
+                            newReduction < 0 ||
+                            newReduction > 100
+                          ) {
+                            message.error(
+                              "La réduction doit être un pourcentage entre 0 et 100."
+                            );
+                            return;
+                          }
+                          setTransactionData({
+                            ...transactionData,
+                            reduction: e.target.value,
+                          });
+                        }}
+                        placeholder="Réduction (%)"
+                        type="number"
+                        min="0"
+                        max="100"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="montantApresReduction"
+                        className="block font-medium"
+                      >
+                        Montant après réduction
+                      </label>
+                      <Input
+                        id="montantApresReduction"
+                        value={
+                          transactionData.montant -
+                          transactionData.montant *
+                            (parseFloat(transactionData.reduction) / 100)
+                        }
+                        disabled={true}
+                        readOnly
+                        placeholder="Montant après réduction"
+                        type="number"
+                      />
+                    </div>
+
+                    <div className="w-full">
+                      <label
+                        htmlFor="typeService"
+                        className="block font-medium"
+                      >
+                        *Type de Service
+                      </label>
+                      {/* <Input
+                        id="typeService"
+                        value={transactionData.type}
+                        onChange={(e) =>
+                          setTransactionData({
+                            ...transactionData,
+                            type: e.target.value,
                           })
                         }
+                        placeholder="Type de service"
+                      /> */}
+                      {JSON.parse(localStorage.getItem(`data`))[0].fonction ===
+                      "Administration" ? (
+                        <Select
+                          id="selectEntree"
+                          placeholder="Type de service"
+                          value={transactionData.type}
+                          className="w-full"
+                          onChange={(value, option) => {
+                            setTransactionData({
+                              ...transactionData,
+                              type: value,
+                            });
+                          }}
+                          style={{ width: 200, marginBottom: 10 }}
+                        >
+                          <Option value="Entrée">Entrée</Option>
+                          <Option value="Sortie">Sortie</Option>
+                        </Select>
+                      ) : (
+                        <Select
+                          id="selectEntree"
+                          placeholder="Type de service"
+                          value={transactionData.type}
+                          className="w-full"
+                          onChange={(value, option) => {
+                            setTransactionData({
+                              ...transactionData,
+                              type: value,
+                            });
+                          }}
+                          style={{ width: 200, marginBottom: 10 }}
+                        >
+                          <Option value="Entrée">Entrée</Option>
+                        </Select>
+                      )}
+                    </div>
+                  </>
+                )}
+                {transactionType === "depense" && (
+                  <>
+                    <div>
+                      <label
+                        htmlFor="fournisseur"
+                        className="block font-medium"
+                      >
+                        *Fournisseur
+                      </label>
+                      <Select
+                        id="fournisseur"
+                        showSearch
+                        placeholder="Fournisseur"
+                        className="w-full"
+                        optionFilterProp="children"
+                        onChange={(value) => {
+                          setTransactionData({
+                            ...transactionData,
+                            id_fournisseur: value,
+                          });
+                        }}
                         filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
+                          (option?.label ?? "")
                             .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
+                            .includes(input.toLowerCase())
                         }
-                        options={[
-                          {
-                            label: "Cheques",
-                            value: "Cheques",
-                          },
-                          {
-                            label: "Especes",
-                            value: "Especes",
-                          },
-                          {
-                            label: "Prelevements",
-                            value: "Prelevements",
-                          },
-                          {
-                            label: "Autres",
-                            value: "autres",
-                          },
-                        ]}
+                        options={fournisseurs.map((fournisseur) => ({
+                          label: fournisseur.societe,
+                          value: fournisseur.id_frs,
+                        }))}
                       />
                     </div>
                     <div>
-                      <label htmlFor="Année" className="block font-medium">
-                        *Type
+                      <label
+                        htmlFor="typeDepense"
+                        className="block font-medium"
+                      >
+                        *Type de Dépense
                       </label>
                       <Select
-                        id="ville"
-                        value={ClientData.Type == true ? "Entree" : "Sortie"}
-                        showSearch
-                        placeholder="Contrat"
-                        className="w-full"
-                        optionFilterProp="children"
+                        id="typeDepense"
+                        value={transactionData.type}
                         onChange={(value) =>
-                          setClientData({ ...ClientData, Type: value })
+                          setTransactionData({
+                            ...transactionData,
+                            type: value,
+                          })
                         }
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        defaultValue={true}
-                        defaultOpen={true}
-                        options={[
-                          {
-                            label: "Entree",
-                            value: true,
-                          },
-                          {
-                            label: "Sortie",
-                            value: false,
-                          },
-                        ]}
-                      />
+                        placeholder="Type de dépense"
+                        className="w-full"
+                      >
+                        <Select.Option value="Entrée">Entrée</Select.Option>
+                        <Select.Option value="Sortie">Sortie</Select.Option>
+                      </Select>
                     </div>
-                  </div>
+                  </>
+                )}
+                {/* Common fields for all transaction types */}
+                <div>
+                  <label htmlFor="description" className="block font-medium">
+                    Description
+                  </label>
+                  <Input.TextArea
+                    id="description"
+                    value={transactionData.description}
+                    onChange={(e) => {
+                      setTransactionData({
+                        ...transactionData,
+                        description: e.target.value,
+                      });
+                    }}
+                    placeholder="Description"
+                  />
                 </div>
-                <Space className="mt-10">
-                  <Button danger onClick={onCloseR}>
-                    Annuler
-                  </Button>
-                  <Button onClick={handleRoomSubmit} type="default">
-                    Enregistrer
-                  </Button>
-                </Space>
+                <div>
+                  <label htmlFor="modeReglement" className="block font-medium">
+                    *Mode de Règlement
+                  </label>
+                  <Select
+                    id="modeReglement"
+                    value={transactionData.mode_reglement}
+                    showSearch
+                    placeholder="Mode de règlement"
+                    className="w-full"
+                    optionFilterProp="children"
+                    onChange={(value) =>
+                      setTransactionData({
+                        ...transactionData,
+                        mode_reglement: value,
+                      })
+                    }
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={[
+                      { label: "Chèques", value: "chèques" },
+                      { label: "Espèces", value: "espèces" },
+                      { label: "Prélèvements", value: "prélèvements" },
+                      { label: "Autres", value: "autres" },
+                    ]}
+                  />
+                </div>
               </div>
+              <Space className="mt-10">
+                <Button danger onClick={onCloseR}>
+                  Annuler
+                </Button>
+                <Button onClick={handleRoomSubmit} type="default">
+                  Enregistrer
+                </Button>
+              </Space>
             </div>
           </Drawer>
         </div>
@@ -749,33 +1565,11 @@ const TableTransication = () => {
         className="w-full mt-5"
         columns={columns}
         dataSource={filteredData}
-        rowSelection={rowSelection}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (selectedRowKeys) => setSelectedRowKeys(selectedRowKeys),
+        }}
       />
-      {/* <Modal
-        title="Edit Coach"
-        visible={isModalVisible}
-        onOk={handleModalSubmit}
-        onCancel={handleModalCancel}
-      >
-        <div className="h-96 overflow-y-auto">
-          <Form form={form} layout="vertical">
-            <Form.Item name="mois" label="mois">
-              <Input
-                type="date"
-                disabled
-                rules={[{ required: true, message: "mois" }]}
-              />
-            </Form.Item>
-            <Form.Item name="Année" label="Année">
-              <Input
-                type="date"
-                disabled
-                rules={[{ required: true, message: "Année" }]}
-              />
-            </Form.Item>
-          </Form>
-        </div>
-      </Modal> */}
     </div>
   );
 };

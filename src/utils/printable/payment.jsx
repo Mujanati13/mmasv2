@@ -8,116 +8,176 @@ export function handlePrintPayment(
   month,
   pay,
   vcnn
-
 ) {
-  if (true) {
-    const printWindow = window.open("", "", "width=600,height=800");
-    printWindow.document.open();
-    printWindow.document.write(
-      `
-      <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Contrat N°</title>
-    <style type="text/css">
+  const printWindow = window.open("", "", "width=600,height=800");
+  printWindow.document.open();
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fiche de paie</title>
+         <style>
         * {
-            margin: 0;
-            padding: 0;
-            text-indent: 0;
+            font-size: 16px;
         }
-
-        h1 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
+        .container {
+            display: flex;
+            height: 300px;
+            flex-direction: column;
+            background-color: blue;
+        }
+        .header {
+            display: flex;
+            flex-direction: row;
+            height: 150px;
+        }
+        .header-left {
+            flex: 2
+        }
+        .header-right {
+            flex: 1
+        }
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+        }
+        .client-infos {
+            flex: 1
+        }
+        .club-info {
+            flex: 1
+        }
+        .footer {
+            height: 100px;
+        }
+        span {
+            font-size: 12px;
             font-weight: bold;
-            text-decoration: none;
-            font-size: 15pt;
         }
-
-        p {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
+        .containerTitle{
+            display: block;
+            height: 50px;
+            width: 250px !important;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            background-color: #e6e7e9;
+            border: 1px solid black;
+            text-align: center;
+        }
+        #title {
+            font-size: 20px;
             font-weight: bold;
-            text-decoration: none;
-            font-size: 11pt;
-            margin: 0pt;
         }
-
-        .s1 {
-            color: #808080;
-            font-family: Arial, sans-serif;
-            font-style: normal;
+        .infos tr td {
+            text-align: center;
+            height: 30px;
+            font-size: 13px;
             font-weight: bold;
-            text-decoration: none;
-            font-size: 12.5pt;
         }
-
-        .h2 {
-            color: #808080;
-            font-family: Arial, sans-serif;
-            font-style: normal;
+        ul li {
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 16px;
+        }
+        .containerPay {
+            position: relative;
+        }
+        .types {
+            list-style-type: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: -25px 0 0 -25px;
+        }
+        #text-reg {
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 15px;
+        }
+        .conditions p {
+            font-size: 10px !important;
+            line-height: 8px;
+            text-align: justify;
+        }
+        .titleCondition {
+            font-size: 11px;
             font-weight: bold;
-            text-decoration: none;
-            font-size: 12.5pt;
         }
-
-        h3 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
+        #tititreCondition {
+            font-size: 20px;
             font-weight: bold;
-            text-decoration: none;
-            font-size: 10.5pt;
-        }
-
-        .s2 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: normal;
-            text-decoration: none;
-            font-size: 12pt;
-        }
-
-        h4 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 9.5pt;
+            text-align: center;
         }
     </style>
-</head>
+    </head>
+    <body>
+        <table width="100%" aria-expanded="true" height="100%">
+            <tbody>
+                <tr height="200px">
+                    <td colspan="3">
+                        <img src="https://fithouse.pythonanywhere.com/media/assets/logo/logo.jpg" width="180px" />
+                    </td>
+                    <td colspan="9" style="padding-right: 60px">
+                        <span style="font-size: 20px; font-weight:bold; text-align:center;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Fiche de paie</span>
+                    </td>
+                    <td colspan="3">
+                        <img src="https://fithouse.pythonanywhere.com/media/assets/logo/logoAlbissat.jpeg" width="180px" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="12">
+                        <br/>
+                        <br/>
+                        <br/>
+                        <span style="font-size: 15px;">Je soussigné</span>
+                        <br/>
+                        <span style="color: grey; font-size: 17px; font-weight:bold">${nom} ${prenom}</span>
+                        <br/>
+                        <span style="font-size: 15px;">Numéro de carte nationale :</span>
+                        <span style="font-size: 17px; color: grey; font-weight:bold">${cdn}</span>
+                        <br/>
+                        <span style="font-size: 15px;">validité CIN :</span>
+                        <span style="font-size: 17px; color: grey; font-weight:bold">${vcnn}</span>
+                        <br/>
+                        <span style="font-size: 15px;">Fonction :</span>
+                        <span style="font-size: 17px; color: grey; font-weight:bold">${fonction}</span>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <span style="font-size: 15px;">Atteste avoir recu, en bonne et due forme, le salaire de la période du mois</span>
+                        <span style="font-size: 17px; color: grey; font-weight:bold">${month}</span>
+                        <span style="font-size: 15px;"> de la part de l'association sportive ALBISSAT AL ALHDAR d'un montant total de </span>
+                        <span style="font-size: 17px; color: grey; font-weight:bold">${pay} Dhs.</span>
+                        <br/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="12">
+                        <br/>
+                        <span style="font-size: 14px">Fait à Fes, le ${getCurrentDate()}</span><br/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="12">
+                        <br/>
+                        <br/>
+                        <br/>
+                        <span style="font-size: 13px">Signature du salarié</span>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <span style="font-size: 13px">Signature de l'employeur</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+    </html>
+  `);
 
-<body>
-    <h1 style="padding-top: 3pt;padding-left: 32pt;text-indent: 0pt;text-align: center;">Fiche de paie</h1>
-    <p style="text-indent: 0pt;text-align: left;"><br /></p>
-    <p style="padding-left: 5pt;text-indent: 0pt;text-align: left;">Je soussigné</p>
-    <p class="s1" style="padding-top: 3pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">${prenom} ${nom}</p>
-    <p style="padding-top: 3pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">Numéro de carte nationale : <span
-            class="h2">${cdn}</span></p>
-    <p style="padding-top: 3pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">validité CIN : <span
-            class="h2">${vcnn}</span></p>
-    <p style="padding-top: 3pt;padding-left: 5pt;text-indent: 0pt;text-align: left;">Fonction : <span
-            class="h2">${fonction}</span></p>
-    <p style="text-indent: 0pt;text-align: left;"><br /></p>
-    <p style="padding-left: 5pt;text-indent: 0pt;line-height: 128%;text-align: left;">Atteste avoir recu, en bonne et
-        due forme, le salaire de la période du mois <span class="h2">${month} </span>de la part de
-        l&#39;association sportive ALBISSAT AL ALHDAR d&#39;un montant total de <span class="h2">${pay} Dhs.</span></p>
-    <p style="padding-top: 5pt;text-indent: 0pt;text-align: left;"><br /></p>
-    <h3 style="padding-left: 5pt;text-indent: 0pt;text-align: left;">Fait à Fes ,le <span class="s2">29/5/2024</span>
-    </h3>
-    <p style="text-indent: 0pt;text-align: left;"><br /></p>
-    <h4 style="padding-left: 5pt;text-indent: 0pt;text-align: left;">Signature du salarié Signature de l&#39;employeur
-    </h4>
-</body>
-
-</html>`
-    );
-
-    printWindow.document.close();
-    printWindow.print();
-  }
+  printWindow.document.close();
+  printWindow.print();
 }

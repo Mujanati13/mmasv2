@@ -190,14 +190,11 @@ const TableNotification = () => {
   // Function to add a new contract
   const addContract = async () => {
     const staff = JSON.parse(localStorage.getItem("data"));
-    PaymentData.id_admin = 4;
+    PaymentData.id_admin = staff[0].id_employe;
     PaymentData.id_staff = staff[0].id_employe;
-    console.log("====================================");
-    console.log(staff[0].id_employe);
-    console.log("====================================");
     PaymentData.cible = selectedValues.toString();
-
-    const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
+  
+    const authToken = localStorage.getItem("jwtToken");
     try {
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/notifications/",
@@ -205,7 +202,7 @@ const TableNotification = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+            Authorization: `Bearer ${authToken}`,
           },
           body: JSON.stringify(PaymentData),
         }
@@ -213,18 +210,27 @@ const TableNotification = () => {
       if (response.ok) {
         const res = await response.json();
         if (res) {
-          const selectedUserIds = selectedRowKeys.map(
-            (key) => filteredData1.find((item) => item.key === key)?.id_client
-          );
+          let usersToNotify;
+          if (selectedRowKeys.length === 0) {
+            // If no users are selected, use all users from filteredData1
+            usersToNotify = filteredData1.map(item => item.id_client);
+          } else {
+            // Otherwise, use the selected users
+            usersToNotify = selectedRowKeys.map(
+              (key) => filteredData1.find((item) => item.key === key)?.id_client
+            );
+          }
 
-          for (const userId of selectedUserIds) {
+          console.log(usersToNotify);
+  
+          for (const userId of usersToNotify) {
             const notificationData = {
               user_id: userId.toString(),
               title: PaymentData.sujet,
               body: PaymentData.contenu,
               id_admin: PaymentData.id_admin,
             };
-
+  
             const pushResponse = await fetch(
               "https://fithouse.pythonanywhere.com/api/send/notificationsportX/",
               {
@@ -236,28 +242,29 @@ const TableNotification = () => {
                 body: JSON.stringify(notificationData),
               }
             );
-
+  
             if (!pushResponse.ok) {
               console.error(
                 `Failed to send push notification to user ${userId}`
               );
             } else {
               console.log(notificationData);
-              message.success("Notification ajoutée avec succès");
-              setChangedFields([]);
-              const id_staff = JSON.parse(localStorage.getItem("data"));
-              const res = await addNewTrace(
-                id_staff[0].id_employe,
-                "Ajout",
-                getCurrentDate(),
-                `${JSON.stringify(notificationData)}`,
-                "notifications"
-              );
-              console.log("====================================");
-              console.log(res);
-              console.log("====================================");
             }
           }
+  
+          message.success("Notification ajoutée avec succès");
+          setChangedFields([]);
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(notificationData)}`,
+            "notifications"
+          );
+          console.log("====================================");
+          console.log(res);
+          console.log("====================================");
           setAdd(Math.random() * 1000);
           onCloseR();
         } else {
@@ -506,8 +513,8 @@ const TableNotification = () => {
           <p>
             <strong>Date d'envoi:</strong> {PaymentData.date_envoye}
           </p>
-          <h3>Destinataires</h3>
-          {generateClientSummary()}
+          {/* <h3>Destinataires</h3>
+          {generateClientSummary()} */}
         </div>
       ),
     },

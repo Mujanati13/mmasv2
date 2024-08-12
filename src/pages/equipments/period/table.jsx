@@ -146,7 +146,10 @@ const TablePeriod = () => {
         // Generate columns based on the desired keys
         const desiredKeys = ["PeriodeSalaire"];
         const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
+          title:
+            key === "PeriodeSalaire"
+              ? "Période de Salaire"
+              : capitalizeFirstLetter(key.replace(/\_/g, " ")), // Change the title to French
           dataIndex: key,
           key,
           render: (text, record) => {
@@ -342,8 +345,8 @@ const TablePeriod = () => {
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire")&&
-              selectedRowKeys.length >= 1 ? (
+                "secretaire") &&
+            selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer la période"
                 description="Êtes-vous sûr de supprimer cette période ?"
@@ -366,17 +369,17 @@ const TablePeriod = () => {
               "Administration" ||
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                 "secretaire") && (
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<UserAddOutlined />}
-                >
-                  Ajoute Priod
-                </Button>
-              )}
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajoute Priod
+              </Button>
+            )}
           </div>
           <Drawer
-            title="Saisir un nouveau Period"
+            title="Saisir une période"
             width={720}
             onClose={onCloseR}
             closeIcon={false}

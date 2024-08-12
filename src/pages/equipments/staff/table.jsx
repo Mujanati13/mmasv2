@@ -21,6 +21,7 @@ import {
   EyeOutlined,
   EditOutlined,
   PlusOutlined,
+  EyeInvisibleOutlined,
 } from "@ant-design/icons";
 import {
   addNewTrace,
@@ -49,6 +50,7 @@ const TableStaff = () => {
   const [imagePath, setimagePath] = useState("/staff/avatar.png");
   const [changedFields, setChangedFields] = useState([]);
   const [isFormChanged, setIsFormChanged] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
   const [formErrors, setFormErrors] = useState({
     tel: "",
     mail: "",
@@ -62,7 +64,7 @@ const TableStaff = () => {
     mail: "",
     validite_CIN: "",
     cin: "",
-    ville: 1,
+    ville: null,
     date_naissance: "",
     date_inscription: getCurrentDate(),
     statut: true,
@@ -102,7 +104,7 @@ const TableStaff = () => {
   const handleUploadImage = async () => {
     // Check if there is a file to upload
     if (fileList.length === 0) {
-      message.error("No files to upload.");
+      // message.error("No files to upload.");
       return;
     }
 
@@ -242,7 +244,7 @@ const TableStaff = () => {
             mail: "",
             validite_CIN: "",
             cin: "",
-            ville: 1,
+            ville: null,
             date_naissance: "",
             date_inscription: getCurrentDate(),
             statut: true,
@@ -292,7 +294,7 @@ const TableStaff = () => {
       mail: "",
       validite_CIN: "",
       cin: "",
-      ville: 1,
+      ville: null,
       date_naissance: "",
       date_inscription: getCurrentDate(),
       statut: true,
@@ -312,6 +314,20 @@ const TableStaff = () => {
   };
 
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
+
+  const filterData = (data, searchText, statusFilter) => {
+    const filtered = data.filter((item) => {
+      const nameMatch = `${item.prenom} ${item.nom}`
+        .toLowerCase()
+        .includes(searchText.toLowerCase());
+      const statusMatch =
+        statusFilter === "all" ||
+        (statusFilter === "active" && item.statut) ||
+        (statusFilter === "inactive" && !item.statut);
+      return nameMatch && statusMatch;
+    });
+    setFilteredData(filtered);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -335,6 +351,7 @@ const TableStaff = () => {
 
         setData(processedData);
         setFilteredData(processedData);
+        filterData(processedData, searchText, statusFilter);
 
         const desiredKeys = [
           "nom_complet",
@@ -397,10 +414,11 @@ const TableStaff = () => {
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchText(value);
-    const filtered = data.filter((item) =>
-      item.nom.toLowerCase().includes(value)
-    );
-    setFilteredData(filtered);
+    filterData(data, value, statusFilter);
+  };
+  const handleStatusFilterChange = (value) => {
+    setStatusFilter(value);
+    filterData(data, searchText, value);
   };
 
   // Row selection object indicates the need for row selection
@@ -447,9 +465,13 @@ const TableStaff = () => {
       // Add id_client to the values object
       values.id_employe = editingClient.id_employe;
       values.date_recrutement = editingClient.date_recrutement;
-      values.ville = 1;
       values.validite_CIN = editingClient.validite_CIN;
-      values.password = null;
+      values.ville = 1;
+      console.log(values.ville);
+
+      if (values.password == "") {
+        values.password = null;
+      }
 
       const response = await fetch(
         `https://fithouse.pythonanywhere.com/api/staff/`,
@@ -563,7 +585,7 @@ const TableStaff = () => {
       mail: "",
       validite_CIN: "",
       cin: "",
-      ville: 1,
+      ville: null,
       date_naissance: "",
       date_inscription: getCurrentDate(),
       statut: true,
@@ -587,7 +609,7 @@ const TableStaff = () => {
       mail: "",
       validite_CIN: "",
       cin: "",
-      ville: 1,
+      ville: null,
       date_naissance: "",
       date_inscription: getCurrentDate(),
       statut: true,
@@ -633,7 +655,7 @@ const TableStaff = () => {
   return (
     <div className="w-full p-2">
       <Modal
-        title="Détails du membre du personnel"
+        title="Informations : Membre du Staff"
         visible={isDetailsModalVisible}
         onCancel={() => setIsDetailsModalVisible(false)}
         footer={null}
@@ -643,13 +665,13 @@ const TableStaff = () => {
           <Table
             columns={[
               {
-                title: "Champ",
+                title: "",
                 dataIndex: "field",
                 key: "field",
                 render: (text, record, index) => <strong>{text}</strong>,
               },
               {
-                title: "Valeur",
+                title: "",
                 dataIndex: "value",
                 key: "value",
               },
@@ -657,7 +679,7 @@ const TableStaff = () => {
             dataSource={[
               {
                 key: 1,
-                field: "Nom complet",
+                field: "Nom et prénom",
                 value: `${detailsData.prenom} ${detailsData.nom}`,
               },
               { key: 2, field: "Fonction", value: detailsData.fonction },
@@ -669,7 +691,6 @@ const TableStaff = () => {
                 field: "Date de recrutement",
                 value: detailsData.date_recrutement,
               },
-             
             ]}
             pagination={false}
             showHeader={false}
@@ -687,6 +708,18 @@ const TableStaff = () => {
               onChange={handleSearch}
             />
           </div>
+          <div className="w-40">
+            <Select
+              style={{ width: "100%" }}
+              placeholder="Filtrer par statut"
+              onChange={handleStatusFilterChange}
+              value={statusFilter}
+            >
+              <Select.Option value="all">Tous</Select.Option>
+              <Select.Option value="active">Actif</Select.Option>
+              <Select.Option value="inactive">Inactif</Select.Option>
+            </Select>
+          </div>
           <div className="flex items-center space-x-6">
             {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" ||
@@ -700,11 +733,7 @@ const TableStaff = () => {
             ) : (
               ""
             )}
-            {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administartion" ||
-            (JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "secretaire" &&
-              selectedRowKeys.length >= 1) ? (
+            {selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer le personnel"
                 description="Êtes-vous sûr de supprimer ce personnel ?"
@@ -718,11 +747,6 @@ const TableStaff = () => {
             ) : (
               ""
             )}
-            {/* {selectedRowKeys.length >= 1 ? (
-              <PrinterOutlined disabled={true} />
-            ) : (
-              ""
-            )} */}
           </div>
         </div>
         {/* add new client  */}
@@ -800,6 +824,7 @@ const TableStaff = () => {
                         showSearch
                         placeholder="Civilité"
                         className="w-full"
+                        value={ClientData.civilite}
                         optionFilterProp="children"
                         onChange={(value) =>
                           setClientData({ ...ClientData, civilite: value })
@@ -944,44 +969,58 @@ const TableStaff = () => {
                         showSearch
                         placeholder="Ville"
                         className="w-full"
+                        status={formErrors.ville ? "error" : ""}
                         optionFilterProp="children"
                         onChange={(value) =>
                           setClientData({ ...ClientData, ville: value })
                         }
                         filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
+                          (option?.label ?? "")
                             .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
+                            .includes(input.toLowerCase())
                         }
+                        value={ClientData.ville}
                         options={[
-                          { value: 1, label: "Fès" },
-                          { value: 2, label: "Rabat" },
-                          { value: 3, label: "Casablanca" },
-                          { value: 4, label: "Marrakech" },
-                          { value: 5, label: "Tanger" },
-                          { value: 6, label: "Agadir" },
-                          { value: 7, label: "Meknès" },
-                          { value: 8, label: "Oujda" },
-                          { value: 9, label: "Tetouan" },
-                          { value: 10, label: "Safi" },
-                          { value: 11, label: "El Jadida" },
-                          { value: 12, label: "Khouribga" },
-                          { value: 13, label: "Béni Mellal" },
-                          { value: 14, label: "Nador" },
-                          { value: 15, label: "Kénitra" },
-                          { value: 16, label: "Taza" },
-                          { value: 17, label: "Mohammedia" },
-                          { value: 18, label: "Laâyoune" },
-                          { value: 19, label: "Ksar El Kebir" },
-                          { value: 20, label: "Settat" },
-                          { value: 21, label: "Larache" },
-                          { value: 22, label: "Guelmim" },
-                          { value: 23, label: "Berrechid" },
-                          { value: 24, label: "Ouarzazate" },
-                          { value: 25, label: "Al Hoceima" },
+                          { value: "1", label: "Fes" },
+                          { value: "2", label: "Rabat" },
+                          { value: "3", label: "Casablanca" },
+                          { value: "4", label: "Marrakech" },
+                          { value: "5", label: "Tangier" },
+                          { value: "6", label: "Agadir" },
+                          { value: "7", label: "Meknes" },
+                          { value: "8", label: "Oujda" },
+                          { value: "9", label: "Kenitra" },
+                          { value: "10", label: "Tetouan" },
+                          { value: "11", label: "Safi" },
+                          { value: "12", label: "El Jadida" },
+                          { value: "13", label: "Khouribga" },
+                          { value: "14", label: "Beni Mellal" },
+                          { value: "15", label: "Nador" },
+                          { value: "16", label: "Ksar el-Kebir" },
+                          { value: "17", label: "Larache" },
+                          { value: "18", label: "Khemisset" },
+                          { value: "19", label: "Guelmim" },
+                          { value: "20", label: "Taza" },
+                          { value: "21", label: "Mohammedia" },
+                          { value: "22", label: "Errachidia" },
+                          { value: "23", label: "Ouarzazate" },
+                          { value: "24", label: "Al Hoceima" },
+                          { value: "25", label: "Settat" },
+                          { value: "26", label: "Sidi Kacem" },
+                          { value: "27", label: "Berkane" },
+                          { value: "28", label: "Tiznit" },
+                          { value: "29", label: "Taourirt" },
+                          { value: "30", label: "Youssoufia" },
+                          { value: "31", label: "Sidi Slimane" },
+                          { value: "32", label: "Azrou" },
+                          { value: "33", label: "Tan-Tan" },
+                          { value: "34", label: "Boujdour" },
+                          { value: "35", label: "Laayoune" },
+                          { value: "36", label: "Dakhla" },
+                          { value: "37", label: "Taroudant" },
+                          { value: "38", label: "Chichaoua" },
+                          { value: "39", label: "Guercif" },
+                          { value: "40", label: "Tarfaya" },
                         ]}
                       />
                     </div>
@@ -1208,7 +1247,7 @@ const TableStaff = () => {
         rowSelection={rowSelection}
       />
       <Modal
-        title="Modifier l'entraîneur"
+        title="Modifier Staff"
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
@@ -1242,46 +1281,95 @@ const TableStaff = () => {
             <Form.Item name="adresse" label="Adresse">
               <Input />
             </Form.Item>
-            <Form.Item name="tel" label="Téléphone">
+            <Form.Item
+              name="tel"
+              label="Téléphone"
+              rules={[
+                {
+                  required: true,
+                  message: "Veuillez saisir le numéro de téléphone!",
+                },
+                {
+                  validator: (_, value) =>
+                    validateMoroccanPhoneNumber(value)
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Numéro de téléphone invalide")
+                        ),
+                },
+              ]}
+            >
               <Input />
             </Form.Item>
+
             <Form.Item
               name="mail"
               label="Email"
-              rules={[{ required: true, message: "Please input email!" }]}
+              rules={[
+                { required: true, message: "Veuillez saisir l'email!" },
+                {
+                  validator: (_, value) =>
+                    validateEmail(value)
+                      ? Promise.resolve()
+                      : Promise.reject(new Error("Adresse e-mail invalide")),
+                },
+              ]}
             >
               <Input />
+            </Form.Item>
+            <Form.Item name="password" label="Mot de passe" rules={[]}>
+              <Input.Password
+                placeholder="Entrez le nouveau mot de passe ou laissez vide"
+                iconRender={(visible) =>
+                  visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                }
+              />
             </Form.Item>
             <Form.Item name="cin" label="CIN">
               <Input />
             </Form.Item>
             <Form.Item name="ville" label="Ville">
               <Select>
-                <Select.Option value="1">Fès</Select.Option>
+                <Select.Option value="1">Fes</Select.Option>
                 <Select.Option value="2">Rabat</Select.Option>
                 <Select.Option value="3">Casablanca</Select.Option>
                 <Select.Option value="4">Marrakech</Select.Option>
-                <Select.Option value="5">Tanger</Select.Option>
+                <Select.Option value="5">Tangier</Select.Option>
                 <Select.Option value="6">Agadir</Select.Option>
-                <Select.Option value="7">Meknès</Select.Option>
+                <Select.Option value="7">Meknes</Select.Option>
                 <Select.Option value="8">Oujda</Select.Option>
-                <Select.Option value="9">Tetouan</Select.Option>
-                <Select.Option value="10">Safi</Select.Option>
-                <Select.Option value="11">El Jadida</Select.Option>
-                <Select.Option value="12">Khouribga</Select.Option>
-                <Select.Option value="13">Béni Mellal</Select.Option>
-                <Select.Option value="14">Nador</Select.Option>
-                <Select.Option value="15">Kénitra</Select.Option>
-                <Select.Option value="16">Taza</Select.Option>
-                <Select.Option value="17">Mohammedia</Select.Option>
-                <Select.Option value="18">Laâyoune</Select.Option>
-                <Select.Option value="19">Ksar El Kebir</Select.Option>
-                <Select.Option value="20">Settat</Select.Option>
-                <Select.Option value="21">Larache</Select.Option>
-                <Select.Option value="22">Guelmim</Select.Option>
-                <Select.Option value="23">Berrechid</Select.Option>
-                <Select.Option value="24">Ouarzazate</Select.Option>
-                <Select.Option value="25">Al Hoceima</Select.Option>
+                <Select.Option value="9">Kenitra</Select.Option>
+                <Select.Option value="10">Tetouan</Select.Option>
+                <Select.Option value="11">Safi</Select.Option>
+                <Select.Option value="12">El Jadida</Select.Option>
+                <Select.Option value="13">Khouribga</Select.Option>
+                <Select.Option value="14">Beni Mellal</Select.Option>
+                <Select.Option value="15">Nador</Select.Option>
+                <Select.Option value="16">Ksar el-Kebir</Select.Option>
+                <Select.Option value="17">Larache</Select.Option>
+                <Select.Option value="18">Khemisset</Select.Option>
+                <Select.Option value="19">Guelmim</Select.Option>
+                <Select.Option value="20">Taza</Select.Option>
+                <Select.Option value="21">Mohammedia</Select.Option>
+                <Select.Option value="22">Errachidia</Select.Option>
+                <Select.Option value="23">Ouarzazate</Select.Option>
+                <Select.Option value="24">Al Hoceima</Select.Option>
+                <Select.Option value="25">Settat</Select.Option>
+                <Select.Option value="26">Sidi Kacem</Select.Option>
+                <Select.Option value="27">Berkane</Select.Option>
+                <Select.Option value="28">Tiznit</Select.Option>
+                <Select.Option value="29">Taourirt</Select.Option>
+                <Select.Option value="30">Youssoufia</Select.Option>
+                <Select.Option value="31">Sidi Slimane</Select.Option>
+                <Select.Option value="32">Azrou</Select.Option>
+                <Select.Option value="33">Tan-Tan</Select.Option>
+                <Select.Option value="34">Boujdour</Select.Option>
+                <Select.Option value="35">Laayoune</Select.Option>
+                <Select.Option value="36">Dakhla</Select.Option>
+                <Select.Option value="37">Taroudant</Select.Option>
+                <Select.Option value="38">Chichaoua</Select.Option>
+                <Select.Option value="39">Guercif</Select.Option>
+                <Select.Option value="40">Tarfaya</Select.Option>
               </Select>
             </Form.Item>
             <Form.Item

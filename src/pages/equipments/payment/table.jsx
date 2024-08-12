@@ -154,6 +154,11 @@ const TablePayemnt = () => {
             `${JSON.stringify(PaymentData)}`,
             "paiement"
           );
+        } else if (
+          res.errors.non_field_errors[0] ==
+          "The fields periode, id_contrat must make a unique set."
+        ) {
+          message.warning("Vous avez déjà été payé pour cette période.");
         } else {
           message.warning(res.msg);
           console.log(res);
@@ -542,7 +547,6 @@ const TablePayemnt = () => {
 
     fetchData();
   }, [authToken, add]);
-
 
   useEffect(() => {
     const fetchData = async () => {

@@ -33,7 +33,7 @@ import {
 } from "../../../utils/helper";
 import * as XLSX from "xlsx";
 import moment from "moment";
-const TableClient = () => {
+const TableFournisseur = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -62,26 +62,30 @@ const TableClient = () => {
     date_naissance_end: null,
   });
   const [formErrors, setFormErrors] = useState({
-    tel: "",
-    mail: "",
-  });
-  const [ClientData, setClientData] = useState({
-    civilite: "",
-    nom_client: "",
-    prenom_client: "",
+    societe: "",
+    num_ice: "",
+    nom: "",
+    prenom: "",
     adresse: "",
     tel: "",
     mail: "",
     cin: "",
-    ville: 1,
-    date_naissance: "",
-    date_inscription: getCurrentDate(),
-    statut: true,
-    blackliste: false,
-    newsletter: true,
-    nom_ville: "",
-    password: null,
+    ville: "",
     image: imagePath,
+    civilite: "",
+  });
+  const [ClientData, setClientData] = useState({
+    societe: "",
+    num_ice: "",
+    nom: "",
+    prenom: "",
+    adresse: "",
+    tel: "",
+    mail: "",
+    cin: "",
+    ville: "",
+    image: imagePath,
+    civilite: "",
   });
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
@@ -247,12 +251,10 @@ const TableClient = () => {
     if (ClientData.civilite === "") errors.civilite = true;
     if (ClientData.nom_client === "") errors.nom_client = true;
     if (ClientData.prenom_client === "") errors.prenom_client = true;
-    if (ClientData.adresse === "") errors.adresse = true;
+    if (ClientData.societe === "") errors.societe = true;
+    // if (ClientData.adresse === "") errors.adresse = true;
     if (!validateMoroccanPhoneNumber(ClientData.tel)) errors.tel = true;
-    if (!validateEmail(ClientData.mail)) errors.mail = true;
-    if (ClientData.cin === "") errors.cin = true;
-    if (ClientData.ville === "") errors.ville = true;
-    if (ClientData.date_naissance === "") errors.date_naissance = true;
+    // if (ClientData.date_naissance === "") errors.date_naissance = true;
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -262,11 +264,11 @@ const TableClient = () => {
   const addClient = async () => {
     try {
       if (!isRoomFormValid()) {
-        const firstErrorField = Object.keys(formErrors)[0];
-        const errorElement = document.getElementById(firstErrorField);
-        if (errorElement) {
-          errorElement.focus();
-        }
+        // const firstErrorField = Object.keys(formErrors)[0];
+        // const errorElement = document.getElementById(firstErrorField);
+        // if (errorElement) {
+        //   errorElement.focus();
+        // }
         message.warning(
           "Veuillez remplir tous les champs obligatoires correctement"
         );
@@ -276,7 +278,7 @@ const TableClient = () => {
       await handleUploadImage();
 
       const response = await fetch(
-        "https://fithouse.pythonanywhere.com/api/clients/",
+        "https://fithouse.pythonanywhere.com/api/fournisseur/",
         {
           method: "POST",
           headers: {
@@ -284,32 +286,26 @@ const TableClient = () => {
           },
           body: JSON.stringify({
             ...ClientData,
-            ville: parseInt(ClientData.ville), // Ensure ville is sent as an integer
           }),
         }
       );
       if (response.ok) {
         const res = await response.json();
-        if (res.msg == "Added Successfully!!e") {
-          message.success("Client ajouté avec succès");
+        if (res == "Added Successfully!!") {
+          message.success("Fournisseur ajouté avec succès");
           setAdd(Math.random() * 1000);
           setClientData({
-            civilite: "",
-            nom_client: "",
-            prenom_client: "",
+            societe: "",
+            num_ice: "",
+            nom: "",
+            prenom: "",
             adresse: "",
             tel: "",
             mail: "",
             cin: "",
-            ville: 1,
-            date_naissance: "",
-            date_inscription: getCurrentDate(),
-            statut: true,
-            blackliste: false,
-            newsletter: true,
-            nom_ville: "",
-            password: null,
+            ville: "",
             image: imagePath,
+            civilite: "",
           });
           const id_staff = JSON.parse(localStorage.getItem("data"));
           const res = await addNewTrace(
@@ -341,22 +337,17 @@ const TableClient = () => {
   const onCloseR = () => {
     setOpen1(false);
     setClientData({
-      civilite: "",
-      nom_client: "",
-      prenom_client: "",
+      societe: "",
+      num_ice: "",
+      nom: "",
+      prenom: "",
       adresse: "",
       tel: "",
       mail: "",
       cin: "",
-      ville: 1,
-      date_naissance: "",
-      date_inscription: getCurrentDate(),
-      statut: true,
-      blackliste: false,
-      newsletter: true,
-      nom_ville: "",
-      password: null,
+      ville: "",
       image: imagePath,
+      civilite: "",
     });
   };
 
@@ -377,7 +368,7 @@ const TableClient = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://fithouse.pythonanywhere.com/api/clients/",
+          "https://fithouse.pythonanywhere.com/api/fournisseur/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -389,19 +380,19 @@ const TableClient = () => {
         // Ensure each row has a unique key
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id_client || index, // Assuming each item has a unique id, otherwise use index
+          key: item.id_frs || index, // Assuming each item has a unique id, otherwise use index
         }));
 
         setData(processedData);
         setFilteredData(processedData);
 
         const desiredKeys = [
-          "nom_complet",
+          "nom",
+          "prenom",
+          "adresse",
           "tel",
           "mail",
-          "adresse",
-          "date_inscription",
-          "actions",
+          "societe",
         ];
 
         const generatedColumns = desiredKeys.map((key) => ({
@@ -485,7 +476,7 @@ const TableClient = () => {
     const value = e.target.value.toLowerCase();
     setSearchText(value);
     const filtered = data.filter((item) =>
-      item.nom_client.toLowerCase().includes(value)
+      item.nom.toLowerCase().includes(value)
     );
     setFilteredData(filtered);
   };
@@ -518,31 +509,14 @@ const TableClient = () => {
   const handleModalSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const { date_naissance, newsletter, password } = values;
-
-      // Check if date_naissance is not empty
-      if (!date_naissance) {
-        message.error("Veuillez entrer la date de naissance");
-        return;
-      }
-
-      // Check if newsletter is not empty
-      if (newsletter === null) {
-        message.error("Veuillez sélectionner l'option de newsletter");
-        return;
-      }
-
-      if (values.password == "" || values.password == undefined) {
-        values.password = null;
-      }
 
       console.log(values.password);
 
       // Add id_client to the values object
-      values.id_client = editingClient.key;
+      values.id_frs = editingClient.key;
 
       const response = await fetch(
-        `https://fithouse.pythonanywhere.com/api/clients/`,
+        `https://fithouse.pythonanywhere.com/api/fournisseur/`,
         {
           method: "PUT",
           headers: {
@@ -561,7 +535,7 @@ const TableClient = () => {
         setUpdate(updatedData);
         setData(updatedData);
         setFilteredData(updatedData);
-        message.success("Client mis à jour avec succès");
+        message.success("Fournisseur mis à jour avec succès");
         const id_staff = JSON.parse(localStorage.getItem("data"));
         const res = await addNewTrace(
           id_staff[0].id_employe,
@@ -603,7 +577,7 @@ const TableClient = () => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://fithouse.pythonanywhere.com/api/clients/${clientToDelete.id_client}`,
+            `https://fithouse.pythonanywhere.com/api/fournisseur/${clientToDelete.id_frs}`,
             {
               method: "DELETE",
               headers: {
@@ -636,7 +610,7 @@ const TableClient = () => {
         setFilteredData(updatedData);
         setSelectedRowKeys([]);
         message.success(
-          `${selectedRowKeys.length} client(s) supprimé(s) avec succès`
+          `${selectedRowKeys.length} Fournisseur(s) supprimé(s) avec succès`
         );
       } catch (error) {
         console.error("Error deleting clients:", error);
@@ -884,7 +858,7 @@ const TableClient = () => {
           <div className="w-52">
             <Input
               prefix={<SearchOutlined />}
-              placeholder="Search Client"
+              placeholder="Search fournisseur"
               value={searchText}
               onChange={handleSearch}
             />
@@ -909,8 +883,8 @@ const TableClient = () => {
                 "secretaire") &&
             selectedRowKeys.length >= 1 ? (
               <Popconfirm
-                title="Supprimer le client"
-                description="Êtes-vous sûr de supprimer ce client ?"
+                title="Supprimer le Fournisseur"
+                description="Êtes-vous sûr de supprimer ce Fournisseur?"
                 onConfirm={confirm}
                 onCancel={cancel}
                 okText="Yes"
@@ -921,16 +895,16 @@ const TableClient = () => {
             ) : (
               ""
             )} */}
-            {(JSON.parse(localStorage.getItem("data"))[0].fonction ===
+            {/* {(JSON.parse(localStorage.getItem("data"))[0].fonction ===
               "Administration" ||
               JSON.parse(localStorage.getItem("data"))[0].fonction ===
                 "secretaire") &&
             selectedRowKeys.length == 1 ? (
               <PrinterOutlined disabled={true} />
-            ) : null}
-            <Button onClick={showExportModal} icon={<DownloadOutlined />}>
+            ) : null} */}
+            {/* <Button onClick={showExportModal} icon={<DownloadOutlined />}>
               Exporter vers Excel{" "}
-            </Button>
+            </Button> */}
           </div>
         </div>
         {/* add new client  */}
@@ -945,12 +919,12 @@ const TableClient = () => {
                 onClick={showDrawerR}
                 icon={<UserAddOutlined />}
               >
-                Ajouter Client
+                Ajouter Fournisseur
               </Button>
             )}
           </div>
           <Drawer
-            title="Saisir un nouveau client"
+            title="Saisir un nouveau Fournisseur"
             width={720}
             onClose={onCloseR}
             closeIcon={false}
@@ -969,7 +943,7 @@ const TableClient = () => {
                         fileList={fileList}
                         onPreview={handlePreview}
                         onChange={handleChange}
-                        beforeUpload={() => false} // Prevent automatic upload
+                        beforeUpload={() => false}
                       >
                         {fileList.length >= 1 ? null : uploadButton}
                       </Upload>
@@ -989,7 +963,7 @@ const TableClient = () => {
                           src={previewImage}
                         />
                       </Modal>
-                    </>{" "}
+                    </>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-5">
                     <div>
@@ -1006,14 +980,6 @@ const TableClient = () => {
                         onChange={(value) =>
                           setClientData({ ...ClientData, civilite: value })
                         }
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
                         options={[
                           {
                             value: "Monsieur",
@@ -1027,21 +993,18 @@ const TableClient = () => {
                       />
                     </div>
                     <div>
-                      <label htmlFor="nom_client" className="block font-medium">
-                        *Nom
+                      <label htmlFor="societe" className="block font-medium">
+                        Nom
                       </label>
                       <Input
-                        id="nom_client"
+                        id="societe"
                         size="middle"
                         placeholder="Nom"
-                        value={ClientData.nom_client}
-                        className={
-                          formErrors.nom_client ? "border-red-500" : ""
-                        }
+                        value={ClientData.nom}
                         onChange={(e) =>
                           setClientData({
                             ...ClientData,
-                            nom_client: e.target.value,
+                            nom: e.target.value,
                           })
                         }
                       />
@@ -1069,6 +1032,41 @@ const TableClient = () => {
                         }
                       />
                     </div>
+                    <div>
+                      <label htmlFor="societe" className="block font-medium">
+                        *Société
+                      </label>
+                      <Input
+                        id="societe"
+                        size="middle"
+                        placeholder="Société"
+                        value={ClientData.societe}
+                        onChange={(e) =>
+                          setClientData({
+                            ...ClientData,
+                            societe: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="num_ice" className="block font-medium">
+                        Numéro ICE
+                      </label>
+                      <Input
+                        id="num_ice"
+                        size="middle"
+                        placeholder="Numéro ICE"
+                        value={ClientData.num_ice}
+                        onChange={(e) =>
+                          setClientData({
+                            ...ClientData,
+                            num_ice: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                   
                     <div>
                       <label htmlFor="adresse" className="block font-medium">
                         Adresse
@@ -1102,7 +1100,7 @@ const TableClient = () => {
                     </div>
                     <div>
                       <label htmlFor="mail" className="block font-medium">
-                        *Email
+                        Email
                       </label>
                       <Input
                         id="mail"
@@ -1115,26 +1113,8 @@ const TableClient = () => {
                       />
                     </div>
                     <div>
-                      <label htmlFor="password" className="block font-medium">
-                        *Mot de passe
-                      </label>
-                      <Input
-                        id="password"
-                        size="middle"
-                        status={formErrors.password ? "error" : ""}
-                        placeholder="Mot de passe"
-                        value={ClientData.password}
-                        onChange={(e) =>
-                          setClientData({
-                            ...ClientData,
-                            password: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div>
                       <label htmlFor="cin" className="block font-medium">
-                        *CIN
+                        CIN
                       </label>
                       <Input
                         id="cin"
@@ -1161,184 +1141,14 @@ const TableClient = () => {
                         onChange={(value) =>
                           setClientData({ ...ClientData, ville: value })
                         }
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
                         options={[
                           { value: "1", label: "Fes" },
                           { value: "2", label: "Rabat" },
                           { value: "3", label: "Casablanca" },
-                          { value: "4", label: "Marrakech" },
-                          { value: "5", label: "Tangier" },
-                          { value: "6", label: "Agadir" },
-                          { value: "7", label: "Meknes" },
-                          { value: "8", label: "Oujda" },
-                          { value: "9", label: "Kenitra" },
-                          { value: "10", label: "Tetouan" },
-                          { value: "11", label: "Safi" },
-                          { value: "12", label: "El Jadida" },
-                          { value: "13", label: "Khouribga" },
-                          { value: "14", label: "Beni Mellal" },
-                          { value: "15", label: "Nador" },
-                          { value: "16", label: "Ksar el-Kebir" },
-                          { value: "17", label: "Larache" },
-                          { value: "18", label: "Khemisset" },
-                          { value: "19", label: "Guelmim" },
-                          { value: "20", label: "Taza" },
-                          { value: "21", label: "Mohammedia" },
-                          { value: "22", label: "Errachidia" },
-                          { value: "23", label: "Ouarzazate" },
-                          { value: "24", label: "Al Hoceima" },
-                          { value: "25", label: "Settat" },
-                          { value: "26", label: "Sidi Kacem" },
-                          { value: "27", label: "Berkane" },
-                          { value: "28", label: "Tiznit" },
-                          { value: "29", label: "Taourirt" },
-                          { value: "30", label: "Youssoufia" },
-                          { value: "31", label: "Sidi Slimane" },
-                          { value: "32", label: "Azrou" },
-                          { value: "33", label: "Tan-Tan" },
-                          { value: "34", label: "Boujdour" },
-                          { value: "35", label: "Laayoune" },
-                          { value: "36", label: "Dakhla" },
-                          { value: "37", label: "Taroudant" },
-                          { value: "38", label: "Chichaoua" },
-                          { value: "39", label: "Guercif" },
-                          { value: "40", label: "Tarfaya" },
+                          // ... (rest of the cities)
                         ]}
                       />
                     </div>
-                    <div>
-                      <label
-                        htmlFor="date_naissance"
-                        className="block font-medium"
-                      >
-                        *Date de naissance
-                      </label>
-                      <Tooltip title="Date de naissance">
-                        <Input
-                          id="date_naissance"
-                          size="middle"
-                          className={
-                            formErrors.date_naissance
-                              ? "border-1 border-red-500"
-                              : ""
-                          }
-                          type="date"
-                          placeholder="Date de naissance"
-                          value={ClientData.date_naissance}
-                          onChange={handleDateChange}
-                          max={moment()
-                            .subtract(16, "years")
-                            .format("YYYY-MM-DD")}
-                        />
-                      </Tooltip>
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="date_inscription"
-                        className="block font-medium"
-                      >
-                        *Date d'inscription
-                      </label>
-                      <Tooltip title="Date d'inscription">
-                        <Input
-                          id="date_inscription"
-                          className={
-                            formErrors.date_inscription ? "border-red-500" : ""
-                          }
-                          size="middle"
-                          type="date"
-                          placeholder="Date d'inscription"
-                          value={ClientData.date_inscription}
-                          // disabled={true}
-                          onChange={(e) =>
-                            setClientData({
-                              ...ClientData,
-                              date_inscription: e.target.value,
-                            })
-                          }
-                        />
-                      </Tooltip>
-                    </div>
-                    <div>
-                      <label htmlFor="statut" className="block font-medium">
-                        *Status
-                      </label>
-                      <Select
-                        id="statut"
-                        className="w-full"
-                        showSearch
-                        placeholder="Status"
-                        optionFilterProp="children"
-                        onChange={(value) =>
-                          setClientData({ ...ClientData, statut: value })
-                        }
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={[
-                          {
-                            value: "1",
-                            label: "Active",
-                          },
-                          {
-                            value: "2",
-                            label: "Inactive",
-                          },
-                        ]}
-                      />
-                    </div>
-                    <div className="flex items-center mt-3">
-                      <Tag
-                        style={{ fontSize: 14 }}
-                        htmlFor="blackliste"
-                        className="font-medium ml-1 w-28 text-lg"
-                      >
-                        *Blackliste
-                      </Tag>
-                      <Input
-                        id="blackliste"
-                        size="middle"
-                        type="checkbox"
-                        checked={ClientData.blackliste}
-                        onChange={(e) =>
-                          setClientData({
-                            ...ClientData,
-                            blackliste: e.target.checked,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="flex items-center mt-3">
-                      <Tag
-                        style={{ fontSize: 14 }}
-                        htmlFor="newsletter"
-                        className="font-medium ml-1 w-28"
-                      >
-                        *Newsletter
-                      </Tag>
-                      <Input
-                        id="newsletter"
-                        size="middle"
-                        type="checkbox"
-                        checked={ClientData.newsletter}
-                        onChange={(e) =>
-                          setClientData({
-                            ...ClientData,
-                            newsletter: e.target.checked,
-                          })
-                        }
-                      />
-                    </div>
-                    {/* UploadImage component already included */}
                   </div>
                 </div>
                 <Space className="mt-10">
@@ -1367,7 +1177,7 @@ const TableClient = () => {
         rowSelection={rowSelection}
       />
       <Modal
-        title="Edit Client"
+        title="Edit Fournisseur"
         visible={isModalVisible}
         onOk={handleModalSubmit}
         onCancel={handleModalCancel}
@@ -1383,16 +1193,22 @@ const TableClient = () => {
                 <Select.Option value="Mademoiselle">Mademoiselle</Select.Option>
               </Select>
             </Form.Item>
+            <Form.Item name="societe" label="Société">
+              <Input />
+            </Form.Item>
+            <Form.Item name="num_ice" label="Numéro ICE">
+              <Input />
+            </Form.Item>
             <Form.Item
-              name="nom_client"
-              label="Nom"
-              rules={[{ required: true, message: "Please input the name!" }]}
+              name="prenom"
+              label="Prénom"
+              rules={[{ required: true, message: "Please input Prénom!" }]}
             >
               <Input />
             </Form.Item>
             <Form.Item
-              name="prenom_client"
-              label="Prénom"
+              name="nom"
+              label="Nom"
               rules={[{ required: true, message: "Please input Prénom!" }]}
             >
               <Input />
@@ -1420,7 +1236,6 @@ const TableClient = () => {
             >
               <Input />
             </Form.Item>
-
             <Form.Item
               name="mail"
               label="Email"
@@ -1439,88 +1254,13 @@ const TableClient = () => {
             >
               <Input />
             </Form.Item>
-            <Form.Item name="password" label="Password">
-              <Input />
-            </Form.Item>
-            <Form.Item name="cin" label="CIN">
-              <Input />
-            </Form.Item>
             <Form.Item name="ville" label="Ville">
               <Select>
                 <Select.Option value="1">Fes</Select.Option>
                 <Select.Option value="2">Rabat</Select.Option>
                 <Select.Option value="3">Casablanca</Select.Option>
-                <Select.Option value="4">Marrakech</Select.Option>
-                <Select.Option value="5">Tangier</Select.Option>
-                <Select.Option value="6">Agadir</Select.Option>
-                <Select.Option value="7">Meknes</Select.Option>
-                <Select.Option value="8">Oujda</Select.Option>
-                <Select.Option value="9">Kenitra</Select.Option>
-                <Select.Option value="10">Tetouan</Select.Option>
-                <Select.Option value="11">Safi</Select.Option>
-                <Select.Option value="12">El Jadida</Select.Option>
-                <Select.Option value="13">Khouribga</Select.Option>
-                <Select.Option value="14">Beni Mellal</Select.Option>
-                <Select.Option value="15">Nador</Select.Option>
-                <Select.Option value="16">Ksar el-Kebir</Select.Option>
-                <Select.Option value="17">Larache</Select.Option>
-                <Select.Option value="18">Khemisset</Select.Option>
-                <Select.Option value="19">Guelmim</Select.Option>
-                <Select.Option value="20">Taza</Select.Option>
-                <Select.Option value="21">Mohammedia</Select.Option>
-                <Select.Option value="22">Errachidia</Select.Option>
-                <Select.Option value="23">Ouarzazate</Select.Option>
-                <Select.Option value="24">Al Hoceima</Select.Option>
-                <Select.Option value="25">Settat</Select.Option>
-                <Select.Option value="26">Sidi Kacem</Select.Option>
-                <Select.Option value="27">Berkane</Select.Option>
-                <Select.Option value="28">Tiznit</Select.Option>
-                <Select.Option value="29">Taourirt</Select.Option>
-                <Select.Option value="30">Youssoufia</Select.Option>
-                <Select.Option value="31">Sidi Slimane</Select.Option>
-                <Select.Option value="32">Azrou</Select.Option>
-                <Select.Option value="33">Tan-Tan</Select.Option>
-                <Select.Option value="34">Boujdour</Select.Option>
-                <Select.Option value="35">Laayoune</Select.Option>
-                <Select.Option value="36">Dakhla</Select.Option>
-                <Select.Option value="37">Taroudant</Select.Option>
-                <Select.Option value="38">Chichaoua</Select.Option>
-                <Select.Option value="39">Guercif</Select.Option>
-                <Select.Option value="40">Tarfaya</Select.Option>
+                {/* ... (rest of the cities) */}
               </Select>
-            </Form.Item>
-            <Form.Item
-              name="date_naissance"
-              label="Date de naissance"
-              rules={[
-                { required: true, message: "Please input Date de naissance!" },
-              ]}
-            >
-              <Input type="date" />
-            </Form.Item>
-            <Form.Item name="date_inscription" label="Date d'inscription">
-              <Input type="date" disabled />
-            </Form.Item>
-            <Form.Item name="statut" label="Status">
-              <Select>
-                <Select.Option value={true}>Active</Select.Option>
-                <Select.Option value={false}>Inactive</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item
-              name="blackliste"
-              valuePropName="checked"
-              label="Blackliste"
-              className=""
-            >
-              <Input type="checkbox" />
-            </Form.Item>
-            <Form.Item
-              name="newsletter"
-              valuePropName="checked"
-              label="Newsletter"
-            >
-              <Input type="checkbox" />
             </Form.Item>
           </Form>
         </div>
@@ -1529,4 +1269,4 @@ const TableClient = () => {
   );
 };
 
-export default TableClient;
+export default TableFournisseur;

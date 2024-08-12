@@ -194,7 +194,11 @@ const TableSeance = () => {
   };
 
   const checkAndFetchAvailability = async () => {
-    if (ClientData.jour && ClientData.heure_debut && ClientData.heure_fin) {
+    if (
+      ClientData.jour != null &&
+      ClientData.heure_debut != null &&
+      ClientData.heure_fin != null
+    ) {
       try {
         const response = await fetch(
           `https://fithouse.pythonanywhere.com/api/sallesProfnondispo/?jour=${ClientData.jour}&heur_debut=${ClientData.heure_debut}&heur_fin=${ClientData.heure_fin}`,
@@ -230,6 +234,42 @@ const TableSeance = () => {
     }
   };
 
+  const checkAndFetchAvailability2 = async (jour, heure_debut, heure_fin) => {
+    if (true) {
+      try {
+        const response = await fetch(
+          `https://fithouse.pythonanywhere.com/api/sallesProfnondispo/?jour=${jour}&heur_debut=${heure_debut}&heur_fin=${heure_fin}`,
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        const data = await response.json();
+        setOccupiedSessions(data.data);
+
+        // Filter available salles and coaches
+        const availableSalles = Salle.filter(
+          (salle) =>
+            !data.data.some((session) => session.id_salle === salle.value)
+        );
+
+        const availableCoaches = Coach.filter(
+          (coach) =>
+            !data.data.some((session) => session.id_coach === coach.value)
+        );
+
+        // Update the state with available salles and coaches
+        setAvailableSalles(availableSalles);
+        setAvailableCoaches(availableCoaches);
+        setDisableSalleCoach(false);
+      } catch (error) {
+        console.error("Error fetching availability:", error);
+      }
+    } else {
+      setDisableSalleCoach(true);
+    }
+  };
   // Function to add a new chamber
   const addClient = async () => {
     const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
@@ -367,7 +407,16 @@ const TableSeance = () => {
         setFilteredData(processedData);
 
         // Generate columns based on the desired keys
-        const desiredKeys = ["Cours", "coach", "salle", "Jour", "genre"];
+        const desiredKeys = [
+          "Cours",
+          "coach",
+          "salle",
+          "Jour",
+          "genre",
+          "heure_debut",
+          "heure_fin",
+          "capacity",
+        ];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
           dataIndex: key,
@@ -454,29 +503,43 @@ const TableSeance = () => {
     }),
   };
 
-  // Handle edit button click
-  const handleEditClick = () => {
+  // Modify the handleEditClick function
+  const handleEditClick = async () => {
     if (selectedRowKeys.length === 1) {
       const clientToEdit = data.find(
         (client) => client.key === selectedRowKeys[0]
       );
       setEditingClient(clientToEdit);
       form.setFieldsValue(clientToEdit);
+      console.log(clientToEdit.jour);
+
+      // Fetch available salles and coaches before opening the modal
+      await checkAndFetchAvailability2(
+        clientToEdit.jour,
+        clientToEdit.heure_debut,
+        clientToEdit.heure_fin
+      );
+
       setIsModalVisible(true);
     }
   };
 
-  const handleEditClickCalander = (id) => {
-    if (true) {
-      console.log(data);
-      const clientToEdit = data.find((client) => client.key == id);
-      console.log(clientToEdit);
-      if (clientToEdit != undefined) {
-        setIsModalVisible1(true);
-      }
+  // Modify the handleEditClickCalander function
+  const handleEditClickCalander = async (id) => {
+    const clientToEdit = data.find((client) => client.key == id);
+    if (clientToEdit != undefined) {
       setEditingClient(clientToEdit);
       form.setFieldsValue(clientToEdit);
-      // setIsModalVisible(true);
+
+      // Fetch available salles and coaches before opening the modal
+      await checkAndFetchAvailability(
+        clientToEdit.jour,
+        clientToEdit.heure_debut,
+        clientToEdit.heure_fin,
+        clientToEdit.id_seance
+      );
+
+      setIsModalVisible(true);
     }
   };
 
@@ -487,6 +550,20 @@ const TableSeance = () => {
     // }
     console.log();
     try {
+      // Check if the selected salle and coach are available
+      const isSalleAvailable = availableSalles.some(
+        (salle) => salle.value === editingClient.id_salle
+      );
+      const isCoachAvailable = availableCoaches.some(
+        (coach) => coach.value === editingClient.id_coach
+      );
+
+      if (!isSalleAvailable || !isCoachAvailable) {
+        message.error(
+          "La salle ou le coach sélectionné n'est pas disponible pour cet horaire."
+        );
+        return;
+      }
       const response = await fetch(
         `https://fithouse.pythonanywhere.com/api/seance/`,
         {
@@ -682,11 +759,9 @@ const TableSeance = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const staff = JSON.parse(localStorage.getItem("data"));
       try {
         const response = await fetch(
-          "https://fithouse.pythonanywhere.com/api/staff_by_type/?type=" +
-            staff[0].fonction,
+          "https://fithouse.pythonanywhere.com/api/staff_by_type/?type=coach",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -767,6 +842,23 @@ const TableSeance = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    console.log(editingClient);
+    
+    if (editingClient != undefined) {
+      checkAndFetchAvailability2(
+        editingClient.jour,
+        editingClient.heure_debut,
+        editingClient.heure_fin,
+        editingClient.id_seance
+      );
+    }
+  }, [
+    editingClient?.jour,
+    editingClient?.heure_debut,
+    editingClient?.heure_fin,
+  ]);
 
   return (
     <div className="w-full p-2">
@@ -873,7 +965,7 @@ const TableSeance = () => {
             </Button> */}
           </div>
           <Drawer
-            title="Saisir un nouveau seance"
+            title="Saisir une nouvelle séance"
             width={720}
             onClose={onCloseR}
             closeIcon={false}
@@ -950,7 +1042,7 @@ const TableSeance = () => {
                       />
                     </div>
                     <div>
-                      <label>Heur debut</label>
+                      <label>heur de début</label>
                       <div>
                         <Input
                           type="time"
@@ -1044,18 +1136,18 @@ const TableSeance = () => {
                       />
                     </div>
                     <div>
-                      <label>Capacity</label>
+                      <label>Capacité</label>
                       <Input disabled value={ClientData.capacity} />
                     </div>
                     {/* UploadImage component already included */}
                   </div>
                 </div>
                 <Space className="mt-10">
-                  <Button danger onClick={onCloseR}>
-                    Annuler
-                  </Button>
                   <Button onClick={handleRoomSubmit} type="default">
                     Enregistrer
+                  </Button>
+                  <Button danger onClick={onCloseR}>
+                    Annuler
                   </Button>
                 </Space>
               </div>
@@ -1079,7 +1171,7 @@ const TableSeance = () => {
       ) : (
         <div className="mt-5">
           <Paper>
-            <Scheduler data={data2} height={405}>
+            <Scheduler data={data2} height={405} locale="fr-FR">
               <ViewState currentDate={currentDate} />
               <EditingState
                 onCommitChanges={commitChanges}
@@ -1101,7 +1193,7 @@ const TableSeance = () => {
                   />
                 )}
               />
-              <AllDayPanel />
+              <AllDayPanel messages={{ allDay: "Toute la journée" }} />
               <EditRecurrenceMenu />
               <ConfirmationDialog />
               <Appointments
@@ -1236,14 +1328,11 @@ const TableSeance = () => {
                 });
               }}
               filterOption={(input, option) =>
-                (option?.label ?? "").startsWith(input)
-              }
-              filterSort={(optionA, optionB) =>
-                (optionA?.label ?? "")
+                (option?.label ?? "")
                   .toLowerCase()
-                  .localeCompare((optionB?.label ?? "").toLowerCase())
+                  .includes(input.toLowerCase())
               }
-              options={Salle}
+              options={availableSalles}
             />
           </div>
           <div className="mt-5">
@@ -1269,16 +1358,13 @@ const TableSeance = () => {
                 });
               }}
               filterOption={(input, option) =>
-                (option?.label ?? "").startsWith(input)
-              }
-              filterSort={(optionA, optionB) =>
-                (optionA?.label ?? "")
+                (option?.label ?? "")
                   .toLowerCase()
-                  .localeCompare((optionB?.label ?? "").toLowerCase())
+                  .includes(input.toLowerCase())
               }
-              options={Coach}
+              options={availableCoaches}
             />
-          </div>{" "}
+          </div>
           <div className="mt-5">
             <div>Jour de la semaine</div>
             <Select
@@ -1291,6 +1377,9 @@ const TableSeance = () => {
               onChange={(value, option) => {
                 if (value !== editingClient.jour) {
                   setIsFormChanged(true);
+                  editingClient.salle = ""
+                  editingClient.coach = ""
+
                   setChangedFields((prev) => [
                     ...new Set([...prev, "jour", "day_name"]),
                   ]);
@@ -1321,7 +1410,7 @@ const TableSeance = () => {
             />
           </div>
           <div className="mt-5">
-            <label>Heur debut</label>
+            <label>heur de début</label>
             <div>
               <input
                 type="time"
@@ -1330,6 +1419,8 @@ const TableSeance = () => {
                 onChange={(event) => {
                   if (event.target.value !== editingClient.heure_debut) {
                     setIsFormChanged(true);
+                      editingClient.salle = ""
+                      editingClient.coach = ""  
                     setChangedFields((prev) => [
                       ...new Set([...prev, "heure_debut"]),
                     ]);
@@ -1356,6 +1447,8 @@ const TableSeance = () => {
                       ...new Set([...prev, "heure_fin"]),
                     ]);
                   }
+                  editingClient.salle = ""
+                  editingClient.coach = ""
                   setEditingClient({
                     ...editingClient,
                     heure_fin: event.target.value,

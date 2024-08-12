@@ -1,248 +1,251 @@
 import { getCurrentDate } from "../helper";
 
-export function handlePrintContractStaff(
-  nom,
-  prenom,
-  mail,
-  address,
-  ville,
-  tele,
-  cdn,
-  ddn,
-  ddd,
-  type,
-  pay
-) {
-   
-  if (true) {
-    const printWindow = window.open("", "", "width=600,height=800");
-    printWindow.document.open();
-    printWindow.document.write(
-      `
-        <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-            <title>Contrat N°</title>
-            <style type="text/css">
-                * {
-                    margin: 0;
-                    padding: 0;
-                    text-indent: 0;
-                }
-        
-                .s1 {
-                    color: black;
-                    font-family: Arial, sans-serif;
-                    font-style: normal;
-                    font-weight: bold;
-                    text-decoration: none;
-                    font-size: 15pt;
-                }
-        
-                .s2 {
-                    color: black;
-                    font-family: Arial, sans-serif;
-                    font-style: normal;
-                    font-weight: bold;
-                    text-decoration: none;
-                    font-size: 9.5pt;
-                }
-        
-                .s3 {
-                    color: black;
-                    font-family: Arial, sans-serif;
-                    font-style: normal;
-                    font-weight: bold;
-                    text-decoration: none;
-                    font-size: 9.5pt;
-                }
-        
-                p {
-                    color: black;
-                    font-family: Arial, sans-serif;
-                    font-style: normal;
-                    font-weight: bold;
-                    text-decoration: none;
-                    font-size: 10.5pt;
-                    margin: 0pt;
-                }
-        
-                table,
-                tbody {
-                    vertical-align: top;
-                    overflow: visible;
-                }
-            </style>
-        </head>
-        
-        <body>
-            <div class="textbox"
-                style="background:#E6E6E8;display:block;min-height:46.5pt;width:358.9pt;">
-                <p class="s1" style="padding-top: 1pt;padding-left: 162pt;text-indent: -100pt;text-align: start;">Contrat De
-                    travail Club Fit House N°18</p>
-            </div>
-            <p style="padding-left: 140pt;text-indent: 0pt;text-align: left;" />
-            <p style="text-indent: 0pt;text-align: left;"><br /></p>
-            <table style="border-collapse:collapse;margin-left:6.34646pt" cellspacing="0">
-                <tr style="height:22pt">
-                    <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">Prénom</p>
-                    </td>
-                    <td
-                        style="width:107pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">${prenom}
-                        </p>
-                    </td>
-                    <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">Nom</p>
-                    </td>
-                    <td
-                        style="width:216pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">${nom}</p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">Adresse
-                        </p>
-                    </td>
-                    <td style="width:431pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        colspan="3">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">${address}
-                        </p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">CIN</p>
-                    </td>
-                    <td
-                        style="width:107pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">${cdn}
-                        </p>
-                    </td>
-                    <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">Ville</p>
-                    </td>
-                    <td
-                        style="width:216pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">${ville}</p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">Téléphone
-                            portable</p>
-                    </td>
-                    <td
-                        style="width:107pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">${tele}
-                        </p>
-                    </td>
-                    <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">Téléphone
-                            fixe</p>
-                    </td>
-                    <td
-                        style="width:216pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p style="text-indent: 0pt;text-align: left;"><br /></p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">Date de
-                            naissance</p>
-                    </td>
-                    <td style="width:431pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        colspan="3">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">${ddn}</p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">Email</p>
-                    </td>
-                    <td style="width:431pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        colspan="3">
-                        <p style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;"><a
-                                href="mailto:${mail}" class="s3">${mail}</a></p>
-                    </td>
-                </tr>
-            </table>
-            <p style="text-indent: 0pt;text-align: left;"><br /></p>
-            <table style="border-collapse:collapse;margin-left:6.34646pt" cellspacing="0">
-                <tr style="height:22pt">
-                    <td style="width:135pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">Date de début</p>
-                    </td>
-                    <td
-                        style="width:404pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">${ddd}</p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td style="width:135pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">Type de contrat</p>
-                    </td>
-                    <td
-                        style="width:404pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">${type}</p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td style="width:135pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">Salaire</p>
-                    </td>
-                    <td
-                        style="width:404pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">${pay}0 dhs</p>
-                    </td>
-                </tr>
-            </table>
-            <p style="text-indent: 0pt;text-align: left;"><br /></p>
-            <p style="padding-left: 6pt;text-indent: 0pt;line-height: 130%;text-align: left;">Fait à Fes Le</p>
-            <p style="text-indent: 0pt;text-align: left;"><br /></p>
-            <table style="border-collapse:collapse;margin-left:6.34646pt" cellspacing="0">
-                <tr style="height:22pt">
-                    <td style="width:269pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 81pt;text-indent: 0pt;text-align: left;">Signature
-                            du Salarié(e)</p>
-                    </td>
-                    <td style="width:270pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 76pt;text-indent: 0pt;text-align: left;">Signature
-                            de l&#39;employeur</p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td
-                        style="width:269pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p style="text-indent: 0pt;text-align: left;"><br /></p>
-                    </td>
-                    <td
-                        style="width:270pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p style="text-indent: 0pt;text-align: left;"><br /></p>
-                    </td>
-                </tr>
-            </table>
-        </body>
-        
-        </html>`
-    );
-
-    printWindow.document.close();
-    printWindow.print();
+export function handlePrintContractStaff(Client, Contart) {
+  // Define formatDate function within the scope of handlePrintContractStaff
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   }
+
+  const printWindow = window.open("", "", "width=600,height=800");
+  printWindow.document.open();
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Contrat N° ${Contart.id_contratStaff}</title>
+        <style>
+        * {
+            font-size: 16px;
+        }
+        .container {
+            display: flex;
+            height: 300px;
+            flex-direction: column;
+            background-color: blue;
+        }
+        .header {
+            display: flex;
+            flex-direction: row;
+            height: 150px;
+        }
+        .header-left {
+            flex: 2
+        }
+        .header-right {
+            flex: 1
+        }
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+        }
+        .client-infos {
+            flex: 1
+        }
+        .club-info {
+            flex: 1
+        }
+        .footer {
+            height: 100px;
+        }
+        span {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .containerTitle{
+            display: block;
+            height: 50px;
+            width: 250px !important;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            background-color: #e6e7e9;
+            border: 1px solid black;
+            text-align: center;
+        }
+        #title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .infos tr td {
+            text-align: center;
+            height: 30px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        ul li {
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 16px;
+        }
+        .containerPay {
+            position: relative;
+        }
+        .types {
+            list-style-type: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: -25px 0 0 -25px;
+        }
+        #text-reg {
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 15px;
+        }
+        .conditions p {
+            font-size: 10px !important;
+            line-height: 8px;
+            text-align: justify;
+        }
+        .titleCondition {
+            font-size: 11px;
+            font-weight: bold;
+        }
+        #tititreCondition {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+    </head>
+    <body>
+        <table width="100%" aria-expanded="true" height="100%">
+            <tbody>
+                <tr height="200px" >
+                    <td colspan="3">
+                        <img src="https://fithouse.pythonanywhere.com/media/assets/logo/logo.jpg" width="180px" />
+                    </td>
+                    <td colspan="9" style="padding-right: 60px">
+                        <div class="containerTitle">
+                            <span id="title">Contrat De travail Club Fit House  <br> N°${
+                              Contart.id_contratStaff
+                            }</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="12">
+                        <br/>
+                        <br/>
+                        <table border="1" class="infos">
+                            <tr>
+                                <td style="background-color: #e6e7e9;">Prénom</td>
+                                <td>${Client.prenom}</td>
+                                <td style="background-color: #e6e7e9;">Nom</td>
+                                <td colspan="2">${Client.nom}</td>
+                            </tr>
+                            <tr>
+                                <td style="background-color: #e6e7e9;">Adresse</td>
+                                <td colspan="4">${Client.adresse}</td>
+                            </tr>
+                            <tr>
+                                <td style="background-color: #e6e7e9;">CIN</td>
+                                <td>${Client.cin}</td>
+                                <td style="background-color: #e6e7e9;">Ville</td>
+                                <td colspan="2">${Client.ville}</td>
+                            </tr>
+                            <tr>
+                                <td style="background-color: #e6e7e9;">Téléphone portable</td>
+                                <td>${Client.tel}</td>
+                                <td style="background-color: #e6e7e9;">Téléphone fixe</td>
+                                <td colspan="2"></td>
+                            </tr>
+                            <tr>
+                                <td style="background-color: #e6e7e9;">Date de naissance</td>
+                                <td colspan="4">${formatDate(
+                                  Client.date_naissance
+                                )}</td>
+                            </tr>
+                            <tr>
+                                <td style="background-color: #e6e7e9;">Email</td>
+                                <td colspan="4">${Client.mail}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="12">
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <table border="1" class="infos" style="margin-right: 20px !important;">
+                            <tr>
+                                <td style="background-color: #e6e7e9;">Date de début</td>
+                                <td colspan="3">Le ${formatDate(
+                                  Contart.date_debut
+                                )}</td>
+                            </tr>
+                            <tr>
+                                <td style="background-color: #e6e7e9;"> Type de contrat</td>
+                                <td colspan="3">${Contart.type_contrat}</td>
+                            </tr>
+                            <tr>
+                                <td style="background-color: #e6e7e9;"> Salaire</td>
+                                <td colspan="3">${Contart.salaire} dhs</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="12" style="font-size: 14px">
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <span style="font-size: 14px">Fait à Fes</span><br/>
+                        <span style="font-size: 14px">Le ${getCurrentDate()}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="12">
+                        <br/>
+                        <br/>
+                        <br/>
+                        <table border="1" class="infos" style="height: 80px;">
+                            <thead>
+                                <tr>
+                                    <td style="background-color: #e6e7e9;">Signature du Salarié(e)</td>
+                                    <td style="background-color: #e6e7e9;">Signature de l'employeur</td>
+                                </tr>
+                            </thead>
+                            <tr>
+                                <td></td>
+                                <td>&nbsp;</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="12">&nbsp; </td>
+                </tr>
+                <tr >
+                    <td colspan="12" >
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <div style="text-align: center; border-top: 1px solid black; padding-top: 10px;">
+                            <span style="font-size: 13px;">Complexe Sportif de Fés, Route de Sefrou, Tél : 05.35.61.88.53 / watssap : 07.73.06.93.77 </span>
+                            <br/>
+                            <span style="font-size: 13px;">Email : fithousefes@gmail.com</span>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.print();
 }

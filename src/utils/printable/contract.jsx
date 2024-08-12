@@ -1,679 +1,496 @@
 import { getCurrentDate } from "../helper";
 import download from "downloadjs";
 export function handlePrintContract(
-  nom,
-  prenom,
-  mail,
-  address,
-  ville,
-  tele,
-  ddn,
-  ddd
+ cleintobj ,
+ contartobj
 ) {
   if (true) {
     const printWindow = window.open("", "", "width=600,height=800");
     printWindow.document.open();
     printWindow.document.write(
       `
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Contrat N° 184 - 137-24-184</title>
-    <style type="text/css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
         * {
-            margin: 0;
-            padding: 0;
-            text-indent: 0;
+            font-size: 16px;
         }
-
-        .s1 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
+        .container {
+            display: flex;
+            height: 300px;
+            flex-direction: column;
+            background-color: blue;
+        }
+        .header {
+            display: flex;
+            flex-direction: row;
+            height: 150px;
+        }
+        .header-left {
+            flex: 2
+        }
+        .header-right {
+            flex: 1
+        }
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+        }
+        .client-infos {
+            flex: 1
+        }
+        .club-info {
+            flex: 1
+        }
+        .footer {
+            height: 100px;
+        }
+        span {
+            font-size: 12px;
             font-weight: bold;
-            text-decoration: none;
-            font-size: 15pt;
         }
-
-        h1 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 12pt;
-        }
-
-        h4 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 9pt;
-        }
-
-        .s2 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 9.5pt;
-        }
-
-        .s3 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 9.5pt;
-        }
-
-        .s4 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 8pt;
-        }
-
-        .s5 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 9.5pt;
-        }
-
-        h2 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 10.5pt;
-        }
-
-        .s6 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 8pt;
-        }
-
-        .s7 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: italic;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 12pt;
-        }
-
-        .a,
-        a {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 9.5pt;
-        }
-
-        p {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: normal;
-            text-decoration: none;
-            font-size: 7.5pt;
-            margin: 0pt;
-        }
-
-        .s8 {
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            text-decoration: underline;
-            font-size: 8pt;
-        }
-
-        li {
+        .containerTitle{
             display: block;
+            height: 50px;
+            width: 250px !important;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            background-color: #e6e7e9;
+            border: 1px solid black;
+            text-align: center;
         }
-
-        #l1 {
-            padding-left: 0pt;
-        }
-
-        #l1>li>*:first-child:before {
-            content: "- ";
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: normal;
-            text-decoration: none;
-        }
-
-        li {
-            display: block;
-        }
-
-        #l2 {
-            padding-left: 0pt;
-        }
-
-        #l2>li>*:first-child:before {
-            content: "- ";
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
-            font-weight: normal;
-            text-decoration: none;
-        }
-
-        #l3 {
-            padding-left: 0pt;
-            counter-reset: d1 1;
-        }
-
-        #l3>li>*:first-child:before {
-            counter-increment: d1;
-            content: counter(d1, decimal)"- ";
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
+        #title {
+            font-size: 20px;
             font-weight: bold;
-            text-decoration: underline;
-            font-size: 7pt;
         }
-
-        #l3>li:first-child>*:first-child:before {
-            counter-increment: d1 0;
-        }
-
-        #l4 {
-            padding-left: 0pt;
-            counter-reset: d1 5;
-        }
-
-        #l4>li>*:first-child:before {
-            counter-increment: d1;
-            content: counter(d1, decimal)"- ";
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
+        .infos tr td {
+            text-align: center;
+            height: 30px;
+            font-size: 13px;
             font-weight: bold;
-            text-decoration: underline;
-            font-size: 7pt;
         }
-
-        #l4>li:first-child>*:first-child:before {
-            counter-increment: d1 0;
+        ul li {
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 16px;
         }
-
-        li {
-            display: block;
+        .containerPay {
+            position: relative;
         }
-
-        #l5 {
-            padding-left: 0pt;
-            counter-reset: d1 6;
+        .types {
+            list-style-type: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: -25px 0 0 -25px;
         }
-
-        #l5>li>*:first-child:before {
-            counter-increment: d1;
-            content: counter(d1, decimal)"- ";
-            color: black;
-            font-family: Arial, sans-serif;
-            font-style: normal;
+        #text-reg {
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 15px;
+        }
+        .conditions p {
+            font-size: 10px !important;
+            line-height: 8px;
+            text-align: justify;
+        }
+        .titleCondition {
+            font-size: 11px;
             font-weight: bold;
-            text-decoration: underline;
-            font-size: 7pt;
         }
-
-        #l5>li:first-child>*:first-child:before {
-            counter-increment: d1 0;
-        }
-
-        table,
-        tbody {
-            vertical-align: top;
-            overflow: visible;
+        #tititreCondition {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
         }
     </style>
 </head>
-
 <body>
-    <div class="textbox"
-        style="width: 100%; align-items: center; text-align: center;display:block;min-height:46.5pt;width:358.9pt;">
-        <p class="s1" style="width: 100%; padding-top: 1pt;padding-left: 132pt;text-indent: -107pt;text-align: left;"><a
-                name="bookmark0">&zwnj;</a>CONTRAT D&#39;ABONNEMENT Club Fit House N°137-24-184</p>
-    </div>
-    <p style="padding-left: 140pt;text-indent: 0pt;text-align: left;" />
-    <h1 style="padding-top: 7pt;padding-left: 140pt;text-indent: 0pt;text-align: left;">Saison : 2023-2024</h1>
-    <p style="padding-top: 11pt;text-indent: 0pt;text-align: left;"><br /></p>
-    <h4 style="padding-left: 6pt;text-indent: 0pt;line-height: 174%;text-align: left;">Pour souscrire un abonnement Fit
-        House, merci de bien vouloir compléter en MAJUSCULES et SIGNER le formulaire ci-dessous :</h4>
-    <table style="border-collapse:collapse;margin-left:6.34646pt" cellspacing="0">
-        <tr style="height:22pt">
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">Civilité
-                </p>
-            </td>
-            <td
-                style="width:107pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-left: 3pt;text-indent: 0pt;text-align: center;">Madmoiselle</p>
-            </td>
-            <td
-                style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-left: 3pt;text-indent: 0pt;text-align: center;">Madame</p>
-            </td>
-            <td
-                style="width:216pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-left: 3pt;text-indent: 0pt;text-align: center;">Monsieur</p>
-            </td>
-        </tr>
-        <tr style="height:22pt">
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">Prénom
-                </p>
-            </td>
-            <td
-                style="width:107pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">
-                    ${prenom}</p>
-            </td>
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">Nom</p>
-            </td>
-            <td
-                style="width:216pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">${nom}</p>
-            </td>
-        </tr>
-        <tr style="height:22pt">
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">Adresse
-                </p>
-            </td>
-            <td style="width:431pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                colspan="3">
-                <p class="s2" style="padding-left: 1pt;text-indent: 0pt;text-align: center;">${address}</p>
-            </td>
-        </tr>
-        <tr style="height:22pt">
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">Code
-                    Postal</p>
-            </td>
-            <td
-                style="width:107pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p style="text-indent: 0pt;text-align: left;"><br /></p>
-            </td>
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">Ville
-                </p>
-            </td>
-            <td
-                style="width:216pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">Fès</p>
-            </td>
-        </tr>
-        <tr style="height:22pt">
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">
-                    Téléphone portable</p>
-            </td>
-            <td
-                style="width:107pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">
-                    ${tele}</p>
-            </td>
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">
-                    Téléphone fixe</p>
-            </td>
-            <td
-                style="width:216pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                <p style="text-indent: 0pt;text-align: left;"><br /></p>
-            </td>
-        </tr>
-        <tr style="height:22pt">
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">Date de
-                    naissance</p>
-            </td>
-            <td style="width:431pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                colspan="3">
-                <p class="s2" style="padding-left: 1pt;text-indent: 0pt;text-align: center;">${ddn}</p>
-            </td>
-        </tr>
-        <tr style="height:22pt">
-            <td style="width:108pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                bgcolor="#E6E6E8">
-                <p class="s2" style="padding-left: 3pt;padding-right: 2pt;text-indent: 0pt;text-align: center;">Email
-                </p>
-            </td>
-            <td style="width:431pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                colspan="3">
-                <p style="padding-left: 1pt;text-indent: 0pt;text-align: center;"><a
-                        href="mailto:${mail}" class="s3">${mail}</a></p>
-            </td>
-        </tr>
-        <tr style="height:22pt">
-            <td style="width:539pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                colspan="4">
-                <p class="s4" style="padding-left: 1pt;text-indent: 0pt;text-align: center;">J&#39;accepte de recevoir
-                    des informations par mail de la part de Fit House <span class="s5">OUI NON</span></p>
-            </td>
-        </tr>
+    <table width="100%" aria-expanded="true" height="100%">
+        <tbody>
+            <tr height="200px" >
+                <td colspan="3">
+                    <img src="https://fithouse.pythonanywhere.com/media/assets/logo/logo.jpg" width="180px" />
+                </td>
+                <td colspan="9" style="padding-right: 60px">
+                    <div class="containerTitle">
+                        <span id="title">CONTRAT D'ABONNEMENT Club Fit House  <br> N°${contartobj.numcontrat}</span>
+                    </div>
+                    <h5>Saison : ${new Date(contartobj.date_debut).getFullYear()}-${new Date(contartobj.date_fin).getFullYear()}</h5>
+                </td>
+            </tr>
+            <tr >
+                <td colspan="12">
+                    <br/>
+                    <span>Pour souscrire un abonnement Fit House, merci de bien vouloir compléter en MAJUSCULES et SIGNER le formulaire
+                        ci-dessous : </span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="12">
+                    <table border="1" class="infos">
+                        <tr>
+                            <td style="background-color: #e6e7e9;">Civilité</td>
+                            <td>
+                                <img width="16px" height="16px" src="https://fithouse.pythonanywhere.com/media/assets/objects/${cleintobj.civilite === 'Mademoiselle' ? 'radio' : 'empty'}.png" />
+                                &nbsp;Mademoiselle
+                            </td>
+                            <td>
+                                <img width="16px" height="16px" src="https://fithouse.pythonanywhere.com/media/assets/objects/${cleintobj.civilite === 'Madame' ? 'radio' : 'empty'}.png" />
+                                &nbsp; Madame
+                            </td>
+                            <td colspan="2">
+                                <img width="16px" height="16px" src="https://fithouse.pythonanywhere.com/media/assets/objects/${cleintobj.civilite === 'Monsieur' ? 'radio' : 'empty'}.png" />
+                                &nbsp;  Monsieur
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #e6e7e9;">Prénom</td>
+                            <td>${cleintobj.prenom_client}</td>
+                            <td style="background-color: #e6e7e9;">Nom</td>
+                            <td colspan="2">${cleintobj.nom_client}</td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #e6e7e9;">Adresse</td>
+                             <td colspan="4">${cleintobj.adresse}</td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #e6e7e9;">Code Postal</td>
+                            <td></td>
+                            <td style="background-color: #e6e7e9;">Ville</td>
+                            <td colspan="2">${cleintobj.nom_ville}</td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #e6e7e9;">Téléphone portable</td>
+                            <td>${cleintobj.tel}</td>
+                            <td style="background-color: #e6e7e9;">Téléphone fixe</td>
+                            <td colspan="2"></td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #e6e7e9;">Date de naissance</td>
+                             <td colspan="4">${cleintobj.date_naissance}</td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #e6e7e9;">Email</td>
+                             <td colspan="4">${cleintobj.mail}</td>
+                        </tr>
+                        <tr>
+                             <td colspan="5">
+                                <span style="font-size: 11px;">J'accepte de recevoir des informations par mail de la part de Fit House </span>
+                                <img width="16px" height="16px" src="https://fithouse.pythonanywhere.com/media/assets/objects/${cleintobj.newsletter ? 'radio' : 'empty'}.png" />
+                                 OUI
+                                 <img width="16px" height="16px" src="https://fithouse.pythonanywhere.com/media/assets/objects/${!cleintobj.newsletter ? 'radio' : 'empty'}.png" />
+                                 NON
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="12">
+                    <br/>
+                    <span style="font-size: 14px;">Documents à fournir pour l'inscription :</span>
+                    <br/>
+                    <span>- une piéce d'identité en cours de validité.</span><br/>
+                    <span>- un certificat médical récent, attestant de ma capacité à pratiquer une activité sportive. </span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="12">
+                    <br/>
+                    <table border="1" class="infos" style="margin-right: 20px !important;">
+                        <tr>
+                            <td style="background-color: #e6e7e9;">Date de début D'abonnement</td>
+                             <td colspan="3"> Le ${new Date(contartobj.date_debut).getDate()}/ ${new Date(contartobj.date_debut).getMonth() + 1}/ ${new Date(contartobj.date_debut).getFullYear()}</td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #e6e7e9;"> Type D'abonnement</td>
+                             <td colspan="3">${contartobj.type}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="12">
+                    <br/>
+                    <span>Mode De Réglement :</span>
+                    <div class="containerPay">
+                        <ul class="types">
+                            <li>
+                                <img width="16px" height="16px" src="https://fithouse.pythonanywhere.com/media/assets/objects/empty.png" />
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Chéques <li>
+                            <li>
+                                <img width="16px" height="16px" src="https://fithouse.pythonanywhere.com/media/assets/objects/empty.png" />
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Espéces <li>
+                            <li>
+                                <img width="16px" height="16px" src="https://fithouse.pythonanywhere.com/media/assets/objects/empty.png" />
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Prélèvements <li>
+                            <li>
+                                <img width="16px" height="16px" src="https://fithouse.pythonanywhere.com/media/assets/objects/empty.png" />
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Autres ......................</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p id="text-reg">Je soussigné(e) : <i><strong>${cleintobj.nom_client} ${cleintobj.prenom_client}</strong></i> déclare souscrire un abonnement nominatif pour la durée de validité ci-dessus. Cet abonnement m'autorise à utiliser les installations aux
+horaires fixés par la Direction et à participer à l'ensemble des activités proposées par STAF Fitness (hors activités
+annexes ). II n'est ni transférable, ni remboursable. Je déclare que mon état de santé me permet de participer aux cours
+proposés par l'Etablissement et m'engage à fournir un certificat médical d'apitude à la pratique du sport en salle datant
+de moins de 1 mois lors de ma premiére séance .Celui-ci devra ensuite être renouvelé tous les ans. Je déclare avoir pris
+connaissance du réglement intérieur de STAF Fitness (affiché dans le studio ainsi qu'au verso de ce document) et devoir
+m'y conformer en totalité.
+                        </p>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="12" style="font-size: 14px">
+                    <br/>
+                    <span style="font-size: 14px">Fait à Fes</span><br/>
+                    <span style="font-size: 14px">Le ${getCurrentDate()} </span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="12">
+                    <br/>
+                    <table border="1" class="infos" style="height: 80px;">
+                        <thead>
+                            <tr>
+                                <td style="background-color: #e6e7e9;">Signature de L'adhérant (e)</td>
+                                <td style="background-color: #e6e7e9;">Signature du Conseiller</td>
+                            </tr>
+                        </thead>
+                        <tr>
+                            <td ></td>
+                            <td >&nbsp;</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="12">&nbsp; </td>
+            </tr>
+            <tr >
+                <td colspan="12" >
+                    <div style="text-align: center; border-top: 1px solid black; padding-top: 10px;">
+                        <span style="font-size: 13px;"> n163 lot  les perles de fes rte immz fes, Tél : 05.35.61.88.53 / watssap : 07.73.06.93.77 </span>
+                        <br/>
+                        <span style="font-size: 13px;">Email : fithousefes@gmail.com</span>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
     </table>
-    <p style="padding-top: 5pt;text-indent: 0pt;text-align: left;"><br /></p>
-    <h2 style="padding-left: 6pt;text-indent: 0pt;text-align: left;">Documents à fournir pour l&#39;inscription :</h2>
-    <ul id="l1">
-        <li data-list-text="-">
-            <h4 style="padding-top: 7pt;padding-left: 11pt;text-indent: -5pt;text-align: left;">une piéce d&#39;identité
-                en cours de validité.</h4>
-        </li>
-        <li data-list-text="-">
-            <h4 style="padding-top: 7pt;padding-left: 11pt;text-indent: -5pt;text-align: left;">un certificat médical
-                récent, attestant de ma capacité à pratiquer une activité sportive.</h4>
-            <p style="text-indent: 0pt;text-align: left;"><br /></p>
-            <table style="border-collapse:collapse;margin-left:6.34646pt" cellspacing="0">
-                <tr style="height:22pt">
-                    <td style="width:135pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">Date de début
-                            D&#39;abonnement</p>
-                    </td>
-                    <td
-                        style="width:404pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">${ddd}</p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td style="width:135pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 1pt;text-indent: 0pt;text-align: center;">
-                            Type D&#39;abonnement</p>
-                    </td>
-                    <td
-                        style="width:404pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p class="s2" style="padding-top: 1pt;text-indent: 0pt;text-align: center;">FITNESS / Homme/
-                            Semestriel</p>
-                    </td>
-                </tr>
-            </table>
-            <p style="padding-top: 3pt;text-indent: 0pt;text-align: left;"><br /></p>
-            <h4 style="padding-left: 29pt;text-indent: -22pt;line-height: 112%;text-align: left;">Mode De Réglement :
-                Chéques Espéces Prélèvements</h4>
-            <h4 style="padding-left: 29pt;text-indent: 0pt;text-align: left;">Autres ......................</h4>
-            <p class="s6"
-                style="padding-top: 9pt;padding-left: 6pt;text-indent: 0pt;line-height: 121%;text-align: left;">Je
-                soussigné(e) : <span class="s7">ADM NOUREDDINE </span>déclare souscrire un abonnement nominatif pour la
-                durée de validité ci-dessus. Cet abonnement m&#39;autorise à utiliser les installations aux horaires
-                fixés par la Direction et à participer à l&#39;ensemble des activités proposées par STAF Fitness (hors
-                activités annexes ). II n&#39;est ni transférable, ni remboursable. Je déclare que mon état de santé me
-                permet de participer aux cours proposés par l&#39;Etablissement et m&#39;engage à fournir un certificat
-                médical d&#39;apitude à la pratique du sport en salle datant de moins de 1 mois lors de ma premiére
-                séance .Celui-ci devra ensuite être renouvelé tous les ans. Je déclare avoir pris connaissance du
-                réglement intérieur de STAF Fitness (affiché dans le studio ainsi qu&#39;au verso de ce document) et
-                devoir m&#39;y conformer en totalité.</p>
-            <p style="padding-top: 3pt;text-indent: 0pt;text-align: left;"><br /></p>
-            <h2 style="padding-left: 6pt;text-indent: 0pt;text-align: left;">Fait à Fes</h2>
-            <h2 style="padding-top: 3pt;padding-left: 6pt;text-indent: 0pt;text-align: left;">${getCurrentDate()}</h2>
-            <p style="padding-top: 10pt;text-indent: 0pt;text-align: left;"><br /></p>
-            <table style="border-collapse:collapse;margin-left:6.34646pt" cellspacing="0">
-                <tr style="height:22pt">
-                    <td style="width:269pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 71pt;text-indent: 0pt;text-align: left;">
-                            Signature de L&#39;adhérant (e)</p>
-                    </td>
-                    <td style="width:270pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt"
-                        bgcolor="#E6E6E8">
-                        <p class="s2" style="padding-top: 1pt;padding-left: 79pt;text-indent: 0pt;text-align: left;">
-                            Signature du Conseiller</p>
-                    </td>
-                </tr>
-                <tr style="height:22pt">
-                    <td
-                        style="width:269pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p style="text-indent: 0pt;text-align: left;"><br /></p>
-                    </td>
-                    <td
-                        style="width:270pt;border-top-style:solid;border-top-width:1pt;border-left-style:solid;border-left-width:1pt;border-bottom-style:solid;border-bottom-width:1pt;border-right-style:solid;border-right-width:1pt">
-                        <p style="text-indent: 0pt;text-align: left;"><br /></p>
-                    </td>
-                </tr>
-            </table>
-            <p style="padding-top: 6pt;text-indent: 0pt;text-align: left;"><br /></p>
-            <p style="padding-left: 6pt;text-indent: 0pt;line-height: 1pt;text-align: left;" />
-            <p style="padding-top: 6pt;padding-left: 203pt;text-indent: -132pt;line-height: 165%;text-align: left;"><a
-                    href="mailto:fithousefes@gmail.com" class="a" target="_blank">Complexe Sportif de Fés, Route de
-                    Sefrou, Tél : 05.35.61.88.53 / watssap : 07.73.06.93.77 Email : </a><a
-                    href="mailto:fithousefes@gmail.com" target="_blank">fithousefes@gmail.com</a></p>
-            <div style="margin-top: 100px;"></div>
-            <div class="textbox"
-                style="background:#E6E6E8;border:0.8pt solid #000000;display:block;min-height:28.5pt;width:538.6pt;">
-                <p class="s1" style="padding-top: 1pt;padding-left: 39pt;text-indent: 0pt;text-align: left;">CONDITION
-                    GENERAS DE VENTES ET REGLEMENT INTERIEUR</p>
-            </div>
-        </li>
-    </ul>
-    <p style="padding-left: 5pt;text-indent: 0pt;text-align: left;" />
-    <p style="text-indent: 0pt;text-align: left;"><br /></p>
-    <h1 style="padding-top: 4pt;padding-left: 6pt;text-indent: 0pt;text-align: justify;">Les conditions générales et
-        leur application:</h1>
-    <ul id="l2">
-        <li data-list-text="-">
-            <p style="padding-top: 7pt;padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">Les
-                conditions générales - au dessous - régissent les realations contractuelles du club, de remise en forme
-                objet de ce contrat de l&#39;adhérent contractant.</p>
-            <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">Aucune condition
-                particuliére ne peut, sauf acceptation formelle et écrite du club ou de son mandataire commercialsant,
-                prévoir contre les conditions générales. Toute condition contraire posée par L&#39;adhérent sera donc
-                caduque, quel que soit le mement ou elle aura pu être a sa connaissance.</p>
-            <ol id="l3" style="display: grid;
-            grid-column-gap: 10px;
-            grid-row-gap: 0px;width: 100%;">
-                <li data-list-text="1-" style="grid-area: 1 / 1 / 2 / 2;">
-                    <p class="s8" style="padding-top: 6pt;padding-left: 13pt;text-indent: -7pt;text-align: left;">OBJET
-                        DU CONTRAT</p>
-                    <p style="padding-top: 1pt;text-indent: 0pt;text-align: left;"><br /></p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">Aprés avoir
-                        visité les installations du club et /ou avoir pris connaissance des prestations proposées, le
-                        Membre déclare souscrire un contrat d&#39;abonnement nominatif et incessible l&#39;autorisant à
-                        utiliser les installations en libre-service avec accés illimité aux jours et heures
-                        d&#39;ouvertures du club dans le cadre du forfait de base comprenant : Cardio-training et
-                        musculation, selon un prix et des modalités financiéres indiqués dans le présent contrat.</p>
-                </li>
-                <li data-list-text="2-" style="grid-area: 1 / 2 / 2 / 3;">
-                    <p class="s8" style="padding-top: 6pt;padding-left: 13pt;text-indent: -7pt;text-align: left;">
-                        DEFINITION</p>
-                    <p style="padding-top: 1pt;text-indent: 0pt;text-align: left;"><br /></p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">La CARTE du
-                        membre est à durée détarminée suivant le durée souscrite au départ du contrat. En cas de
-                        prélèvement, l&#39;arrêt de celui ci intervient des l&#39;échéance suivant la contrat. En cas de
-                        perte ou de vol, le remplacemebt de sa carte sera facture 100 SH TTC a l&#39;abonné. Le
-                        renouvellemnt fait l&#39;objet d&#39;un nouveau contrat</p>
-                </li>
-                <li data-list-text="3-" style="grid-area: 2 / 2 / 3 / 3;">
-                    <p class="s8" style="padding-top: 6pt;padding-left: 13pt;text-indent: -7pt;text-align: left;">
-                        GARANTIE DU PRIX</p>
-                    <p style="padding-top: 1pt;text-indent: 0pt;text-align: left;"><br /></p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">Pendant toute
-                        la
-                        durée du contrat, le prix fixé aux présentes est garanti (en Dirhams constants). En cas
-                        d&#39;interruption du contrat a l&#39;initiative du membre (a l&#39;exclusion d&#39;une
-                        interruption a l&#39;iniyiative du club) et quelle qu&#39;en soit la cause ou la durée, le club
-                        se réserve la possibilté d&#39;actualiser, le cas échéant, le prix de l&#39;abonnement mensuel
-                        lors de la réactivation de contrat.</p>
+     <tr >
+                <td colspan="12" style="padding-right: 60px">
+                    <div class="containerTitle">
+                        <span id="tititreCondition">CONDITION GENERAS DE VENTES ET REGLEMENT INTERIEUR</span>
+                    </div>
+                </td>
+     </tr>
+     <tr>
+        <td colspan="12">
+            <table>
+                <td class="conditions"  style="padding-right : 10px;">
+                    <br/> <br/>
+                    <br/>
+                    <p style="font-size: 9px !important;"><strong>Les conditions générales et leur application:</strong></p>
                     <p>
-                        Le Membre déclare se conformer aux conditions générales et au présent réglement intérieur, y
-                        adhérer sans restriction ni réserve et de respecter les consignes suivantes :
-
-                        Présence des enfants non inscrits aux kids club exclue dans l'enceinte du club pour des raisons
-                        de sécuriié.
-
-                        L'interdication de fumer à l'intérieur et devant la porte de l'établissement.
-
-                        Le port de vêtements et de chaussures de sport spécifiques et exclusifs de toutes autres
-                        utilisations.
-
-                        La salle de cours collectif est strictement réservée aux cours collectfs.
-
-
-
-                        Le Membre s'engage à n'utiliser que le matériel et les équipements mis à disposition par la
-                        salle et ne sont pas autorisés à ramener ses propres affaires (corde à sauter, etc. ).
-
-                        L'emploi d'une serviette sur les appareils et tapis de sol.
-
-                        Nettoyer sa place et son matériel aprés utilisation au moyen des produits de nettoyage prévu à
-                        cet effet.
-
-                        Ranger le matériel aprés utilisation et décharger les barres et appareil aprés chaque
-                        utilisation.
-
-                        La nourriture est interdite dans les salles d'entraînement.
-
-                        Chaque membre s'engage en cas d'accident dont il serait témoin à alerter immédiatement les
-                        secours.
-
-                        Accés interdit à la pelouse du terrain lors de l'utilisation de la piste d'athlétisme.
+                        - Les conditions générales - au dessous - régissent les realations
+                            contractuelles du club, de remise en forme objet de ce contrat de
+                            l'adhérent contractant.<br/>
+                            Aucune condition particuliére ne peut, sauf acceptation formelle et
+                            écrite du club ou de son mandataire commercialsant, prévoir contre les
+                            conditions générales. Toute condition contraire posée par L'adhérent
+                            sera donc caduque, quel que soit le mement ou elle aura pu être a sa
+                            connaissance.
                     </p>
-                </li>
-                <li data-list-text="4-" style="grid-area: 2 / 1 / 3 / 2;">
-                    <p class="s8" style="padding-top: 6pt;padding-left: 13pt;text-indent: -7pt;text-align: left;">
-                        MODALITES DE RESIATION</p>
-                    <p style="text-indent: 0pt;text-align: left;"><br /></p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 8pt;text-align: justify;">A
-                        l&#39;initiative du Membre :</p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">La demande de
-                        résiliation à l&#39;initiative du membre, est possible à compter du 11éme mois effectif de
-                        l&#39;abonnement, et doit être sgnifiée, par courrier recommandé avec avis de réception, avec un
-                        préavis d&#39;un mois. Poue être validitée définitivement, la résiliation doit être suivie, au
-                        terme du mois de préavis, de la restitution de la carte de Membre au club. A défaut, les
-                        réglementx mensuels ou les prélèvements contnuent d&#39;être effectues jusqu&#39;à remise de la
-                        carte du membre. En cas de résiliation du contrat par le membre relevant de la force majeure
-                        pendant la période incompressible des 12 premiers mois, les frais administratifs seront d&#39;un
-                        montant forfaitaire de 1900,00 DH, et seront prélevés en une seule fois pour clôture du dossier.
-                        Par motif de cas de force majeure, il est limitativement fait réfèrence aux cas suivants :
-                        maladie ou accident grave empéchant défnitivement le Membre de bénéficier des services du club,
-                        décés, mutation professionnelle du fait de l&#39;employeur.</p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">Pour toute autre
-                        cause d&#39;empêchement non définitve (supérieue à 2 mois), le Membre pourra bénéficier
-                        d&#39;une suspension d&#39;abonnement à la condition expresse d&#39;informer le club
-                        préalablement et remettre sa carte ainsi que les piéces justificatives.</p>
-                    <p style="padding-top: 1pt;text-indent: 0pt;text-align: left;"><br /></p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 8pt;text-align: justify;">A
-                        l&#39;initiative du Club :</p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">L&#39;abonnement
-                        est résilié de plein droit par le club aux motifs suivants : - En cas de fraude dans la
-                        constitution du dossier d&#39;abonnement, fausse déclaration, faisification des piéces.</p>
-                </li>
-                <li data-list-text="6-" style="grid-area: 3 / 1 / 4 / 2;">
-                    <p class="s8" style="padding-top: 6pt;padding-left: 13pt;text-indent: -7pt;text-align: left;">
-                        VESTIARES/DEPOT</p>
-                    <p style="padding-top: 1pt;text-indent: 0pt;text-align: left;"><br /></p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">Le Membre peut
-                        utiliser
-                        des casies individuels à fermeture traditionnelle dont l&#39;utilisation est limitée à la durée
-                        de la
-                        séance. En cas d&#39;utilisation par le Membre d&#39;un casier individuel à fermeture
-                        traditionnelle, il
-                        lui est expressement rappelé l&#39;obligation de se pourvoir d&#39;un cadenas de sécurité afin
-                        de
-                        pouvoir le fermer. Le cadenas est et reste la propriéte du Membre. II est rappelé expressement
-                        au Membre
-                        que les vestiares ne font l&#39;objet d&#39;aucune surveillance spécifique. Le Membre reconnaît
-                        ainsi
-                        avoir été parfaitement informé des risques encourus par le fait de placer des objets de valeur
-                        dans les
-                        vestiaires communs, ce qui en aucune façon ne engager la responsabilité du club. II est
-                        strictement
-                        interdit de laisser ses affaires personnelles à l&#39;intérieur des casies aprés avoir quité le
-                        club car
-                        les cadenas seront automatiquement coupés et enlevés, sans aucune indemnisation pour le membre.
-                        Une
-                        pénalité de 50 Dhs sera éxigée.</p>
-                </li>
-                <li data-list-text="7-" style="grid-area: 3 / 2 / 4 / 3;">
-                    <p class="s8" style="padding-top: 6pt;padding-left: 13pt;text-indent: -7pt;text-align: left;">
-                        ATTESTATION/CERTIFICAT MEDICAL/DECHARGE MEDICALE</p>
-                    <p style="padding-top: 1pt;text-indent: 0pt;text-align: left;"><br /></p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">Le Membre
-                        atteste que sa
-                        constitution physique et son état de santé lui permettent de pratiquer le sport en général, et
-                        plus
-                        particuliérement d&#39;utiliser les services, les activités, le matériel et les installations
-                        proposés
-                        par le club</p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">: musculation,
-                        cardio-training, cours collectifs de fitness et activités annexes, qu&#39;il ne souffre
-                        d&#39;aucune
-                        blessure, maladie ou handicap, qu&#39;il n&#39;a jamais eu de problémes cardiaques ou
-                        respirations
-                        décelés à ce jour.</p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">Aucun médecin,
-                        infirmier, entraîneur, ne lui a déconseillé la pratique de cette activité.</p>
-                    <p style="padding-left: 6pt;text-indent: 0pt;line-height: 100%;text-align: justify;">Le Membre remet
-                        le jour
-                        de la signature du contrat, un certificat d&#39;aptitude à la pratque des activités proposées
-                        par le
-                        club. A défaut de certificat médical, le Membre décharge le club, ses responsables, le(s)
-                        professeur(s),
-                        ses membres, de toutes réclamations, actions juridiques, frais, dépenses et requêtes
-                        respectivement à
-                        des blessures ou dommages occasionnés à sa personne et causés de quelque maniére que ce soit,
-                        découlant
-                        ou en raison du fait qu&#39;il pratique cette activité sportive, et ce nonobstant le fait que
-                        cela ait
-                        pu être causé ou occasionné par négligence ou être lié à un manquement à ses responsabilités à
-                        titre
-                        d&#39;occupant des lieux. Le Membre consent à assumer tous les risques connus et inconnus, et
-                        toutes les
-                        conséquences afférentes ou liées au fait qu&#39;il participe aux activités sportives du club. En
-                        outre,
-                        le(s) parent(s) ou le(s) titeur(s) légal (aux) des participants mineurs de moins de 18 ans
-                        accepte(nt)
-                        de communiquer aux dits participants mineurs les avertissements et les conditions mentionnés
-                        ci-dessus,
-                        ainsi que leurs conséquences et consent(ent) à la participation des dits mineur(s). Le Membre
-                        atteste
-                        avoir lu le présent document comprend qu&#39;en y apposant sa signature il renonce à des droits
-                        importants C&#39;est donc en toute connaissance de cause qu&#39;il signe la présente décharge
-                        médicale.
+                    <p>
+                        <span class="titleCondition" style="text-decoration: underline;">1-OBJET DU CONTRAT</span><br/><br/>
+                        Aprés avoir visité les installations du club et /ou avoir pris
+connaissance des prestations proposées, le Membre déclare souscrire
+un contrat d'abonnement nominatif et incessible l'autorisant à utiliser
+les installations en libre-service avec accés illimité aux jours et heures
+d'ouvertures du club dans le cadre du forfait de base comprenant :
+Cardio-training et musculation, selon un prix et des modalités
+financiéres indiqués dans le présent contrat.
                     </p>
-                </li>
-                
-            </ol>
-        </li>
-       
-    </ul>
-
-
-
+                    <p>
+                        <span class="titleCondition" style="text-decoration: underline;">2-DEFINITION</span><br/><br/>
+                        La CARTE du membre est à durée détarminée suivant le durée
+souscrite au départ du contrat. En cas de prélèvement, l'arrêt de celui
+ci intervient des l'échéance suivant la contrat.
+En cas de perte ou de vol, le remplacemebt de sa carte sera facture
+100 SH TTC a l'abonné.
+Le renouvellemnt fait l'objet d'un nouveau contrat
+                    </p>
+                </p>
+                <p>
+                    <span class="titleCondition"  style="text-decoration: underline;">3-GARANTIE DU PRIX</span><br/><br/>
+                    Pendant toute la durée du contrat, le prix fixé aux présentes est garanti
+(en Dirhams constants). En cas d'interruption du contrat a l'initiative du
+membre (a l'exclusion d'une interruption a l'iniyiative du club) et quelle
+qu'en soit la cause ou la durée, le club se réserve la possibilté
+d'actualiser, le cas échéant, le prix de l'abonnement mensuel lors de la
+réactivation de contrat.
+                </p>
+                <p>
+                    <span class="titleCondition"  style="text-decoration: underline;">4-MODALITES DE RESIATION</span><br/><br/>
+                    A l'initiative du Membre :<br/>
+La demande de résiliation à l'initiative du membre, est possible à
+compter du 11éme mois effectif de l'abonnement, et doit être sgnifiée,
+par courrier recommandé avec avis de réception, avec un préavis d'un
+mois. Poue être validitée définitivement, la résiliation doit être suivie, au
+terme du mois de préavis, de la restitution de la carte de Membre au
+club. A défaut, les réglementx mensuels ou les prélèvements
+contnuent d'être effectues jusqu'à remise de la carte du membre. En
+cas de résiliation du contrat par le membre relevant de la force majeure
+pendant la période incompressible des 12 premiers mois, les frais
+administratifs seront d'un montant forfaitaire de 1900,00 DH, et seront
+prélevés en une seule fois pour clôture du dossier. Par motif de cas de
+force majeure, il est limitativement fait réfèrence aux cas suivants :
+maladie ou accident grave empéchant défnitivement le Membre de
+bénéficier des services du club, décés, mutation professionnelle du fait
+de l'employeur.<br/>
+Pour toute autre cause d'empêchement non définitve (supérieue à 2
+mois), le Membre pourra bénéficier d'une suspension d'abonnement à
+la condition expresse d'informer le club préalablement et remettre sa
+carte ainsi que les piéces justificatives.<br/><br/>
+A l'initiative du Club :<br/>
+L'abonnement est résilié de plein droit par le club aux motifs suivants :
+- En cas de fraude dans la constitution du dossier d'abonnement,
+fausse déclaration, faisification des piéces.<br/>
+- En cas de fraude dans l'utilisation de la carte d'accés du club.<br/>
+- En cas de défaut de paiement, étant précisé qu'un premier incident<br/>
+de paiement donne lieu à la suspension de la carte d'abonnement du
+club en attendant la régularisation. Le réglement s'effectuera aupres de
+notre comptoir de commercialisation. En cas de 2 incidents ou plus de
+paiements l'adhérent sera redevable des mois restants jusqu'au
+douziémé mois et devra s'acquitter de sa dette auprés de notre service
+de recouvrement avec la tarification en vigueur.
+                </p>
+                <p>
+                    <span class="titleCondition"  style="text-decoration: underline;">5-REGLEMENT INTERIEUR/REGLES DE SECURITE ET HYGIENE</span><br/><br/>
+                        Le Membre déclare se conformer aux conditions générales et au
+                        présent réglement intérieur, y adhérer sans restriction ni réserve et de
+                        respecter les consignes suivantes :<br/>
+                        - Présence des enfants non inscrits aux kids club exclue dans
+                        l'enceinte du club pour des raisons de sécuriié.<br/>
+                        - L'interdication de fumer à l'intérieur et devant la porte de
+                        l'établissement.<br/>
+                        - Le port de vêtements et de chaussures de sport spécifiques et
+                        exclusifs de toutes autres utilisations.<br/>
+                        - La salle de cours collectif est strictement réservée aux cours
+                        collectfs.<br/><br/>
+                        - Le Membre s'engage à n'utiliser que le matériel et les équipements
+                        mis à disposition par la salle et ne sont pas autorisés à ramener ses
+                        propres affaires (corde à sauter, etc....).<br/>
+                        - L'emploi d'une serviette sur les appareils et tapis de sol.<br/>
+                        - Nettoyer sa place et son matériel aprés utilisation au moyen des
+                        produits de nettoyage prévu à cet effet.<br/>
+                </p>
+                </td>
+                <td class="conditions" style="padding-left : 10px;">
+                    <p>
+                        - Ranger le matériel aprés utilisation et décharger les barres et appareil
+                        aprés chaque utilisation.<br/>
+                        - La nourriture est interdite dans les salles d'entraînement.<br/>
+                        - Chaque membre s'engage en cas d'accident dont il serait témoin à
+                        alerter immédiatement les secours.<br/>
+                        - Accés interdit à la pelouse du terrain lors de l'utilisation de la piste
+                        d'athlétisme.<br/>
+                        Les personnes extérieures, bénéficiant d'une invitation du club ou
+                        d'une séance découverte sont soumises au même réglement que les
+                        membres inscrits, et devront déposer obligatoirement une piéce
+                        d'identité pendant leur séance et uniquement sur RDV.
+                    </p>
+                    <p>
+                        <span class="titleCondition"  style="text-decoration: underline;">6-VESTIARES/DEPOT</span><br/><br/>
+                        Le Membre peut utiliser des casies individuels à fermeture
+traditionnelle dont l'utilisation est limitée à la durée de la séance.
+En cas d'utilisation par le Membre d'un casier individuel à fermeture
+traditionnelle, il lui est expressement rappelé l'obligation de se pourvoir
+d'un cadenas de sécurité afin de pouvoir le fermer. Le cadenas est et
+reste la propriéte du Membre. II est rappelé expressement au Membre
+que les vestiares ne font l'objet d'aucune surveillance spécifique. Le
+Membre reconnaît ainsi avoir été parfaitement informé des risques
+encourus par le fait de placer des objets de valeur dans les vestiaires
+communs, ce qui en aucune façon ne engager la responsabilité du
+club. II est strictement interdit de laisser ses affaires personnelles à
+l'intérieur des casies aprés avoir quité le club car les cadenas seront
+automatiquement coupés et enlevés, sans aucune indemnisation pour
+le membre. Une pénalité de 50 Dhs sera éxigée.
+                    </p>
+                    <p>
+                        <span class="titleCondition"  style="text-decoration: underline;">7-ATTESTATION/CERTIFICAT MEDICAL/DECHARGE
+                            MEDICALE</span><br/><br/>
+                        Le Membre atteste que sa constitution physique et son état de santé lui
+permettent de pratiquer le sport en général, et plus particuliérement
+d'utiliser les services, les activités, le matériel et les installations
+proposés par le club : musculation, cardio-training, cours collectifs de
+fitness et activités annexes, qu'il ne souffre d'aucune blessure,
+maladie ou handicap, qu'il n'a jamais eu de problémes cardiaques ou
+respirations décelés à ce jour.<br/>
+Aucun médecin, infirmier, entraîneur, ne lui a déconseillé la pratique de
+cette activité.<br/>
+Le Membre remet le jour de la signature du contrat, un certificat
+d'aptitude à la pratque des activités proposées par le club. A défaut de
+certificat médical, le Membre décharge le club, ses responsables, le(s)
+professeur(s), ses membres, de toutes réclamations, actions juridiques,
+frais, dépenses et requêtes respectivement à des blessures ou
+dommages occasionnés à sa personne et causés de quelque maniére
+que ce soit, découlant ou en raison du fait qu'il pratique cette activité
+sportive, et ce nonobstant le fait que cela ait pu être causé ou
+occasionné par négligence ou être lié à un manquement à ses
+responsabilités à titre d'occupant des lieux. Le Membre consent à
+assumer tous les risques connus et inconnus, et toutes les
+conséquences afférentes ou liées au fait qu'il participe aux activités
+sportives du club. En outre, le(s) parent(s) ou le(s) titeur(s) légal (aux)
+des participants mineurs de moins de 18 ans accepte(nt) de
+communiquer aux dits participants mineurs les avertissements et les
+conditions mentionnés ci-dessus, ainsi que leurs conséquences et
+consent(ent) à la participation des dits mineur(s). Le Membre atteste
+avoir lu le présent document comprend qu'en y apposant sa signature il
+renonce à des droits importants C'est donc en toute connaissance de
+cause qu'il signe la présente décharge médicale.
+                    </p>
+                    <p>
+                        <span class="titleCondition"  style="text-decoration: underline;">8-RESPONSABILITE CIVILE/DOMMAGE CORPOREL</span><br/><br/>
+                        Le club est assuré pour les dommages engageant sa responsabilité
+                        civile et celle de son personnel conformément aux dispositions légales.
+                        Cette assurance a pour objet de garantir le club contre les
+                        conséquences pécunaires de la responsabilité civile encourues au titre
+                        des dommages causés à autrui du fait de l'exploitation : dommages
+                        corporels, matériels, immatériels.
+                        La responsabilité du club ne pourra être recherchée en cas d'accident
+                        résultant de l'inobservation des consignes de sécurité ou de l'utilisation
+                        inappropriée des appareils ou autres installations.
+                        De son côté, le Membre est invité à souscrire une police d'assurance
+                        Responsabilité Civile personnelle, et une police d'assurance pour la
+                        pratque du sport, ayant pour objet de lui proposer des garanties
+                        susceptibles de réparer les atteintes a l'intégralité physique dont il
+                        pourrait être victime en cas de dommage corparels ou d'accident.
+                    </p>
+                    <p>
+                        <span class="titleCondition"  style="text-decoration: underline;">9 - Interruption dans l'exploitation</span><br/><br/>
+                        L'exploitation du club pourra être interrempue par décision de
+l'administation du club Fit Gouse au cas ou une cérémonie officielle ou
+toutes autres manifestations, ou l'exécution de travaux l'exigerait.
+L'exploitant ne pourra recevoir aucune indemnité à condition que cette
+neutralisation n'ait pas une durée supérieure à 15 jours.
+                    </p>
+                </td>
+            </table>
+        </td>
+     </tr>
 </body>
-
-</html>`
+</html>
+`
     );
 
     printWindow.document.close();

@@ -37,6 +37,8 @@ import {
 } from "../../../utils/helper";
 import dayjs from "dayjs";
 import { handlePrintContract } from "../../../utils/printable/contract";
+import { printReceipt } from "../../../utils/printable/recu";
+import { printFacteur } from "../../../utils/printable/facteur";
 
 const TableContract = () => {
   const [data, setData] = useState([]);
@@ -182,15 +184,7 @@ const TableContract = () => {
       const Client = clients.filter(
         (client) => client.id_client === ContractData.id_client
       );
-      handlePrintContract(
-        ContractData.client,
-        ContractData.Prenom_client,
-        Client[0].mail,
-        Client[0].adresse,
-        Client[0].nom_ville,
-        Client[0].tel,
-        ContractData.date_debut
-      );
+      handlePrintContract(Client[0], ContractData);
     });
   };
 
@@ -398,14 +392,16 @@ const TableContract = () => {
               placeholder="Réduction"
               value={ContractData.reduction}
               onChange={(e) => {
-                if (e.target.value > tarif) {
+                const reduction = parseFloat(e.target.value) || 0;
+                if (reduction > ContractData.tarif) {
                   message.warning("Réduction doit être inférieur au tarif ");
                   return;
                 }
-                ContractData.reste = ContractData.reste - e.target.value;
+                const newReste = ContractData.tarif - reduction;
                 setContractData({
                   ...ContractData,
-                  reduction: e.target.value,
+                  reduction: reduction,
+                  reste: newReste,
                 });
               }}
             />
@@ -467,34 +463,32 @@ const TableContract = () => {
               placeholder="Montant"
               value={ContractData.montant}
               onChange={(e) => {
-                ContractData.reste = tarif - e.target.value;
-                if (e.target.value > tarif) {
+                const montant = parseFloat(e.target.value) || 0;
+                const tarifMinusReduction =
+                  ContractData.tarif - (ContractData.reduction || 0);
+                if (montant > tarifMinusReduction) {
                   message.warning(
-                    "Le montant saisie doit être inférieur au tarif "
+                    "Le montant saisie doit être inférieur au tarif moins la réduction"
                   );
                   return;
                 }
+                const newReste = tarifMinusReduction - montant;
                 setContractData({
                   ...ContractData,
-                  montant: e.target.value,
+                  montant: montant,
+                  reste: newReste,
                 });
               }}
             />
           </div>
           <div>
-            <label htmlFor="resteActuel">Le rest actuel</label>
+            <label htmlFor="resteActuel">Le reste actuel</label>
             <Input
               id="resteActuel"
               disabled={true}
               size="middle"
-              placeholder="Le rest actuel"
-              value={tarif - ContractData.montant}
-              onChange={(e) =>
-                setContractData({
-                  ...ContractData,
-                  reste: e.target.value,
-                })
-              }
+              placeholder="Le reste actuel"
+              value={ContractData.reste}
             />
           </div>
           <div>
@@ -763,12 +757,12 @@ const TableContract = () => {
 
   const detailColumns = [
     {
-      title: "Champ",
+      title: "",
       dataIndex: "property",
       key: "property",
     },
     {
-      title: "Valeur",
+      title: "",
       dataIndex: "value",
       key: "value",
       render: (text) => {
@@ -851,14 +845,20 @@ const TableContract = () => {
     : [];
 
   const handlePrintReceipt = (transaction) => {
-    setSelectedTransaction(transaction);
+    // setSelectedTransaction(transaction);
+    printReceipt(selectedContract, transaction);
     // You would implement the actual printing logic here.
     // For now, we'll just show a message
-    message.success("Preparing to print receipt...");
     // TODO: Implement actual receipt printing logic
   };
 
+  const handleprintFacteur = (transaction) => {
+    printFacteur(selectedContract, transaction);
+  };
+
   const modeReglementOptions = ["Chèques", "Espèces", "Prélèvements", "Autre"];
+
+  // printReceipt()
 
   return (
     <div className="w-full p-2">
@@ -969,6 +969,18 @@ const TableContract = () => {
                   onClick={() => handlePrintReceipt(record)}
                 >
                   Imprimer Reçu
+                </Button>
+              ),
+            },
+            {
+              title: "Actions",
+              key: "actions",
+              render: (_, record) => (
+                <Button
+                  icon={<PrinterOutlined />}
+                  onClick={() => handleprintFacteur(record)}
+                >
+                  Imprimer la facteur
                 </Button>
               ),
             },

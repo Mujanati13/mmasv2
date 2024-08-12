@@ -40,6 +40,9 @@ import Record from "../../../pages/screens/record";
 import ReservationCoachs from "../../../pages/screens/reservationC";
 import CoursC from "../../../pages/screens/coursC";
 import SeanceCoach from "../../../pages/screens/seancC";
+import Fournisseur from "../../screens/fournisseur";
+import Servies from "../../screens/servies";
+import ReservationService from "../../screens/reservation_srv";
 
 const { Title } = Typography;
 const { Panel } = Collapse;
@@ -93,7 +96,7 @@ const Home = ({ setSelectedComponent }) => {
 
   return (
     <div style={{ padding: "24px" }}>
-      <Collapse accordion bordered={false} defaultActiveKey={['0']}>
+      <Collapse accordion bordered={false} defaultActiveKey={["0"]}>
         {groupedMenuItems.map((group, groupIndex) => (
           <Panel header={group.title} key={groupIndex}>
             <Row gutter={[16, 16]}>
@@ -176,6 +179,12 @@ const MenuPrime = () => {
         return <CoursC />;
       case "38":
         return <SeanceCoach />;
+      case "39":
+        return <Fournisseur />;
+      case "150":
+        return <Servies />;
+      case "230":
+        return <ReservationService />;
       default:
         return <Home setSelectedComponent={setSelectedComponent} />;
     }
@@ -221,6 +230,12 @@ const MenuPrime = () => {
                 icon: <AppstoreOutlined />,
               },
               {
+                key: "150",
+                label: "Servies",
+                icon: <FundOutlined />,
+              },
+             
+              {
                 key: "15",
                 label: "Gestion de cours",
                 icon: <BookOutlined />,
@@ -259,8 +274,13 @@ const MenuPrime = () => {
                 label: "Contrats",
                 icon: <ContactsOutlined />,
               },
+              // {
+              //   key: "23",
+              //   label: "Réservations",
+              //   icon: <BookOutlined />,
+              // },
               {
-                key: "23",
+                key: "230",
                 label: "Réservations",
                 icon: <BookOutlined />,
               },
@@ -299,6 +319,12 @@ const MenuPrime = () => {
             icon: <CopyOutlined />,
           },
           {
+            key: "39",
+            label: "Fournisseur",
+            icon: <UserOutlined />,
+          },
+
+          {
             key: "40",
             label: "Deconnexion",
             icon: <LogoutOutlined />,
@@ -336,6 +362,12 @@ const MenuPrime = () => {
               },
             ],
           },
+          {
+            key: "39",
+            label: "Fournisseur",
+            icon: <UserOutlined />,
+          },
+
           {
             key: "40",
             label: "Deconnexion",

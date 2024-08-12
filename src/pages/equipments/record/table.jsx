@@ -347,11 +347,13 @@ const TableRecord = () => {
 
   const transformJsonToTableData = (jsonData) => {
     const parsedData = JSON.parse(jsonData);
-    return Object.entries(parsedData).map(([key, value], index) => ({
-      key: index,
-      field: key,
-      value: typeof value === "object" ? JSON.stringify(value) : String(value),
-    }));
+    return Object.entries(parsedData)
+      .filter(([_, value]) => value !== null && typeof value !== 'number')
+      .map(([key, value], index) => ({
+        key: index,
+        field: key,
+        value: typeof value === "object" ? JSON.stringify(value) : String(value),
+      }));
   };
 
   return (
@@ -372,11 +374,10 @@ const TableRecord = () => {
                 size="small"
                 columns={[
                   {
-                    title: "Champ",
+                    title: "",
                     dataIndex: "field",
                     key: "field",
                     render: (text) => {
-                      // Remove "id" prefix and capitalize first letter
                       const formattedText = text
                         .replace(/^id_?/i, "")
                         .replace(/_/g, " ");
@@ -389,7 +390,7 @@ const TableRecord = () => {
                     },
                   },
                   {
-                    title: "Valeur",
+                    title: "",
                     dataIndex: "value",
                     key: "value",
                     render: (text) => <span>{text}</span>,

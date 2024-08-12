@@ -1,16 +1,16 @@
+import React, { useState, useEffect } from "react";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import dayjs from "dayjs";
-import "dayjs/locale/fr"; // Import French locale for Day.js
-import { useState, useEffect } from "react";
+import "dayjs/locale/fr";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css"; // if using DnD
-// Set Day.js to use the French locale globally
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
+
 dayjs.locale("fr");
 const localizer = dayjsLocalizer(dayjs);
+
 import {
   PlusOutlined,
   FileAddOutlined,
-  UserAddOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
 
@@ -22,43 +22,542 @@ import {
   Select,
   message,
   Modal,
-  DatePicker,
   Table,
   Switch,
+  Segmented
 } from "antd";
-import "dayjs/locale/fr"; // Import French locale for Day.js
+
 import { addNewTrace, getCurrentDate } from "../../../utils/helper";
-const { RangePicker } = DatePicker;
 
-const fetchReservations = async () => {
-  try {
-    const response = await fetch(
-      "https://fithouse.pythonanywhere.com/api/reservation/"
+const TableReservations = () => {
+  // Code from the first interface
+  const fetchReservations = async () => {
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/reservationService/"
+      );
+      const data = await response.json();
+      return data.data;
+    } catch (error) {
+      console.error("Error fetching reservations:", error);
+      return [];
+    }
+  };
+
+  const transformReservations = (reservations) => {
+    return reservations.map((reservation) => ({
+      id: reservation.id_rsv_srvc,
+      id_service: reservation.id_service,
+      title: `Service ${reservation.id_service}`,
+      start: new Date(reservation.date_resrv),
+      end: new Date(reservation.date_presence),
+      allDay: false,
+      resource: reservation.status ? "Active" : "Inactive",
+      status: reservation.status,
+      presence: reservation.presence,
+      motif_annulation: reservation.motif_annulation,
+    }));
+  };
+
+  const [events, setEvents] = useState([]);
+  const [open1, setOpen1] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [services, setServices] = useState([]);
+  const [selectedService, setSelectedService] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [isCancellationModalVisible, setIsCancellationModalVisible] =
+    useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [ReservationData, setReservationData] = useState({
+    id_client: null,
+    id_service: null,
+    date_resrv: getCurrentDate(),
+    date_presence: null,
+    status: true,
+    presence: false,
+    motif_annulation: null,
+  });
+
+  const fetchClients = async () => {
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/clients/"
+      );
+      const data = await response.json();
+      setClients(data.data);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
+  };
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/service/"
+      );
+      const data = await response.json();
+      setServices(data.data);
+    } catch (error) {
+      console.error("Error fetching services:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchClients();
+    fetchServices();
+    fetchAndTransformReservations();
+  }, []);
+
+  const fetchAndTransformReservations = async () => {
+    const reservations = await fetchReservations();
+    const transformedEvents = transformReservations(reservations);
+    setEvents(transformedEvents);
+  };
+
+  const isReservationFormValid = () => {
+    return (
+      ReservationData.id_client !== null &&
+      ReservationData.id_service !== null &&
+      ReservationData.date_resrv !== null &&
+      ReservationData.date_presence !== null
     );
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error("Error fetching reservations:", error);
-    return [];
-  }
+  };
+
+  const addReservation = async () => {
+    try {
+      if (!isReservationFormValid()) {
+        message.error(
+          "Please fill in all required fields for the reservation."
+        );
+        return;
+      }
+
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/reservationService/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(ReservationData),
+        }
+      );
+
+      if (response.ok) {
+        const res = await response.json();
+        if (res === "Added Successfully!!") {
+          message.success("Réservation ajoutée avec succès");
+          onCloseR();
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          await addNewTrace(
+            id_staff[0].id_employe,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ReservationData)}`,
+            "reservation_service"
+          );
+          fetchAndTransformReservations();
+        } else {
+          message.warning(res.msg);
+        }
+      } else {
+        message.error("Error adding reservation");
+      }
+    } catch (error) {
+      console.log(error);
+      message.error("An error occurred:", error);
+    }
+  };
+
+  const updateReservation = async (updatedData) => {
+    try {
+      updatedData.id_rsv_srvc = updatedData.id;
+      const response = await fetch(
+        `https://fithouse.pythonanywhere.com/api/reservationService/`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedData),
+        }
+      );
+
+      if (response.ok) {
+        message.success("Réservation mise à jour avec succès");
+        fetchAndTransformReservations();
+      } else {
+        message.error("Erreur lors de la mise à jour de la réservation");
+      }
+    } catch (error) {
+      console.log(error);
+      message.error("Une erreur est survenue:", error);
+    }
+  };
+
+  const showDrawerR = () => {
+    setOpen1(true);
+  };
+
+  const onCloseR = () => {
+    setOpen1(false);
+    setReservationData({
+      id_client: null,
+      id_service: null,
+      date_resrv: getCurrentDate(),
+      date_presence: null,
+      status: true,
+      presence: false,
+      motif_annulation: null,
+    });
+  };
+
+  const handleReservationSubmit = () => {
+    addReservation();
+  };
+
+  const handleEventSelect = (event) => {
+    setSelectedReservation(event);
+    setIsModalVisible(true);
+  };
+
+  const handleModalCancel = () => {
+    setIsModalVisible(false);
+    setSelectedReservation(null);
+  };
+
+  const handlePresenceChange = (checked) => {
+    const updatedReservation = { ...selectedReservation, presence: checked };
+    setSelectedReservation(updatedReservation);
+    updateReservation(updatedReservation);
+  };
+
+  const handleStatusChange = (checked) => {
+    if (!checked) {
+      setIsCancellationModalVisible(true);
+    } else {
+      const updatedReservation = {
+        ...selectedReservation,
+        status: checked,
+        motif_annulation: null,
+      };
+      setSelectedReservation(updatedReservation);
+      updateReservation(updatedReservation);
+    }
+  };
+
+  const handleCancellationConfirm = () => {
+    const updatedReservation = {
+      ...selectedReservation,
+      status: false,
+      motif_annulation: cancellationReason,
+    };
+    setSelectedReservation(updatedReservation);
+    updateReservation(updatedReservation);
+    setIsCancellationModalVisible(false);
+    setCancellationReason("");
+  };
+
+  const columns = [
+    {
+      title: "",
+      dataIndex: "attribute",
+      key: "attribute",
+      render: (text) => <strong>{text}</strong>,
+    },
+    {
+      title: "",
+      dataIndex: "value",
+      key: "value",
+      render: (text, record) => {
+        if (record.key === "status") {
+          return (
+            <Switch
+              checked={text}
+              onChange={handleStatusChange}
+              checkedChildren="Active"
+              unCheckedChildren="Inactive"
+            />
+          );
+        } else if (record.key === "presence") {
+          return (
+            <Switch
+              checked={text}
+              onChange={handlePresenceChange}
+              checkedChildren="Présent"
+              unCheckedChildren="Absent"
+            />
+          );
+        } else {
+          return text;
+        }
+      },
+    },
+  ];
+
+  const getTableData = (reservation) => {
+    const data = [
+      {
+        key: "service",
+        attribute: "Service",
+        value: reservation.title,
+      },
+      {
+        key: "dateReservation",
+        attribute: "Date de réservation",
+        value: dayjs(reservation.start).format("YYYY-MM-DD"),
+      },
+      {
+        key: "datePresence",
+        attribute: "Date de présence",
+        value: dayjs(reservation.end).format("YYYY-MM-DD"),
+      },
+      {
+        key: "status",
+        attribute: "Statut",
+        value: reservation.status,
+      },
+      {
+        key: "presence",
+        attribute: "Présence",
+        value: reservation.presence,
+      },
+    ];
+
+    if (!reservation.status) {
+      data.push({
+        key: "motifAnnulation",
+        attribute: "Motif d'annulation",
+        value: reservation.motif_annulation || "N/A",
+      });
+    }
+
+    return data;
+  };
+
+  return (
+    <div className="w-full p-2">
+      <div className="flex items-center justify-between mt-3">
+        {/* heresgment */}
+        <div>
+          <Button
+            type="default"
+            onClick={showDrawerR}
+            icon={<FileAddOutlined />}
+          >
+            Ajouter Réservation
+          </Button>
+        </div>
+      </div>
+      <div className="mt-5">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 400 }}
+          onSelectEvent={handleEventSelect}
+          messages={{
+            date: "Date",
+            time: "Heure",
+            event: "Événement",
+            allDay: "Toute la journée",
+            week: "Semaine",
+            work_week: "Semaine de travail",
+            day: "Jour",
+            month: "Mois",
+            previous: "Précédent",
+            next: "Suivant",
+            yesterday: "Hier",
+            tomorrow: "Demain",
+            today: "Aujourd'hui",
+            agenda: "Agenda",
+            noEventsInRange: "Aucun événement dans cette période.",
+            showMore: (total) => `+ ${total} de plus`,
+          }}
+        />
+      </div>
+      <Drawer
+        title="Saisir une nouvelle réservation"
+        size="default"
+        onClose={onCloseR}
+        open={open1}
+        bodyStyle={{
+          paddingBottom: 80,
+        }}
+      >
+        <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+          <div className="grid grid-cols-2 gap-4 mt-5">
+            <div className="flex flex-col">
+              <label htmlFor="">Client</label>
+              <Select
+                className="w-full"
+                showSearch
+                value={ReservationData.id_client}
+                onChange={(value) => {
+                  setReservationData({
+                    ...ReservationData,
+                    id_client: value,
+                  });
+                }}
+                placeholder="Client"
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.label ?? "").includes(input)
+                }
+                filterSort={(optionA, optionB) =>
+                  (optionA?.label ?? "")
+                    .toLowerCase()
+                    .localeCompare((optionB?.label ?? "").toLowerCase())
+                }
+                options={clients.map((client) => ({
+                  value: client.id_client,
+                  label: `${client.nom_client} ${client.prenom_client}`,
+                }))}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="">Service</label>
+              <Select
+                className="w-full"
+                showSearch
+                value={ReservationData.id_service}
+                onChange={(value) => {
+                  setReservationData({
+                    ...ReservationData,
+                    id_service: value,
+                  });
+                  setSelectedService(
+                    services.find((s) => s.ID_service === value)
+                  );
+                }}
+                placeholder="Service"
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.label ?? "").includes(input)
+                }
+                filterSort={(optionA, optionB) =>
+                  (optionA?.label ?? "")
+                    .toLowerCase()
+                    .localeCompare((optionB?.label ?? "").toLowerCase())
+                }
+                options={services.map((service) => ({
+                  value: service.ID_service,
+                  label: service.service,
+                }))}
+              />
+            </div>
+          </div>
+          {selectedService && (
+            <div className="mt-5">
+              <p>
+                <strong>Description:</strong> {selectedService.description}
+              </p>
+              <p>
+                <strong>Tarif:</strong> {selectedService.Tarif}
+              </p>
+            </div>
+          )}
+          <div className="mt-5">
+            <label htmlFor="">Date de réservation</label>
+            <Input
+              type="date"
+              value={ReservationData.date_resrv}
+              onChange={(e) =>
+                setReservationData({
+                  ...ReservationData,
+                  date_resrv: e.target.value,
+                })
+              }
+            />
+          </div>
+          <div className="mt-5">
+            <label htmlFor="">Date de présence</label>
+            <Input
+              type="date"
+              value={ReservationData.date_presence}
+              onChange={(e) =>
+                setReservationData({
+                  ...ReservationData,
+                  date_presence: e.target.value,
+                })
+              }
+            />
+          </div>
+          <Space className="mt-10">
+            <Button danger onClick={onCloseR}>
+              Annuler
+            </Button>
+            <Button onClick={handleReservationSubmit} type="default">
+              Réservation
+            </Button>
+          </Space>
+        </div>
+      </Drawer>
+      <Modal
+        title="Détails de la réservation"
+        visible={isModalVisible}
+        onCancel={handleModalCancel}
+        footer={null}
+        width={600}
+      >
+        {selectedReservation && (
+          <Table
+            columns={columns}
+            dataSource={getTableData(selectedReservation)}
+            pagination={false}
+            bordered
+          />
+        )}
+      </Modal>
+
+      <Modal
+        title="Motif d'annulation"
+        visible={isCancellationModalVisible}
+        onOk={handleCancellationConfirm}
+        onCancel={() => setIsCancellationModalVisible(false)}
+      >
+        <Input.TextArea
+          rows={4}
+          value={cancellationReason}
+          onChange={(e) => setCancellationReason(e.target.value)}
+          placeholder="Veuillez saisir le motif d'annulation"
+        />
+      </Modal>
+    </div>
+  );
 };
 
-const transformReservations = (reservations) => {
-  return reservations.map((reservation) => ({
-    id: reservation.id_reservation,
-    id_seance: reservation.id_seance,
-    title: `${reservation.cour} - ${reservation.cour}`,
-    start: new Date(reservation.date_presence + "T" + reservation.heur_debut),
-    end: new Date(reservation.date_presence + "T" + reservation.heure_fin),
-    datestart: reservation.heur_debut,
-    dateend: reservation.heure_fin,
-    coach: reservation.coach,
-    allDay: false,
-    resource: reservation.salle,
-  }));
-};
+const TableReservationServicesPage = () => {
+  const fetchReservations = async () => {
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/reservation/"
+      );
+      const data = await response.json();
+      return data.data;
+    } catch (error) {
+      console.error("Error fetching reservations:", error);
+      return [];
+    }
+  };
 
-export const TableReservation = () => {
+  const transformReservations = (reservations) => {
+    return reservations.map((reservation) => ({
+      id: reservation.id_reservation,
+      id_seance: reservation.id_seance,
+      title: `${reservation.cour} - ${reservation.cour}`,
+      start: new Date(reservation.date_presence + "T" + reservation.heur_debut),
+      end: new Date(reservation.date_presence + "T" + reservation.heure_fin),
+      datestart: reservation.heur_debut,
+      dateend: reservation.heure_fin,
+      coach: reservation.coach,
+      allDay: false,
+      resource: reservation.salle,
+    }));
+  };
+
   const [events, setEvents] = useState([]);
   const [open1, setOpen1] = useState(false);
   const [clients, setClients] = useState([]);
@@ -353,9 +852,6 @@ export const TableReservation = () => {
         />
       </Modal>
       <div className="flex items-center justify-between mt-3">
-        <div className=" w-52">
-          <Input prefix={<SearchOutlined />} placeholder="Search Reservation" />
-        </div>
         <div>
           <>
             <div className="flex items-center space-x-3">
@@ -627,3 +1123,31 @@ export const TableReservation = () => {
     </div>
   );
 };
+
+export const TableReservationServices = () => {
+  const [activeTab, setActiveTab] = useState("reservations");
+
+  return (
+    <div className="w-full p-2">
+      <Segmented
+       className="ml-2"
+        value={activeTab}
+        onChange={(value) => setActiveTab(value)}
+        options={[
+          {
+            label: "Reservations Services",
+            value: "reservations",
+          },
+          {
+            label: "Reservation",
+            value: "reservation-services",
+          },
+        ]}
+      />
+
+      {activeTab === "reservations" && <TableReservations />}
+      {activeTab === "reservation-services" && <TableReservationServicesPage />}
+    </div>
+  );
+};
+

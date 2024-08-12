@@ -313,7 +313,7 @@ const TableCours = () => {
         setUpdate(updatedData);
         setData(updatedData);
         setFilteredData(updatedData);
-        message.success("Client mis à jour avec succès");
+        message.success("Cour mis à jour avec succès");
         const id_staff = JSON.parse(localStorage.getItem("data"));
         const res = await addNewTrace(
           id_staff[0].id_employe,

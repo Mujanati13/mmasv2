@@ -13,6 +13,44 @@ import {
 } from "@devexpress/dx-react-scheduler-material-ui";
 import { convertToDateTime, getCurrentDate } from "../../../utils/helper";
 
+// French translations
+const messages = {
+  today: "Aujourd'hui",
+  detailsLabel: "Détails",
+  allDayLabel: "Toute la journée",
+  titleLabel: "Titre",
+  commitCommand: "Enregistrer",
+  moreInformationLabel: "Plus d'informations",
+  repeatLabel: "Répéter",
+  notesLabel: "Notes",
+  never: "Jamais",
+  daily: "Quotidien",
+  weekly: "Hebdomadaire",
+  monthly: "Mensuel",
+  yearly: "Annuel",
+  repeatEveryLabel: "Répéter chaque",
+  daysLabel: "jour(s)",
+  endRepeatLabel: "Fin de répétition",
+  onLabel: "Le",
+  afterLabel: "Après",
+  occurrencesLabel: "occurrences",
+  weeksOnLabel: "semaine(s) le",
+  monthsLabel: "mois",
+  ofEveryMonthLabel: "de chaque mois",
+  theLabel: "Le",
+  firstLabel: "Premier",
+  secondLabel: "Deuxième",
+  thirdLabel: "Troisième",
+  fourthLabel: "Quatrième",
+  lastLabel: "Dernier",
+  yearsLabel: "année(s)",
+  ofLabel: "de",
+  everyLabel: "Chaque",
+};
+
+// French day names
+const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+
 const CalendrierGrand = () => {
   const [data, setData] = useState([]);
   const [currentDate] = useState(getCurrentDate());
@@ -25,25 +63,24 @@ const CalendrierGrand = () => {
   }, []);
 
   const fetchData = async () => {
-    const authToken = localStorage.getItem("jwtToken"); // Remplacez par votre véritable jeton d'authentification
+    const authToken = localStorage.getItem("jwtToken");
 
     try {
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/seance/",
         {
           headers: {
-            Authorization: `Bearer ${authToken}`, // Inclure le jeton d'authentification dans les en-têtes
+            Authorization: `Bearer ${authToken}`,
           },
         }
       );
 
       const data = await response.json();
-    //   console.log(data.data);
       const formattedData = data.data.map((item) => ({
         id: item.id_seance,
         title: item.cour,
         startDate: convertToDateTime(item).startDate,
-        endDate:  convertToDateTime(item).endDate,
+        endDate: convertToDateTime(item).endDate,
       }));
 
       setData(formattedData);
@@ -80,8 +117,8 @@ const CalendrierGrand = () => {
   };
 
   return (
-    <Paper >
-      <Scheduler  data={data} height={410}>
+    <Paper>
+      <Scheduler data={data} height={410} locale="fr-FR" messages={messages}>
         <ViewState currentDate={currentDate} />
         <EditingState
           onCommitChanges={commitChanges}
@@ -92,13 +129,19 @@ const CalendrierGrand = () => {
           editingAppointment={editingAppointment}
           onEditingAppointmentChange={setEditingAppointment}
         />
-        <WeekView startDayHour={9} endDayHour={17} />
-        <AllDayPanel />
+        <WeekView
+          startDayHour={9}
+          endDayHour={17}
+          dayScaleCellComponent={(props) => (
+            <WeekView.DayScaleCell {...props} formatDate={() => dayNames[props.startDate.getDay()]} />
+          )}
+        />
+        <AllDayPanel messages={{allDay: 'Toute la journée'}} />
         <EditRecurrenceMenu />
-        <ConfirmationDialog />
+        <ConfirmationDialog messages={{confirmDeleteMessage: 'Êtes-vous sûr de vouloir supprimer cet rendez-vous ?'}} />
         <Appointments />
         <AppointmentTooltip showOpenButton showDeleteButton />
-        <AppointmentForm />
+        <AppointmentForm messages={messages} />
       </Scheduler>
     </Paper>
   );
