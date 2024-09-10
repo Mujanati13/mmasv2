@@ -14,16 +14,18 @@ import {
   Tooltip,
   Upload,
   DatePicker,
+  Progress
 } from "antd";
 import {
   SearchOutlined,
   UserAddOutlined,
-  DeleteOutlined,
   PrinterOutlined,
   EditOutlined,
   EyeOutlined,
   PlusOutlined,
   DownloadOutlined,
+  CloseOutlined,
+  CheckOutlined
 } from "@ant-design/icons";
 import {
   addNewTrace,
@@ -53,6 +55,7 @@ const TableClient = () => {
   const [isFormChanged, setIsFormChanged] = useState(false);
   const [isExportModalVisible, setIsExportModalVisible] = useState(false);
   const [villes, setVilles] = useState([]);
+  const [passwordStrength, setPasswordStrength] = useState(0);
   const [exportFilters, setExportFilters] = useState({
     statut: null, // null means all statuses
     date_inscription_start: null,
@@ -728,6 +731,66 @@ const TableClient = () => {
     }
   };
 
+  const [contartData, setContartData] = useState();
+  const [isExportModalVisibleContart, setisExportModalVisibleContart] =
+    useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          "https://fithouse.pythonanywhere.com/api/contrat/",
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        const jsonData = await response.json();
+        setContartData(jsonData.data);
+        console.log(jsonData.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  function getClientContracts(contracts, clientId) {
+    // Filter contracts that match the given client ID
+    if (contracts)
+      return contracts.filter((contract) => contract.id_client === clientId);
+  }
+
+  const handleOpenContart = () => {
+    setisExportModalVisibleContart(true);
+    setIsDetailsModalVisible(false);
+  };
+
+  const checkPasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength += 25;
+    if (password.match(/[a-z]+/)) strength += 25;
+    if (password.match(/[A-Z]+/)) strength += 25;
+    if (password.match(/[0-9]+/)) strength += 25;
+    return strength;
+  };
+
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setClientData({ ...ClientData, password: newPassword });
+    setPasswordStrength(checkPasswordStrength(newPassword));
+  };
+
+  const getPasswordStrengthColor = (strength) => {
+    if (strength <= 25) return "#ff4d4f";
+    if (strength <= 50) return "#faad14";
+    if (strength <= 75) return "#52c41a";
+    return "#1890ff";
+  };
+
   return (
     <div className="w-full p-2">
       <Modal
@@ -839,14 +902,96 @@ const TableClient = () => {
         </Form>
       </Modal>
       <Modal
+        title={"Liste des contrats"}
+        visible={isExportModalVisibleContart}
+        footer={null}
+        onCancel={() => setisExportModalVisibleContart(false)}
+        width={"1000px"}
+      >
+        {(() => {
+          const data = getClientContracts(
+            contartData,
+            selectedClient?.id_client
+          );
+
+          // Render the table only if there is data
+          return (
+            data &&
+            data.length > 0 && (
+              <Table
+                className="mt-4"
+                columns={[
+                  { title: "Nom", dataIndex: "client", key: "client" },
+                  {
+                    title: "Prénom Client",
+                    dataIndex: "Prenom_client",
+                    key: "Prenom_client",
+                  },
+                  {
+                    title: "Abonnement",
+                    dataIndex: "abonnement",
+                    key: "abonnement",
+                  },
+                  { title: "Catégorie", dataIndex: "cat_abn", key: "cat_abn" },
+                  {
+                    title: "Date Début",
+                    dataIndex: "date_debut",
+                    key: "date_debut",
+                  },
+                  { title: "Date Fin", dataIndex: "date_fin", key: "date_fin" },
+                  { title: "Reste", dataIndex: "reste", key: "reste" },
+                  {
+                    title: "Établissement",
+                    dataIndex: "etablissemnt",
+                    key: "etablissemnt",
+                  },
+                  { title: "Type", dataIndex: "type", key: "type" },
+                ]}
+                dataSource={data.map((contract, index) => ({
+                  key: index.toString(),
+                  id_contrat: contract.id_contrat,
+                  abonnement: contract.abonnement,
+                  cat_abn: contract.cat_abn,
+                  date_debut: contract.date_debut,
+                  date_fin: contract.date_fin,
+                  reste: (
+                    <Tag color={contract.reste > 0 ? "red" : "green"}>
+                      {contract.reste} MAD
+                    </Tag>
+                  ),
+                  etablissemnt: contract.etablissemnt,
+                  type: contract.type,
+                  client: contract.client,
+                  Prenom_client: contract.Prenom_client,
+                }))}
+                pagination={false}
+                size="small"
+                bordered
+                scroll={{ x: "max-content" }} // This enables horizontal scrolling if needed
+              />
+            )
+          );
+        })()}
+      </Modal>
+
+      <Modal
         title="Détails du client"
         visible={isDetailsModalVisible}
         onCancel={handleDetailsModalCancel}
         footer={null}
         width={600}
       >
+        <Button
+          onClick={() => {
+            handleOpenContart();
+          }}
+          type="primary"
+        >
+          List des contart
+        </Button>
         {selectedClient && (
           <Table
+            className="mt-4"
             columns={[
               {
                 title: "Champ",
@@ -902,25 +1047,6 @@ const TableClient = () => {
             ) : (
               ""
             )}
-
-            {/* {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
-            selectedRowKeys.length >= 1 ? (
-              <Popconfirm
-                title="Supprimer le client"
-                description="Êtes-vous sûr de supprimer ce client ?"
-                onConfirm={confirm}
-                onCancel={cancel}
-                okText="Yes"
-                cancelText="No"
-              >
-                <DeleteOutlined className="cursor-pointer" />{" "}
-              </Popconfirm>
-            ) : (
-              ""
-            )} */}
             {(JSON.parse(localStorage.getItem("data"))[0].fonction ===
               "Administration" ||
               JSON.parse(localStorage.getItem("data"))[0].fonction ===
@@ -1118,20 +1244,59 @@ const TableClient = () => {
                       <label htmlFor="password" className="block font-medium">
                         *Mot de passe
                       </label>
-                      <Input
+                      <Input.Password
                         id="password"
                         size="middle"
                         status={formErrors.password ? "error" : ""}
                         placeholder="Mot de passe"
                         value={ClientData.password}
-                        onChange={(e) =>
-                          setClientData({
-                            ...ClientData,
-                            password: e.target.value,
-                          })
-                        }
+                        onChange={handlePasswordChange}
                       />
+                      <div style={{ marginTop: "8px" }}>
+                        <Progress
+                          percent={passwordStrength}
+                          strokeColor={getPasswordStrengthColor(
+                            passwordStrength
+                          )}
+                          showInfo={false}
+                        />
+                      </div>
+                      <div style={{ marginTop: "4px", fontSize: "12px" }}>
+                        <div>
+                          {passwordStrength >= 25 ? (
+                            <CheckOutlined style={{ color: "#52c41a" }} />
+                          ) : (
+                            <CloseOutlined style={{ color: "#ff4d4f" }} />
+                          )}{" "}
+                          Au moins 8 caractères
+                        </div>
+                        <div>
+                          {passwordStrength >= 50 ? (
+                            <CheckOutlined style={{ color: "#52c41a" }} />
+                          ) : (
+                            <CloseOutlined style={{ color: "#ff4d4f" }} />
+                          )}{" "}
+                          Contient des minuscules et des majuscules
+                        </div>
+                        <div>
+                          {passwordStrength >= 75 ? (
+                            <CheckOutlined style={{ color: "#52c41a" }} />
+                          ) : (
+                            <CloseOutlined style={{ color: "#ff4d4f" }} />
+                          )}{" "}
+                          Contient des chiffres
+                        </div>
+                        <div>
+                          {passwordStrength === 100 ? (
+                            <CheckOutlined style={{ color: "#52c41a" }} />
+                          ) : (
+                            <CloseOutlined style={{ color: "#ff4d4f" }} />
+                          )}{" "}
+                          Mot de passe fort
+                        </div>
+                      </div>
                     </div>
+
                     <div>
                       <label htmlFor="cin" className="block font-medium">
                         *CIN

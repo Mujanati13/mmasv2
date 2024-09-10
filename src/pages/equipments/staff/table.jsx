@@ -13,6 +13,7 @@ import {
   Space,
   Tooltip,
   Upload,
+  Progress,
 } from "antd";
 import {
   SearchOutlined,
@@ -22,6 +23,8 @@ import {
   EditOutlined,
   PlusOutlined,
   EyeInvisibleOutlined,
+  CloseOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 import {
   addNewTrace,
@@ -51,6 +54,7 @@ const TableStaff = () => {
   const [changedFields, setChangedFields] = useState([]);
   const [isFormChanged, setIsFormChanged] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [passwordStrength, setPasswordStrength] = useState(0);
   const [formErrors, setFormErrors] = useState({
     tel: "",
     mail: "",
@@ -651,7 +655,27 @@ const TableStaff = () => {
 
     setIsFormChanged(true);
   };
+  const checkPasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength += 25;
+    if (password.match(/[a-z]+/)) strength += 25;
+    if (password.match(/[A-Z]+/)) strength += 25;
+    if (password.match(/[0-9]+/)) strength += 25;
+    return strength;
+  };
 
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setClientData({ ...ClientData, password: newPassword });
+    setPasswordStrength(checkPasswordStrength(newPassword));
+  };
+
+  const getPasswordStrengthColor = (strength) => {
+    if (strength <= 25) return "#ff4d4f";
+    if (strength <= 50) return "#faad14";
+    if (strength <= 75) return "#52c41a";
+    return "#1890ff";
+  };
   return (
     <div className="w-full p-2">
       <Modal
@@ -930,21 +954,60 @@ const TableStaff = () => {
                       />
                     </div>
                     <div>
-                      <label htmlFor="mail" className="block font-medium">
-                        *Mode de passe
+                      <label htmlFor="password" className="block font-medium">
+                        *Mot de passe
                       </label>
-                      <Input
-                        id="passowrd"
+                      <Input.Password
+                        id="password"
                         size="middle"
-                        placeholder="Mote de passe"
+                        status={formErrors.password ? "error" : ""}
+                        placeholder="Mot de passe"
                         value={ClientData.password}
-                        onChange={(e) =>
-                          setClientData({
-                            ...ClientData,
-                            password: e.target.value,
-                          })
-                        }
+                        onChange={handlePasswordChange}
                       />
+                      <div style={{ marginTop: "8px" }}>
+                        <Progress
+                          percent={passwordStrength}
+                          strokeColor={getPasswordStrengthColor(
+                            passwordStrength
+                          )}
+                          showInfo={false}
+                        />
+                      </div>
+                      <div style={{ marginTop: "4px", fontSize: "12px" }}>
+                        <div>
+                          {passwordStrength >= 25 ? (
+                            <CheckOutlined style={{ color: "#52c41a" }} />
+                          ) : (
+                            <CloseOutlined style={{ color: "#ff4d4f" }} />
+                          )}{" "}
+                          Au moins 8 caractères
+                        </div>
+                        <div>
+                          {passwordStrength >= 50 ? (
+                            <CheckOutlined style={{ color: "#52c41a" }} />
+                          ) : (
+                            <CloseOutlined style={{ color: "#ff4d4f" }} />
+                          )}{" "}
+                          Contient des minuscules et des majuscules
+                        </div>
+                        <div>
+                          {passwordStrength >= 75 ? (
+                            <CheckOutlined style={{ color: "#52c41a" }} />
+                          ) : (
+                            <CloseOutlined style={{ color: "#ff4d4f" }} />
+                          )}{" "}
+                          Contient des chiffres
+                        </div>
+                        <div>
+                          {passwordStrength === 100 ? (
+                            <CheckOutlined style={{ color: "#52c41a" }} />
+                          ) : (
+                            <CloseOutlined style={{ color: "#ff4d4f" }} />
+                          )}{" "}
+                          Mot de passe fort
+                        </div>
+                      </div>
                     </div>
                     <div>
                       <label htmlFor="cin" className="block font-medium">

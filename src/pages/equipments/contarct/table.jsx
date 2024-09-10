@@ -12,6 +12,10 @@ import {
   Spin,
   DatePicker,
   Checkbox,
+  Card,
+  Row,
+  Col,
+  Divider,
 } from "antd";
 import {
   SearchOutlined,
@@ -20,6 +24,7 @@ import {
   FileAddOutlined,
   EyeOutlined,
   DownloadOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import * as XLSX from "xlsx";
 import Box from "@mui/material/Box";
@@ -39,6 +44,7 @@ import dayjs from "dayjs";
 import { handlePrintContract } from "../../../utils/printable/contract";
 import { printReceipt } from "../../../utils/printable/recu";
 import { printFacteur } from "../../../utils/printable/facteur";
+const { Option } = Select;
 
 const TableContract = () => {
   const [data, setData] = useState([]);
@@ -57,11 +63,12 @@ const TableContract = () => {
   const [exportFields, setExportFields] = useState({});
   const [exportDateRange, setExportDateRange] = useState([null, null]);
   const [exportModeReglement, setExportModeReglement] = useState([]);
-
   const [selectedContract, setSelectedContract] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [transactionModalVisible, setTransactionModalVisible] = useState(false);
   const [transactionData, setTransactionData] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+
   // State for contract related data
   const [ContractData, setContractData] = useState({
     id_client: "",
@@ -79,6 +86,48 @@ const TableContract = () => {
     montant: null,
     id_admin: null,
   });
+
+  const handleAddTransaction = () => {
+    const newTransaction = {
+      montant: "",
+      Mode_reglement: "Espèces",
+      Type: true,
+    };
+    setTransactions([...transactions, newTransaction]);
+  };
+
+  const handleRemoveTransaction = (index) => {
+    const updatedTransactions = transactions.filter((_, i) => i !== index);
+    setTransactions(updatedTransactions);
+    updateContractDataFromTransactions(updatedTransactions);
+  };
+
+  const handleTransactionChange = (index, field, value) => {
+    const updatedTransactions = transactions.map((transaction, i) => {
+      if (i === index) {
+        return { ...transaction, [field]: value };
+      }
+      return transaction;
+    });
+    setTransactions(updatedTransactions);
+    updateContractDataFromTransactions(updatedTransactions);
+  };
+
+  const updateContractDataFromTransactions = (updatedTransactions) => {
+    const totalMontant = updatedTransactions.reduce(
+      (sum, transaction) => sum + (parseFloat(transaction.montant) || 0),
+      0
+    );
+    const tarifMinusReduction =
+      ContractData.tarif - (ContractData.reduction || 0);
+    const newReste = Math.max(0, tarifMinusReduction - totalMontant);
+
+    setContractData({
+      ...ContractData,
+      montant: totalMontant,
+      reste: newReste,
+    });
+  };
 
   const handleViewDetails = (record) => {
     setSelectedContract(record);
@@ -196,51 +245,81 @@ const TableContract = () => {
   // Function to add a new contract
   const addContract = async () => {
     const date = new Date(ContractData.date_fin);
-    // Extract the year, month, and day from the date
     const year = date.getFullYear();
-    let month = date.getMonth() + 1; // Months are zero-based
+    let month = date.getMonth() + 1;
     let day = date.getDate();
 
     ContractData.date_fin = `${year}-${month}-${day}`;
-    // const adminData = JSON.parse(localStorage.getItem("data"));
-    // const initialAdminId = adminData ? adminData[0].id_admin : ""; // Accessing the first element's id_admin
-    // // ContractData.id_admin = initialAdminId;
     const id_staff = JSON.parse(localStorage.getItem("data"));
     ContractData.id_admin = id_staff[0].id_employe;
 
-    const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
+    const dataToSend = {
+      ...ContractData,
+      transactions: transactions.map(transaction => ({
+        ...transaction,
+        date: getCurrentDate(),
+      }))
+    };
+    console.log(dataToSend);
+    
+    const authToken = localStorage.getItem("jwtToken");
     try {
-      const response = await fetch(
+      // First, add the contract
+      const contractResponse = await fetch(
         "https://fithouse.pythonanywhere.com/api/contrat/",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+            Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify(ContractData),
+          body: JSON.stringify(dataToSend),
         }
       );
-      if (response.ok) {
-        const res = await response.json();
-        if (res.msg === "Added Successfully!!") {
-          message.success("Contrat ajouté avec succès");
-          setAdd(Math.random() * 1000);
-          const id_staff = JSON.parse(localStorage.getItem("data"));
-          const res = await addNewTrace(
-            id_staff[0].id_employe,
-            "Ajout",
-            getCurrentDate(),
-            `${JSON.stringify(ContractData)}`,
-            "contrat"
+
+      if (contractResponse.ok) {
+        const contractResult = await contractResponse.json();
+        if (contractResult.msg === "Added Successfully!!") {
+          const contractId = contractResult.id_contrat; // Assuming the API returns the new contract ID
+
+          // Now, add the transactions
+          const transactionPromises = transactions.map((transaction) =>
+            fetch("https://fithouse.pythonanywhere.com/api/transactions/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+              },
+              body: JSON.stringify({
+                ...transaction,
+                id_contrat: contractId,
+                date: getCurrentDate(), // Assuming you have a function to get the current date
+              }),
+            })
           );
-          onCloseR();
+
+          const transactionResults = await Promise.all(transactionPromises);
+
+          if (transactionResults.every((res) => res.ok)) {
+            message.success("Contrat et transactions ajoutés avec succès");
+            setAdd(Math.random() * 1000);
+            const res = await addNewTrace(
+              id_staff[0].id_employe,
+              "Ajout",
+              getCurrentDate(),
+              `${JSON.stringify(ContractData)}`,
+              "contrat"
+            );
+            onCloseR();
+          } else {
+            message.warning(
+              "Contrat ajouté mais certaines transactions ont échoué"
+            );
+          }
         } else {
-          message.warning(res.msg);
-          console.log(res);
+          message.warning(contractResult.msg);
         }
       } else {
-        console.log(response);
         message.error("Error adding contract");
       }
     } catch (error) {
@@ -256,6 +335,7 @@ const TableContract = () => {
   const onCloseR = () => {
     setOpen1(false);
     setActiveStep(0);
+    setTransactions([]);
     setContractData({
       id_client: "",
       date_debut: getCurrentDate(),
@@ -423,7 +503,7 @@ const TableContract = () => {
             />
           </div>
           <div>
-            <label htmlFor="type">Type</label>
+            <label htmlFor="type">Genre</label>
             <Select
               id="type"
               showSearch
@@ -452,98 +532,113 @@ const TableContract = () => {
       ),
     },
     {
-      label: "Ajouter un contrat",
+      label: "Ajouter transactions",
       description: (
-        <div className="w-full grid grid-cols-2 gap-4 mt-5">
-          <div>
-            <label htmlFor="montant">Montant</label>
-            <Input
-              id="montant"
-              size="middle"
-              placeholder="Montant"
-              value={ContractData.montant}
-              onChange={(e) => {
-                const montant = parseFloat(e.target.value) || 0;
-                const tarifMinusReduction =
-                  ContractData.tarif - (ContractData.reduction || 0);
-                if (montant > tarifMinusReduction) {
-                  message.warning(
-                    "Le montant saisie doit être inférieur au tarif moins la réduction"
-                  );
-                  return;
-                }
-                const newReste = tarifMinusReduction - montant;
-                setContractData({
-                  ...ContractData,
-                  montant: montant,
-                  reste: newReste,
-                });
-              }}
-            />
-          </div>
-          <div>
-            <label htmlFor="resteActuel">Le reste actuel</label>
-            <Input
-              id="resteActuel"
-              disabled={true}
-              size="middle"
-              placeholder="Le reste actuel"
-              value={ContractData.reste}
-            />
-          </div>
-          <div>
-            <label htmlFor="modeReglement">Mode de Règlement</label>
-            <Select
-              id="modeReglement"
-              showSearch
-              value={ContractData.Mode_reglement}
-              className="w-full"
-              placeholder="Mode de Reglement"
-              onChange={(value) =>
-                setContractData({ ...ContractData, Mode_reglement: value })
-              }
-              options={[
-                {
-                  value: "Chèques",
-                  label: "Chèques",
-                },
-                {
-                  value: "Espèces",
-                  label: "Espèces",
-                },
-                {
-                  value: "Prélèvements",
-                  label: "Prélèvements",
-                },
-                {
-                  value: "Autre",
-                  label: "Autre",
-                },
-              ]}
-            />
-          </div>
-          <div>
-            <label htmlFor="typeTransaction">Type de transacation</label>
-            <Select
-              id="typeTransaction"
-              showSearch
-              className="w-full"
-              value={ContractData.Type}
-              placeholder="Type de transacation"
-              onChange={(value) =>
-                setContractData({ ...ContractData, Type: value })
-              }
-              options={[
-                {
-                  value: true,
-                  label: "Entrée",
-                },
-                {
-                  value: false,
-                  label: "Sortie",
-                },
-              ]}
-            />
+        <div className="w-full mt-5">
+          <Table
+            style={{ width: "100%" }}
+            className="w-full"
+            size="small"
+            dataSource={transactions}
+            pagination={false}
+            rowKey={(record, index) => index}
+            columns={[
+              {
+                title: "Montant",
+                dataIndex: "montant",
+                key: "montant",
+                render: (text, record, index) => (
+                  <Input
+                    value={text}
+                    onChange={(e) => {
+                      const montant = parseFloat(e.target.value) || 0;
+                      const tarifMinusReduction =
+                        ContractData.tarif - (ContractData.reduction || 0);
+                      const totalMontant = transactions.reduce(
+                        (sum, t, i) =>
+                          sum +
+                          (i === index ? montant : parseFloat(t.montant) || 0),
+                        0
+                      );
+                      if (totalMontant > tarifMinusReduction) {
+                        message.warning(
+                          "Le montant total ne peut pas dépasser le tarif moins la réduction"
+                        );
+                        return;
+                      }
+                      handleTransactionChange(index, "montant", e.target.value);
+                    }}
+                  />
+                ),
+              },
+              {
+                title: "Mode de Règlement",
+                dataIndex: "Mode_reglement",
+                key: "Mode_reglement",
+                render: (text, record, index) => (
+                  <Select
+                    value={text}
+                    onChange={(value) =>
+                      handleTransactionChange(index, "Mode_reglement", value)
+                    }
+                    options={[
+                      { value: "Chèques", label: "Chèques" },
+                      { value: "Espèces", label: "Espèces" },
+                      { value: "Prélèvements", label: "Prélèvements" },
+                      { value: "Autre", label: "Autre" },
+                    ]}
+                  />
+                ),
+              },
+              {
+                title: "Description",
+                dataIndex: "description",
+                key: "description",
+                render: (text, record, index) => (
+                  <Input
+                    // value={}
+                    onChange={(e) =>
+                      handleTransactionChange(
+                        index,
+                        "description",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Entrez une description"
+                  />
+                ),
+              },
+              {
+                title: "Action",
+                key: "action",
+                render: (_, record, index) => (
+                  <Button
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleRemoveTransaction(index)}
+                    danger
+                  />
+                ),
+              },
+            ]}
+          />
+          <Button
+            icon={<PlusOutlined />}
+            onClick={handleAddTransaction}
+            style={{ marginTop: "10px" }}
+          >
+            Ajouter une transaction
+          </Button>
+          <div className="grid grid-cols-2 gap-4 mt-5">
+            <div>
+              <label htmlFor="resteActuel">Le reste actuel</label>
+              <Input
+                id="resteActuel"
+                disabled={true}
+                size="middle"
+                placeholder="Le reste actuel"
+                value={ContractData.reste}
+              />
+            </div>
           </div>
         </div>
       ),
@@ -552,42 +647,54 @@ const TableContract = () => {
       label: "Final",
       description: (
         <div className="mt-4">
-          <Table
-            columns={[
-              {
-                title: "Contract Data",
-                key: "data",
-                render: () => (
-                  <div>
-                    {Object.entries(ContractData).map(([key, value]) => {
-                      if (
-                        key === "id_client" ||
-                        key === "id_abn" ||
-                        key === "id_etablissement" ||
-                        key === "Type" ||
-                        key === "description" ||
-                        key === "id_admin"
-                      )
-                        return null;
-                      return (
-                        <div key={key} style={{ display: "flex" }}>
-                          <span
-                            style={{ fontWeight: "bold", marginRight: "8px" }}
-                          >
-                            {toCapitalize(key.replaceAll("_", " "))}:
-                          </span>
-                          <span>{value}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ),
-              },
-            ]}
-            dataSource={[ContractData]}
-            pagination={false}
-            rowKey="id_contrat" // Assuming 'id_contrat' is a unique identifier in your data
-          />
+          <Card title="Résumé du Contrat" style={{ width: "100%" }}>
+            {Object.entries(ContractData).map(([key, value]) => {
+              if (
+                key === "id_client" ||
+                key === "id_abn" ||
+                key === "id_etablissement" ||
+                key === "Type" ||
+                key === "description" ||
+                key === "id_admin" ||
+                key === "Mode_reglement" ||
+                key === "montant"
+              )
+                return null;
+              return (
+                <Row key={key} style={{ marginBottom: "8px" }}>
+                  <Col span={12}>
+                    <strong>{toCapitalize(key.replaceAll("_", " "))}</strong>
+                  </Col>
+                  <Col span={12}>{value || "Non spécifié"}</Col>
+                </Row>
+              );
+            })}
+
+            <Divider />
+
+            <h3 style={{ marginTop: "16px", marginBottom: "8px" }}>
+              Transactions
+            </h3>
+            <Table
+              columns={[
+                { title: "Montant", dataIndex: "montant", key: "montant" },
+                {
+                  title: "Mode de Règlement",
+                  dataIndex: "Mode_reglement",
+                  key: "Mode_reglement",
+                },
+                {
+                  title: "Description",
+                  dataIndex: "description",
+                  key: "description",
+                  render: (text) => (text),
+                },
+              ]}
+              dataSource={transactions}
+              pagination={false}
+              size="small"
+            />
+          </Card>
         </div>
       ),
     },
@@ -1065,7 +1172,7 @@ const TableContract = () => {
               }}
             >
               <div>
-                <Box sx={{ maxWidth: 400 }}>
+                <Box sx={{ maxWidth: 800 }}>
                   <Stepper activeStep={activeStep} orientation="vertical">
                     {steps.map((step, index) => (
                       <Step key={step.label}>

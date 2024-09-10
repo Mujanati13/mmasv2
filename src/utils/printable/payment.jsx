@@ -7,7 +7,7 @@ export function handlePrintPayment(
   fonction,
   month,
   pay,
-  vcnn
+  vcnn,
 ) {
   const printWindow = window.open("", "", "width=600,height=800");
   printWindow.document.open();

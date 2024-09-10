@@ -24,7 +24,8 @@ import {
   Modal,
   Table,
   Switch,
-  Segmented
+  Segmented,
+  Tag,
 } from "antd";
 
 import { addNewTrace, getCurrentDate } from "../../../utils/helper";
@@ -47,15 +48,27 @@ const TableReservations = () => {
   const transformReservations = (reservations) => {
     return reservations.map((reservation) => ({
       id: reservation.id_rsv_srvc,
+      client: reservation.id_client,
+      mode_reservation: reservation.mode_reservation,
+      montant: reservation.Tarif,
       id_service: reservation.id_service,
-      title: `Service ${reservation.id_service}`,
-      start: new Date(reservation.date_resrv),
-      end: new Date(reservation.date_presence),
+      title: reservation.service + " ",
+      start: new Date(
+        reservation.date_presence + "T" + reservation.heure_debut
+      ),
+      end: new Date(reservation.date_presence + "T" + reservation.heure_fin),
+      heure_debut: new Date(
+        reservation.date_presence + "T" + reservation.heure_debut
+      ),
+      heure_fin: new Date(
+        reservation.date_presence + "T" + reservation.heure_fin
+      ),
       allDay: false,
       resource: reservation.status ? "Active" : "Inactive",
       status: reservation.status,
       presence: reservation.presence,
       motif_annulation: reservation.motif_annulation,
+      reduction: reservation.mode_reservation == "client" ? true : false,
     }));
   };
 
@@ -65,19 +78,106 @@ const TableReservations = () => {
   const [services, setServices] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isAnonymousReservation, setIsAnonymousReservation] = useState(false);
+  const [anonymousClientName, setAnonymousClientName] = useState("");
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isCancellationModalVisible, setIsCancellationModalVisible] =
     useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
+  const [selectedServiceDuree, setselectedServiceDuree] = useState(null);
   const [ReservationData, setReservationData] = useState({
     id_client: null,
     id_service: null,
     date_resrv: getCurrentDate(),
     date_presence: null,
+    heure_debut: null,
+    heure_fin: null,
+    anonymous_client_name: "",
     status: true,
     presence: false,
     motif_annulation: null,
   });
+  const [contractClients, setContractClients] = useState([]);
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+  const [isPaymentData, setIsisPaymentData] = useState(null);
+  const [listtransactionData, setlisttransactionData] = useState(null);
+  const [SelectPay, setSelectPay] = useState(false);
+  useEffect(() => {
+    // Fetch contract clients
+    const fetchContractClients = async () => {
+      try {
+        const response = await fetch(
+          "https://fithouse.pythonanywhere.com/api/transaction_service/"
+        );
+        const data = await response.json();
+        setlisttransactionData(data.data);
+      } catch (error) {
+        console.error("Error fetching contract clients:", error);
+      }
+    };
+
+    fetchContractClients();
+  }, [selectedReservation]);
+
+  const [transactionData, setTransactionData] = useState({
+    id_service: null,
+    id_reserv: null,
+    id_contrat: null,
+    montant: 0,
+    reduction: 0,
+    type: "Entrée",
+    date: getCurrentDate(),
+    Type: true,
+    mode_reglement: "",
+    description: "",
+    id_admin: localStorage.getItem("data")[0].id_employe,
+    client: "",
+    image: "",
+    admin: localStorage.getItem("data")[0].login,
+    mode_reservation: "admin",
+    id_client: selectedReservation?.id_client,
+  });
+
+  useEffect(() => {
+    // Fetch contract clients
+    const fetchContractClients = async () => {
+      try {
+        const response = await fetch(
+          "https://fithouse.pythonanywhere.com/api/client_contrat/"
+        );
+        const data = await response.json();
+        setContractClients(data.data);
+      } catch (error) {
+        console.error("Error fetching contract clients:", error);
+      }
+    };
+
+    fetchContractClients();
+  }, []);
+
+  const handlePayment = () => {
+    if (!selectedReservation) {
+      message.error("Aucune réservation sélectionnée");
+      return;
+    }
+    const serviceTarif = findServiceTarif(selectedReservation.id_service);
+
+    setTransactionData({
+      id_service: selectedReservation.id_service,
+      id_reserv: selectedReservation.id,
+      id_contrat: null,
+      montant: serviceTarif || 0,
+      reduction: 0,
+      type: "Entrée",
+    });
+
+    setIsPaymentModalVisible(true);
+    setIsModalVisible(false);
+  };
+  const findServiceTarif = (serviceId) => {
+    const service = services.find((s) => s.id_contrat === serviceId);
+    return service ? service.Tarif : 0;
+  };
 
   const fetchClients = async () => {
     try {
@@ -98,6 +198,7 @@ const TableReservations = () => {
       );
       const data = await response.json();
       setServices(data.data);
+      console.log(JSON.parse(data.data) + " lllllllllll");
     } catch (error) {
       console.error("Error fetching services:", error);
     }
@@ -111,13 +212,17 @@ const TableReservations = () => {
 
   const fetchAndTransformReservations = async () => {
     const reservations = await fetchReservations();
+    console.log("====================================");
+    console.log(reservations);
+    console.log("====================================");
     const transformedEvents = transformReservations(reservations);
     setEvents(transformedEvents);
   };
 
   const isReservationFormValid = () => {
     return (
-      ReservationData.id_client !== null &&
+      ((isAnonymousReservation && ReservationData.anonymous_client_name) ||
+        (!isAnonymousReservation && ReservationData.id_client !== null)) &&
       ReservationData.id_service !== null &&
       ReservationData.date_resrv !== null &&
       ReservationData.date_presence !== null
@@ -140,7 +245,11 @@ const TableReservations = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(ReservationData),
+          body: JSON.stringify({
+            ...ReservationData,
+            mode_reservation: "admin",
+            is_anonymous: isAnonymousReservation,
+          }),
         }
       );
 
@@ -158,6 +267,8 @@ const TableReservations = () => {
             "reservation_service"
           );
           fetchAndTransformReservations();
+          setIsisPaymentData({ ...ReservationData, mode_reservation: "admin" , tarif : selectedService.Tarif });
+          setIsPaymentModalVisible(true);
         } else {
           message.warning(res.msg);
         }
@@ -218,6 +329,8 @@ const TableReservations = () => {
   };
 
   const handleEventSelect = (event) => {
+    console.log(event);
+
     setSelectedReservation(event);
     setIsModalVisible(true);
   };
@@ -272,14 +385,7 @@ const TableReservations = () => {
       key: "value",
       render: (text, record) => {
         if (record.key === "status") {
-          return (
-            <Switch
-              checked={text}
-              onChange={handleStatusChange}
-              checkedChildren="Active"
-              unCheckedChildren="Inactive"
-            />
-          );
+          return text;
         } else if (record.key === "presence") {
           return (
             <Switch
@@ -297,6 +403,17 @@ const TableReservations = () => {
   ];
 
   const getTableData = (reservation) => {
+    if (!selectedReservation) return [];
+
+    const rv = listtransactionData.find(
+      (rv) => rv.id_reserv === selectedReservation.id
+    );
+    const isPaid = rv && rv.date.length > 0;
+
+    // Only update SelectPay if it's different from the current state
+    if (isPaid !== SelectPay) {
+      setSelectPay(isPaid);
+    }
     const data = [
       {
         key: "service",
@@ -306,22 +423,36 @@ const TableReservations = () => {
       {
         key: "dateReservation",
         attribute: "Date de réservation",
-        value: dayjs(reservation.start).format("YYYY-MM-DD"),
+        value: <Tag>{dayjs(reservation.start).format("YYYY-MM-DD")}</Tag>,
       },
       {
         key: "datePresence",
         attribute: "Date de présence",
-        value: dayjs(reservation.end).format("YYYY-MM-DD"),
+        value:
+          dayjs(reservation.end).format("YYYY-MM-DD") +
+          " de " +
+          dayjs(reservation.heur_debut).format("hh:mm") +
+          " à " +
+          dayjs(reservation.heure_fin).format("hh:mm"),
       },
       {
         key: "status",
-        attribute: "Statut",
-        value: reservation.status,
+        attribute: "Paiement",
+        value: isPaid ? (
+          <Tag color="green">Payé</Tag>
+        ) : (
+          <Tag color="red">En cours</Tag>
+        ),
       },
       {
         key: "presence",
         attribute: "Présence",
         value: reservation.presence,
+      },
+      {
+        key: "mode",
+        attribute: "Mode de reservation",
+        value: reservation.mode_reservation,
       },
     ];
 
@@ -336,8 +467,285 @@ const TableReservations = () => {
     return data;
   };
 
+  const handleSubmitPayment = async () => {
+    if (selectedReservation) {
+      if (selectedReservation.reduction == true) {
+        const redu = selectedReservation.montant * 0.05;
+        selectedReservation.montant = selectedReservation.montant - redu;
+        message.success("Réduction 5% Appliquée !");
+      } else {
+        message.warning("Réduction 5% Non Appliquée !");
+      }
+
+      transactionData.montant = selectedReservation.montant;
+
+      try {
+        const response = await fetch(
+          "https://fithouse.pythonanywhere.com/api/transaction_service/",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ...transactionData,
+              id_admin: await JSON.parse(localStorage.getItem("data"))[0]
+                .id_employe,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.msg == "Failed to Add") {
+            message.warning("Erreur d'ajout un transaction");
+          } else {
+            message.success("Paiement effectué avec succès");
+            setSelectedReservation(null);
+            setIsPaymentModalVisible(false);
+            handleModalCancel(); // Close the reservation details modal
+            fetchAndTransformReservations(); // Refresh the reservations list
+          }
+        } else {
+          message.error("Erreur lors du paiement");
+        }
+      } catch (error) {
+        console.error("Error processing payment:", error);
+        message.error("Une erreur est survenue lors du paiement");
+      }
+    } else if (isPaymentData) {
+      try {
+        const response = await fetch(
+          "https://fithouse.pythonanywhere.com/api/transaction_service/",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ...transactionData,
+              ...isPaymentData,
+              id_admin: await JSON.parse(localStorage.getItem("data"))[0]
+                .id_employe,
+            }),
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.msg == "Failed to Add") {
+            message.warning("Erreur d'ajout un transaction");
+          } else {
+            message.success("Paiement effectué avec succès");
+            isPaymentData(null);
+            setIsPaymentModalVisible(false);
+            handleModalCancel(); // Close the reservation details modal
+            fetchAndTransformReservations(); // Refresh the reservations list
+          }
+        } else {
+          message.error("Erreur lors du paiement");
+        }
+      } catch (error) {
+        console.error("Error processing payment:", error);
+        message.error("Une erreur est survenue lors du paiement");
+      }
+    }
+  };
+
+  const handleStartTimeChange = (startTime) => {
+    console.log(startTime);
+
+    setReservationData((prevData) => {
+      const updatedData = { ...prevData, heure_debut: startTime };
+
+      if (selectedService && selectedService.duree) {
+        const [hours, minutes] = startTime.split(":").map(Number);
+        const totalMinutes = hours * 60 + minutes + selectedService.duree;
+        const endHours = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
+        const endMinutes = String(totalMinutes % 60).padStart(2, "0");
+        updatedData.heure_fin = `${endHours}:${endMinutes}`;
+        ReservationData.heure_fin = `${endHours}:${endMinutes}`;
+      } else {
+        updatedData.heure_fin = ""; // Clear end time if no service is selected
+      }
+      return updatedData;
+    });
+  };
+
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Compléter les informations de paiement"
+        visible={isPaymentModalVisible}
+        onCancel={() => setIsPaymentModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        <div className="space-y-4">
+          {/* <div className="mt-4">
+            <label htmlFor="contrat" className="block font-medium">
+              *Client
+            </label>
+            <Select
+              id="contrat"
+              showSearch
+              placeholder="Contrat"
+              className="w-full"
+              optionFilterProp="children"
+              onChange={(value) => {
+                setTransactionData({
+                  ...transactionData,
+                  id_contrat: selectedReservation.id_client,
+                });
+              }}
+              filterOption={(input, option) =>
+                (option?.label ?? "").startsWith(input)
+              }
+              options={contractClients.map((cli) => ({
+                label: `${cli.client} ${cli.Prenom_client}`,
+                value: cli.id_contrat,
+              }))}
+            />
+          </div> */}
+          <div className="mt-4">
+            <label htmlFor="montant" className="block font-medium">
+              Montant
+            </label>
+            <Input
+              id="montant"
+              disabled={true}
+              value={
+                selectedReservation && selectedReservation?.montant  + " MAD" || isPaymentData?.tarif   + " MAD"
+              }
+              onChange={(e) => {
+                setTransactionData({
+                  ...transactionData,
+                  montant: parseFloat(e.target.value),
+                });
+              }}
+              placeholder="Montant"
+            />
+          </div>
+          <div className="mt-4">
+            <label htmlFor="reduction" className="block font-medium">
+              Réduction (%)
+            </label>
+            <Input
+              id="reduction"
+              defaultValue={
+                selectedReservation &&
+                selectedReservation.mode_reservation == "client"
+                  ? 5
+                  : 0
+              }
+              // value={transactionData.reduction}
+              onChange={(e) => {
+                const newReduction = parseFloat(e.target.value);
+                if (
+                  isNaN(newReduction) ||
+                  newReduction < 0 ||
+                  newReduction > 100
+                ) {
+                  message.error(
+                    "La réduction doit être un pourcentage entre 0 et 100."
+                  );
+                  return;
+                }
+                setTransactionData({
+                  ...transactionData,
+                  reduction: newReduction,
+                });
+              }}
+              placeholder="Réduction (%)"
+              type="number"
+              min="0"
+              max="100"
+            />
+          </div>
+          <div className="mt-4">
+            <label
+              htmlFor="montantApresReduction"
+              className="block font-medium"
+            >
+              Montant après réduction
+            </label>
+            <Input
+              id="montantApresReduction"
+              value={
+                selectedReservation &&
+                selectedReservation.montant -
+                  selectedReservation.montant *
+                    (transactionData.reduction / 100)
+              }
+              disabled={true}
+              readOnly
+              placeholder="Montant après réduction"
+              type="number"
+            />
+          </div>
+          {/* <div className="mt-4 w-full">
+            <label htmlFor="typeService" className="block font-medium">
+              *Type de Service
+            </label>
+            <Select
+              disabled={true}
+              id="selectEntree"
+              placeholder="Type de service"
+              value={transactionData.type}
+              defaultValue={"Entrée"}
+              className="w-full"
+              onChange={(value, option) => {
+                setTransactionData({
+                  ...transactionData,
+                  type: value,
+                });
+              }}
+              style={{ width: 200, marginBottom: 10 }}
+            >
+              <Option value="Entrée">Entrée</Option>
+            </Select>
+          </div> */}
+          <div>
+            <label htmlFor="modeReglement" className="block font-medium mt-4">
+              *Mode de Règlement
+            </label>
+            <Select
+              id="modeReglement"
+              value={transactionData.mode_reglement}
+              defaultValue={"Espèces"}
+              showSearch
+              placeholder="Mode de règlement"
+              className="w-full"
+              optionFilterProp="children"
+              onChange={(value) =>
+                setTransactionData({
+                  ...transactionData,
+                  mode_reglement: value,
+                })
+              }
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+              options={[
+                { label: "Chèques", value: "chèques" },
+                { label: "Espèces", value: "espèces" },
+                { label: "Prélèvements", value: "prélèvements" },
+                { label: "TPE", value: "TPE" },
+                { label: "Autres", value: "autres" },
+              ]}
+            />
+          </div>
+          <div className="flex justify-end space-x-2 mt-10">
+            <Button onClick={() => setIsPaymentModalVisible(false)}>
+              Annuler
+            </Button>
+            <Button type="primary" onClick={handleSubmitPayment}>
+              Confirmer le paiement
+            </Button>
+          </div>
+        </div>
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         {/* heresgment */}
         <div>
@@ -388,34 +796,56 @@ const TableReservations = () => {
         }}
       >
         <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+          <Segmented
+            options={[
+              { label: "Client Fithouse", value: false },
+              { label: "Client Passager", value: true },
+            ]}
+            value={isAnonymousReservation}
+            onChange={setIsAnonymousReservation}
+            className="mb-4"
+          />
           <div className="grid grid-cols-2 gap-4 mt-5">
             <div className="flex flex-col">
               <label htmlFor="">Client</label>
-              <Select
-                className="w-full"
-                showSearch
-                value={ReservationData.id_client}
-                onChange={(value) => {
-                  setReservationData({
-                    ...ReservationData,
-                    id_client: value,
-                  });
-                }}
-                placeholder="Client"
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.label ?? "").includes(input)
-                }
-                filterSort={(optionA, optionB) =>
-                  (optionA?.label ?? "")
-                    .toLowerCase()
-                    .localeCompare((optionB?.label ?? "").toLowerCase())
-                }
-                options={clients.map((client) => ({
-                  value: client.id_client,
-                  label: `${client.nom_client} ${client.prenom_client}`,
-                }))}
-              />
+              {isAnonymousReservation ? (
+                <Input
+                  placeholder="Nom du client anonyme"
+                  value={ReservationData.anonymous_client_name}
+                  onChange={(e) =>
+                    setReservationData({
+                      ...ReservationData,
+                      anonymous_client_name: e.target.value,
+                    })
+                  }
+                />
+              ) : (
+                <Select
+                  className="w-full"
+                  showSearch
+                  value={ReservationData.id_client}
+                  onChange={(value) => {
+                    setReservationData({
+                      ...ReservationData,
+                      id_client: value,
+                    });
+                  }}
+                  placeholder="Client"
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    (option?.label ?? "").includes(input)
+                  }
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? "")
+                      .toLowerCase()
+                      .localeCompare((optionB?.label ?? "").toLowerCase())
+                  }
+                  options={clients.map((client) => ({
+                    value: client.id_client,
+                    label: `${client.nom_client} ${client.prenom_client}`,
+                  }))}
+                />
+              )}
             </div>
             <div className="flex flex-col">
               <label htmlFor="">Service</label>
@@ -460,19 +890,6 @@ const TableReservations = () => {
             </div>
           )}
           <div className="mt-5">
-            <label htmlFor="">Date de réservation</label>
-            <Input
-              type="date"
-              value={ReservationData.date_resrv}
-              onChange={(e) =>
-                setReservationData({
-                  ...ReservationData,
-                  date_resrv: e.target.value,
-                })
-              }
-            />
-          </div>
-          <div className="mt-5">
             <label htmlFor="">Date de présence</label>
             <Input
               type="date"
@@ -485,6 +902,28 @@ const TableReservations = () => {
               }
             />
           </div>
+          <div className="mt-5">
+            <label htmlFor="">Heur de début</label>
+            <Input
+              type="Time"
+              value={ReservationData.heure_debut}
+              onChange={(e) => {
+                handleStartTimeChange(e.target.value);
+                setReservationData({
+                  ...ReservationData,
+                  heure_debut: e.target.value,
+                });
+              }}
+            />
+          </div>
+          <div className="mt-5">
+            <label htmlFor="">Heur de fin</label>
+            <Input
+              type="time"
+              disabled={true}
+              value={ReservationData.heure_fin}
+            />
+          </div>
           <Space className="mt-10">
             <Button danger onClick={onCloseR}>
               Annuler
@@ -495,11 +934,24 @@ const TableReservations = () => {
           </Space>
         </div>
       </Drawer>
+
       <Modal
         title="Détails de la réservation"
         visible={isModalVisible}
         onCancel={handleModalCancel}
-        footer={null}
+        footer={[
+          <Button key="cancel" onClick={handleModalCancel}>
+            Fermer
+          </Button>,
+          <Button
+            disabled={SelectPay}
+            key="pay"
+            type="primary"
+            onClick={handlePayment}
+          >
+            Payer
+          </Button>,
+        ]}
         width={600}
       >
         {selectedReservation && (
@@ -544,9 +996,13 @@ const TableReservationServicesPage = () => {
   };
 
   const transformReservations = (reservations) => {
+    console.log("====================================");
+    console.log(reservations);
+    console.log("====================================");
     return reservations.map((reservation) => ({
       id: reservation.id_reservation,
       id_seance: reservation.id_seance,
+      mode_reservation: reservation.mode_reservation,
       title: `${reservation.cour} - ${reservation.cour}`,
       start: new Date(reservation.date_presence + "T" + reservation.heur_debut),
       end: new Date(reservation.date_presence + "T" + reservation.heure_fin),
@@ -1130,16 +1586,16 @@ export const TableReservationServices = () => {
   return (
     <div className="w-full p-2">
       <Segmented
-       className="ml-2"
+        className="ml-2"
         value={activeTab}
         onChange={(value) => setActiveTab(value)}
         options={[
           {
-            label: "Reservations Services",
+            label: "Services",
             value: "reservations",
           },
           {
-            label: "Reservation",
+            label: "Séance",
             value: "reservation-services",
           },
         ]}
@@ -1150,4 +1606,3 @@ export const TableReservationServices = () => {
     </div>
   );
 };
-

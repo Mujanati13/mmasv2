@@ -75,6 +75,8 @@ export const TableReservation = () => {
   const [isAbsenceModalVisible, setIsAbsenceModalVisible] = useState(false);
   const [absenceReason, setAbsenceReason] = useState("");
   const [currentClientId, setCurrentClientId] = useState(null);
+  const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
+  const [selectedServices, setSelectedServices] = useState(null);
   const [ReservationData, setReservationData] = useState({
     id_client: null,
     id_seance: null,
@@ -205,6 +207,8 @@ export const TableReservation = () => {
     fetchCours();
     setSelectedSeance([]);
   }, []);
+
+ 
 
   const isReservationFormValid = () => {
     return (

@@ -11,15 +11,21 @@ import {
   Space,
   InputNumber,
   Upload,
+  Progress,
+  Tooltip,
+  Image,
+  Select,
 } from "antd";
 import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
+  EyeOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../../utils/helper";
+import { render } from "react-dom";
 
 const TableServices = () => {
   const [data, setData] = useState([]);
@@ -34,42 +40,104 @@ const TableServices = () => {
   const [form] = Form.useForm();
   const [open1, setOpen1] = useState(false);
   const [add, setAdd] = useState(false);
+  const [imagePath, setimagePath] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
+  const [selectedServices, setSelectedServices] = useState(null);
 
   // State for service related data
   const [serviceData, setServiceData] = useState({
     service: "",
     Tarif: 0,
     description: "",
-    photo: "",
+    duree:null,
+    photo: imagePath,
   });
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
+  const [previewTitle, setPreviewTitle] = useState("");
+  const [fileList, setFileList] = useState([]);
+  const handleCancel = () => setPreviewOpen(false);
+  const getBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  const handlePreview = async (file) => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj);
+    }
+    setPreviewImage(file.url || file.preview);
+    setPreviewOpen(true);
+    setPreviewTitle(
+      file.name ||
+        (file.url ? file.url.substring(file.url.lastIndexOf("/") + 1) : "")
+    );
+  };
+  const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
 
-  // Function to handle image upload
-  const handleImageUpload = async (file) => {
+  const handleUploadImage = async () => {
+    if (fileList.length === 0) {
+      return null;
+    }
+
+    const file = fileList[0];
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("uploadedFile", file.originFileObj);
+    formData.append("path", "services/");
+
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
-      const response = await fetch("https://api.example.com/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const xhr = new XMLHttpRequest();
+      xhr.open(
+        "POST",
+        "https://fithouse.pythonanywhere.com/api/saveImage/",
+        true
+      );
 
-      if (response.ok) {
-        const result = await response.json();
-        return result.imageUrl; // Assuming the API returns the URL of the uploaded image
-      } else {
-        throw new Error("Image upload failed");
-      }
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          setUploadProgress(percentComplete);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const res = JSON.parse(xhr.responseText);
+          setimagePath(res.path);
+          serviceData.photo = res.path;
+          setIsUploading(false);
+          message.success("Image uploaded successfully");
+          return res.path;
+        } else {
+          throw new Error("Upload failed");
+        }
+      };
+
+      xhr.onerror = () => {
+        throw new Error("Upload failed");
+      };
+
+      xhr.send(formData);
     } catch (error) {
-      console.error("Error uploading image:", error);
-      message.error("Failed to upload image");
+      console.error("Error during file upload:", error);
+      message.error("File upload failed");
+      setIsUploading(false);
       return null;
     }
   };
 
   // Validation function to check if all required fields are filled for the service form
   const isServiceFormValid = () => {
-    return serviceData.service && serviceData.Tarif;
+    console.log(serviceData.service.length, serviceData.Tarif);
+
+    return serviceData.service.length != 0 && serviceData.Tarif.length != 0;
   };
 
   // Function to add a new service
@@ -79,6 +147,13 @@ const TableServices = () => {
         message.warning("Veuillez remplir tous les champs requis");
         return;
       }
+      await handleUploadImage();
+      // Update the serviceData with the new image path
+      const updatedServiceData = {
+        ...serviceData,
+        photo: imagePath,
+      };
+
       const response = await fetch(
         "https://fithouse.pythonanywhere.com/api/service/",
         {
@@ -86,7 +161,7 @@ const TableServices = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(serviceData),
+          body: JSON.stringify(updatedServiceData),
         }
       );
       if (response.ok) {
@@ -123,6 +198,7 @@ const TableServices = () => {
 
   const onCloseR = () => {
     setOpen1(false);
+    setFileList([]);
     setServiceData({
       service: "",
       Tarif: 0,
@@ -177,6 +253,22 @@ const TableServices = () => {
             dataIndex: "description",
             key: "description",
           },
+          {
+            title: "Actions",
+            dataIndex: "actions",
+            key: "actions",
+            render: (text, record) => (
+              <Tooltip title="Voir les détails">
+                <EyeOutlined
+                  onClick={() => {
+                    setSelectedServices(record);
+                    setIsDetailsModalVisible(true);
+                  }}
+                  style={{ cursor: "pointer" }}
+                />
+              </Tooltip>
+            ),
+          },
         ];
         setColumns(generatedColumns);
         setLoading(false);
@@ -188,6 +280,11 @@ const TableServices = () => {
 
     fetchData();
   }, [authToken, update, add]);
+
+  const handleDetailsModalCancel = () => {
+    setIsDetailsModalVisible(false);
+    setSelectedServices(null);
+  };
 
   // Handle search input change
   const handleSearch = (e) => {
@@ -321,8 +418,79 @@ const TableServices = () => {
     console.log(e);
   };
 
+  const uploadButton = (
+    <div>
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  );
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    console.log(name, value);
+
+    setServiceData({ ...serviceData, [name]: value });
+  };
+
+  const handleTarifChange = (value) => {
+    setServiceData({ ...serviceData, Tarif: value });
+  };
+
   return (
     <div className="w-full p-2">
+      <Modal
+        title="Détails du Service"
+        visible={isDetailsModalVisible}
+        onCancel={handleDetailsModalCancel}
+        footer={null}
+        width={600}
+      >
+        {selectedServices && (
+          <Table
+            columns={[
+              {
+                title: "Champ",
+                dataIndex: "field",
+                key: "field",
+                width: "40%",
+              },
+              { title: "Valeur", dataIndex: "value", key: "value" },
+            ]}
+            dataSource={[
+              {
+                key: "1",
+                field: "Nom de Service",
+                value: selectedServices.service,
+              },
+              {
+                key: "2",
+                field: "Tarif",
+                value: `${selectedServices.Tarif}`,
+              },
+              {
+                key: "3",
+                field: "Description",
+                value: selectedServices.description,
+              },
+              {
+                key: "4",
+                field: "Image",
+                value: (
+                  <Image
+                    src={
+                      "https://fithouse.pythonanywhere.com/media/" +
+                      selectedServices.photo
+                    }
+                  ></Image>
+                ),
+              },
+            ]}
+            pagination={false}
+            size="small"
+            bordered
+          />
+        )}
+      </Modal>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">
@@ -385,69 +553,112 @@ const TableServices = () => {
               paddingBottom: 80,
             }}
           >
-            <Form layout="vertical">
-              <Form.Item
-                name="service"
-                label="Nom du service"
-                rules={[
-                  {
-                    required: true,
-                    message: "Veuillez entrer le nom du service",
-                  },
-                ]}
-              >
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              onPreview={handlePreview}
+              onChange={handleChange}
+              beforeUpload={() => false}
+            >
+              {fileList.length >= 1 ? null : uploadButton}
+            </Upload>
+            {isUploading && (
+              <Progress percent={Math.round(uploadProgress)} status="active" />
+            )}
+            <Modal
+              open={previewOpen}
+              title={previewTitle}
+              footer={null}
+              onCancel={handleCancel}
+            >
+              <img
+                alt="example"
+                style={{
+                  width: "100%",
+                  alignContent: "center",
+                  alignItems: "center",
+                }}
+                src={previewImage}
+              />
+            </Modal>
+            <div className="mt-4 space-y-4">
+              <div>
+                <label htmlFor="service" className="block mb-1">
+                  Nom du service
+                </label>
                 <Input
+                  id="service"
+                  name="service"
                   value={serviceData.service}
-                  onChange={(e) =>
-                    setServiceData({ ...serviceData, service: e.target.value })
-                  }
+                  onChange={handleInputChange}
+                  placeholder="Entrez le nom du service"
                 />
-              </Form.Item>
-              <Form.Item
-                name="Tarif"
-                label="Tarif"
-                rules={[
-                  { required: true, message: "Veuillez entrer le tarif" },
-                ]}
-              >
+              </div>
+              <div className="mt-4">
+                <label htmlFor="Tarif" className="block mb-1">
+                  Tarif
+                </label>
                 <InputNumber
+                  id="Tarif"
+                  name="Tarif"
                   value={serviceData.Tarif}
-                  onChange={(value) =>
-                    setServiceData({ ...serviceData, Tarif: value })
-                  }
+                  onChange={handleTarifChange}
                   min={0}
                   step={0.01}
                   formatter={(value) => `${value} MAD`}
                   parser={(value) => value.replace(" MAD", "")}
                 />
-              </Form.Item>
-              <Form.Item name="description" label="Description">
-                <Input.TextArea
-                  value={serviceData.description}
-                  onChange={(e) =>
-                    setServiceData({
-                      ...serviceData,
-                      description: e.target.value,
-                    })
-                  }
+              </div>
+              <div className="mt-4">
+                <label htmlFor="description" className="block mb-1">
+                  la duree
+                </label>
+                <Input
+                  id="duree"
+                  name="duree"
+                  value={serviceData.duree}
+                  onChange={handleInputChange}
+                  placeholder="Entrez la duree du service (minutes)"
                 />
-              </Form.Item>
-              <Form.Item name="photo" label="Photo">
-                <Upload
-                  accept="image/*"
-                  beforeUpload={(file) => {
-                    setServiceData({ ...serviceData, photo: { file } });
-                    return false; // Prevent default upload behavior
+              </div>
+              <div className="mt-4">
+                <label htmlFor="description" className="block mb-1">
+                  Description
+                </label>
+                <Input.TextArea
+                  id="description"
+                  name="description"
+                  value={serviceData.description}
+                  onChange={handleInputChange}
+                  placeholder="Entrez la description du service"
+                />
+              </div>
+              <div className="mt-4">
+                <label htmlFor="description" className="block mb-1">
+                  Durée servie
+                </label>
+                <Select
+                  style={{ width: "100%", marginBottom: "1rem" }}
+                  placeholder="Sélectionnez la durée du service"
+                  onChange={(e) => {
+                    setServiceData({ ...serviceData, duree: e });
                   }}
-                ></Upload>
-              </Form.Item>
-              <Space>
+                  options={[
+                    { label: "30 minutes", value: "30" },
+                    { label: "45 minutes", value: "45" },
+                    { label: "1 hour", value: "60" },
+                    { label: "1 hour 30 minutes", value: "90" },
+                    { label: "2 hours", value: "120" },
+                  ]}
+                />
+              </div>
+              <Space className="mt-4">
                 <Button onClick={onCloseR}>Annuler</Button>
                 <Button onClick={handleServiceSubmit} type="primary">
                   Enregistrer
                 </Button>
               </Space>
-            </Form>
+            </div>
           </Drawer>
         </div>
       </div>
@@ -493,6 +704,9 @@ const TableServices = () => {
           </Form.Item>
           <Form.Item name="description" label="Description">
             <Input.TextArea />
+          </Form.Item>
+          <Form.Item name="photo" label="Photo">
+            {/* <Image src={"https://fithouse.pythonanywhere.com/media/services/"+} /> */}
           </Form.Item>
           {/* <Form.Item name="photo" label="Photo URL">
             <Input />

@@ -21,6 +21,7 @@ import {
   UserAddOutlined,
   EyeOutlined,
   ExportOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
 import {
   addNewTrace,
@@ -28,6 +29,9 @@ import {
   getCurrentDate,
 } from "../../../utils/helper";
 import * as XLSX from "xlsx";
+import { handlePrintContract } from "../../../utils/printable/contract";
+import { printFacteur } from "../../../utils/printable/facteur";
+import { handlePrintPayment } from "../../../utils/printable/payment";
 
 const TableTransication = () => {
   const [data, setData] = useState([]);
@@ -43,6 +47,7 @@ const TableTransication = () => {
   const [open1, setOpen1] = useState(false);
   const [add, setAdd] = useState(false);
   const [clients, setClients] = useState([]);
+  const [clients2, setClients2] = useState([]);
   const [idClient, setIdClient] = useState([]);
   const [ContractClient, setContractClient] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
@@ -154,16 +159,36 @@ const TableTransication = () => {
       <Modal
         visible={visible}
         onCancel={onClose}
-        footer={null}
+        footer={
+          transactionType == "regular"
+            ? [
+                <Button
+                  onClick={handlePrint}
+                  icon={<PrinterOutlined />}
+                  type="primary"
+                >
+                  imprimer le facteur
+                </Button>,
+                <Button
+                  onClick={handlePrintRecu}
+                  type="primary"
+                  className="ml-10 pr-5"
+                >
+                  imprimer le reçu
+                </Button>,
+              ]
+            : []
+        }
         title={`Détails de la ${
           isTransactionService ? "Transaction de Service" : "Transaction"
         }`}
         width={700}
       >
-        <Descriptions bordered column={1}>
+        <div></div>
+        <Descriptions className="mt-4" bordered column={1}>
           {transactionType == "depense" ? (
             <>
-              <Descriptions.Item label="Date">
+              <Descriptions.Item className="mt-4" label="Date">
                 {formatDateToYearMonthDay(transaction.date)}
               </Descriptions.Item>
               <Descriptions.Item label="Type">
@@ -215,7 +240,7 @@ const TableTransication = () => {
                 {transaction.montant}
               </Descriptions.Item>
               <Descriptions.Item label="Mode de règlement">
-                {transaction.mode_reglement}
+                {transaction.Mode_reglement}
               </Descriptions.Item>
               <Descriptions.Item label="Description">
                 {transaction.description}
@@ -225,12 +250,6 @@ const TableTransication = () => {
               </Descriptions.Item>
               <Descriptions.Item label="Admin">
                 {transaction.admin}
-              </Descriptions.Item>
-              <Descriptions.Item label="Reste">
-                {transaction.Reste}
-              </Descriptions.Item>
-              <Descriptions.Item label="Reste précédent">
-                {transaction.rest_pre}
               </Descriptions.Item>
             </>
           )}
@@ -277,7 +296,7 @@ const TableTransication = () => {
       setReservations(data.data || []);
     } catch (error) {
       console.error("Error fetching reservations:", error);
-      message.error("Failed to load reservations");
+      // message.error("Failed to load reservations");
     }
   };
 
@@ -285,7 +304,7 @@ const TableTransication = () => {
     date: getCurrentDate(),
     Type: true,
     montant: null,
-    mode_reglement: "",
+    Mode_reglement: "",
     description: "",
     id_contrat: null,
     id_admin: localStorage.getItem("data")[0].id_employe,
@@ -300,22 +319,6 @@ const TableTransication = () => {
     id_reserv: null,
     id_service: null,
     mode_reservation: "admin",
-  });
-
-  // State for room related data
-  const [ClientData, setClientData] = useState({
-    date: getCurrentDate(),
-    Type: true,
-    montant: null,
-    mode_reglement: "",
-    description: "",
-    id_contrat: null,
-    id_admin: localStorage.getItem("data")[0].id_admin,
-    client: "",
-    image: "",
-    admin: localStorage.getItem("data")[0].login,
-    Reste: null,
-    rest_pre: null,
   });
 
   useEffect(() => {
@@ -599,6 +602,7 @@ const TableTransication = () => {
     fetchClients();
     fetchServices();
     fetchFournisseurs();
+    fetchClients2();
   }, [authToken, update, add, transactionType]);
 
   const fetchData = async () => {
@@ -716,6 +720,19 @@ const TableTransication = () => {
     }
   };
 
+  const fetchClients2 = async () => {
+    try {
+      const response = await fetch(
+        "https://fithouse.pythonanywhere.com/api/clients/"
+      );
+      const data = await response.json();
+
+      setClients2(data.data);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
+  };
+
   const fetchServices = async () => {
     try {
       const response = await fetch(
@@ -742,6 +759,8 @@ const TableTransication = () => {
   };
 
   const handleAdd = async () => {
+    transactionData.mode_reglement = transactionData.Mode_reglement;
+
     const idadmin = await JSON.parse(localStorage.getItem("data"))[0]
       .id_employe;
 
@@ -759,6 +778,9 @@ const TableTransication = () => {
         transactionData.montant -
         transactionData.montant * (parseFloat(transactionData.reduction) / 100);
 
+      if (transactionType == "regular") {
+        transactionData.Reste = transactionData.Reste - transactionData.montant;
+      }
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -768,7 +790,9 @@ const TableTransication = () => {
         body: JSON.stringify({
           ...transactionData,
           id_admin: idadmin,
-          montant: discountedAmount, // Use the discounted amount
+          montant: discountedAmount
+            ? discountedAmount
+            : transactionData.montant, // Use the discounted amount
         }),
       });
 
@@ -821,7 +845,7 @@ const TableTransication = () => {
       date: getCurrentDate(),
       Type: true,
       montant: null,
-      mode_reglement: "",
+      Mode_reglement: "",
       description: "",
       id_contrat: null,
       id_admin: localStorage.getItem("data")[0].id_admin,
@@ -847,19 +871,69 @@ const TableTransication = () => {
   };
 
   const handleRoomSubmit = () => {
-    if (
-      !isTransactionService &&
-      parseFloat(transactionData.montant) > parseFloat(transactionData.Reste)
-    ) {
-      message.error("Le montant ne peut pas être supérieur au reste à payer.");
-      return;
-    }
     handleAdd();
   };
 
   const findServiceTarif = (serviceId) => {
     const service = services.find((s) => s.ID_service === serviceId);
     return service ? service.Tarif : 0;
+  };
+
+  const handleAmountChange = (e) => {
+    const newAmount = parseFloat(e.target.value);
+    if (isNaN(newAmount) || newAmount < 0) {
+      message.warning("Veuillez entrer un montant valide.");
+      return;
+    }
+
+    if (newAmount > transactionData.initialReste) {
+      message.warning("Le montant ne peut pas dépasser le reste initial.");
+      return;
+    }
+
+    const newReste = transactionData.initialReste - newAmount;
+    setTransactionData({
+      ...transactionData,
+      montant: newAmount,
+      currentReste: newReste,
+    });
+  };
+
+  const handlePrint = () => {
+    console.log("====================================");
+    console.log(contractClients, selectedTransactionDetails);
+    console.log("====================================");
+    const client = contractClients.find(
+      (c) => c.id_contrat === selectedTransactionDetails.id_contrat
+    );
+    console.log(client);
+
+    if (selectedTransactionDetails) {
+      printFacteur(client, selectedTransactionDetails);
+    } else {
+      message.warning("Please select a transaction to print");
+    }
+  };
+
+  const handlePrintRecu = () => {
+    const contart = contractClients.find(
+      (c) => c.id_contrat === selectedTransactionDetails.id_contrat
+    );
+    const client = clients2.find((c) => c.id_client === contart.id_client);
+    console.log(selectedTransactionDetails);
+
+    if (selectedTransactionDetails && client) {
+      handlePrintPayment(
+        client.prenom_client,
+        client.nom_client,
+        client.cin,
+        client.cin,
+        "",
+        selectedTransactionDetails.montant
+      );
+    } else {
+      message.warning("Please select a transaction to print");
+    }
   };
 
   return (
@@ -919,97 +993,7 @@ const TableTransication = () => {
           </Form.Item>
         </Form>
       </Modal>
-      {/* <Modal
-        visible={visible}
-        onCancel={onClose}
-        footer={null}
-        title={`Détails de la ${
-          isTransactionService ? "Transaction de Service" : "Transaction"
-        }`}
-        width={700}
-      >
-        <Descriptions bordered column={1}>
-          {isTransactionService ? (
-            <>
-              <Descriptions.Item label="ID">
-                {transaction.id_tran_service}
-              </Descriptions.Item>
-              <Descriptions.Item label="Date">
-                {formatDateToYearMonthDay(transaction.date)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Type">
-                {transaction.type}
-              </Descriptions.Item>
-              <Descriptions.Item label="Montant">
-                {transaction.montant}
-              </Descriptions.Item>
-              <Descriptions.Item label="Mode de règlement">
-                {transaction.mode_reglement}
-              </Descriptions.Item>
-              <Descriptions.Item label="Description">
-                {transaction.description}
-              </Descriptions.Item>
-              <Descriptions.Item label="Réduction">
-                {transaction.reduction}
-              </Descriptions.Item>
-              <Descriptions.Item label="ID Réservation">
-                {transaction.id_reserv}
-              </Descriptions.Item>
-              <Descriptions.Item label="ID Service">
-                {transaction.id_service}
-              </Descriptions.Item>
-              <Descriptions.Item label="ID Contrat">
-                {transaction.id_contrat}
-              </Descriptions.Item>
-              <Descriptions.Item label="ID Admin">
-                {transaction.id_admin}
-              </Descriptions.Item>
-            </>
-          ) : (
-            <>
-              <Descriptions.Item label="ID">
-                {transaction.id_tran}
-              </Descriptions.Item>
-              <Descriptions.Item label="Date">
-                {formatDateToYearMonthDay(transaction.date)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Type">
-                {transaction.Type ? "Entrée" : "Sortie"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Montant">
-                {transaction.montant}
-              </Descriptions.Item>
-              <Descriptions.Item label="Mode de règlement">
-                {transaction.Mode_reglement}
-              </Descriptions.Item>
-              <Descriptions.Item label="Description">
-                {transaction.description}
-              </Descriptions.Item>
-              <Descriptions.Item label="ID Contrat">
-                {transaction.id_contrat}
-              </Descriptions.Item>
-              <Descriptions.Item label="ID Admin">
-                {transaction.id_admin}
-              </Descriptions.Item>
-              <Descriptions.Item label="Client">
-                {transaction.client}
-              </Descriptions.Item>
-              <Descriptions.Item label="Image">
-                {transaction.image}
-              </Descriptions.Item>
-              <Descriptions.Item label="Admin">
-                {transaction.admin}
-              </Descriptions.Item>
-              <Descriptions.Item label="Reste">
-                {transaction.Reste}
-              </Descriptions.Item>
-              <Descriptions.Item label="Reste précédent">
-                {transaction.rest_pre}
-              </Descriptions.Item>
-            </>
-          )}
-        </Descriptions>
-      </Modal> */}
+
       <TransactionDetailsModal
         visible={detailModalVisible}
         onClose={() => setDetailModalVisible(false)}
@@ -1032,11 +1016,15 @@ const TableTransication = () => {
               options={[
                 { label: "Abonnement", value: "regular" },
                 { label: "Service", value: "service" },
-                { label: "Dépense", value: "depense" },
+                ...(JSON.parse(localStorage.getItem("data"))[0].fonction ===
+                "Administration"
+                  ? [{ label: "Dépense", value: "depense" }]
+                  : []),
               ]}
               value={transactionType}
               onChange={(value) => setTransactionType(value)}
             />
+
             <Button
               type="default"
               onClick={showExportModal}
@@ -1082,6 +1070,7 @@ const TableTransication = () => {
               <div className="grid grid-cols-2 gap-4 mt-5">
                 {transactionType === "regular" && (
                   <>
+                    {/* Client Selection */}
                     <div>
                       <label htmlFor="client" className="block font-medium">
                         *Client
@@ -1101,7 +1090,9 @@ const TableTransication = () => {
                           setIdClient(value);
                         }}
                         filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
                         }
                         options={clients.map((cli) => ({
                           label: `${cli.client} ${cli.Prenom_client}`,
@@ -1109,6 +1100,8 @@ const TableTransication = () => {
                         }))}
                       />
                     </div>
+
+                    {/* Contract Selection */}
                     <div>
                       <label htmlFor="contrat" className="block font-medium">
                         *Contrat
@@ -1127,12 +1120,13 @@ const TableTransication = () => {
                           setTransactionData({
                             ...transactionData,
                             id_contrat: value,
-                            Reste: con.reste,
-                            rest_pre: con.reste,
+                            Reste: con ? con.reste : 0,
                           });
                         }}
                         filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
                         }
                         options={ContractClient.map((cli) => ({
                           label: `${cli.abonnement}-${cli.cat_abn}`,
@@ -1140,39 +1134,53 @@ const TableTransication = () => {
                         }))}
                       />
                     </div>
+
+                    {/* Previous Amount Input */}
                     <div>
                       <label
                         htmlFor="restPrecedant"
                         className="block font-medium"
                       >
-                        Le reste précédent
+                        Le Montant
                       </label>
                       <Input
-                        id="restPrecedant"
-                        value={transactionData.rest_pre}
+                        disabled={transactionData.Reste === 0}
+                        id="montant"
+                        value={transactionData.montant}
                         onChange={(e) => {
-                          setTransactionData({
-                            ...transactionData,
-                            rest_pre: e.target.value,
-                            Reste: e.target.value,
-                          });
+                          const newRestPre = e.target.value;
+                          if (parseFloat(newRestPre) > transactionData.Reste) {
+                            message.warning(
+                              "Le montant précédent dépasse le montant disponible."
+                            );
+                          } else {
+                            setTransactionData({
+                              ...transactionData,
+                              montant: newRestPre,
+                            });
+                          }
                         }}
-                        placeholder="Le reste précédent"
+                        placeholder="Le montant"
                         type="number"
                       />
                     </div>
+
+                    {/* Current Amount Display */}
                     <div>
                       <label htmlFor="restActuel" className="block font-medium">
                         Le reste actuel
                       </label>
                       <Input
                         id="restActuel"
-                        value={transactionData.Reste - transactionData.montant}
+                        disabled={true}
+                        value={transactionData.Reste}
                         readOnly
                         placeholder="Le reste actuel"
                         type="number"
                       />
                     </div>
+
+                    {/* Type Selection */}
                     <div>
                       <label htmlFor="type" className="block font-medium">
                         *Type
@@ -1498,6 +1506,23 @@ const TableTransication = () => {
                 {/* Common fields for all transaction types */}
                 <div>
                   <label htmlFor="description" className="block font-medium">
+                    Montant
+                  </label>
+                  <Input
+                    type="number"
+                    id="description"
+                    value={transactionData.montant}
+                    onChange={(e) => {
+                      setTransactionData({
+                        ...transactionData,
+                        montant: e.target.value,
+                      });
+                    }}
+                    placeholder="montant"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="description" className="block font-medium">
                     Description
                   </label>
                   <Input.TextArea
@@ -1512,13 +1537,14 @@ const TableTransication = () => {
                     placeholder="Description"
                   />
                 </div>
+
                 <div>
                   <label htmlFor="modeReglement" className="block font-medium">
                     *Mode de Règlement
                   </label>
                   <Select
                     id="modeReglement"
-                    value={transactionData.mode_reglement}
+                    value={transactionData.Mode_reglement}
                     showSearch
                     placeholder="Mode de règlement"
                     className="w-full"
@@ -1526,7 +1552,7 @@ const TableTransication = () => {
                     onChange={(value) =>
                       setTransactionData({
                         ...transactionData,
-                        mode_reglement: value,
+                        Mode_reglement: value,
                       })
                     }
                     filterOption={(input, option) =>

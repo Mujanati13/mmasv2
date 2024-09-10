@@ -1,6 +1,8 @@
 import { getCurrentDate } from "../helper";
 
 export function printFacteur(contrat, paymentData) {
+    console.log(contrat);
+    
   const printWindow = window.open("", "", "width=800,height=600");
   printWindow.document.open();
 
@@ -14,7 +16,7 @@ export function printFacteur(contrat, paymentData) {
   };
 
   // Calculate financial details
-  const montantTTC = paymentData.montant + contrat.reste;
+  const montantTTC = paymentData.montant + contrat?.reste;
   const montantHT = montantTTC / 1.2; // Assuming 20% VAT
   const tva = montantTTC - montantHT;
 
@@ -25,7 +27,7 @@ export function printFacteur(contrat, paymentData) {
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Facture N° ${contrat.numcontrat}</title>
+        <title>Facture N° ${contrat?.numcontrat}</title>
        <style>
         * {
             font-size: 16px;
@@ -128,7 +130,7 @@ export function printFacteur(contrat, paymentData) {
                 <tr height="300px">
                     <td colspan="7"></td>
                     <td style="text-align: center; vertical-align: middle;">
-                        <img src="{{ base_url }}/media/assets/logo/logo.jpg" width="800px" height="900px" />
+                        <img src="https://fithouse.pythonanywhere.com/media/assets/logo/logo.jpg" width="100px" height="100px" />
                     </td>
                 </tr>
                 <tr></tr>
@@ -138,30 +140,30 @@ export function printFacteur(contrat, paymentData) {
                 <tr>
                     <td id="title">Facture</td>
                     <td colspan="11"></td>
-                    <td id="title">${day}/${month}/${year}</td>
+                    <td id="title">${getCurrentDate()}</td>
                 </tr>
                 <tr>
                     <td colspan="14">
                         <table border="1" class="infos">
                             <tr>
                                 <td style="background-color: #e6e7e9;">Adhérent</td>
-                                <td colspan="4">${contrat.client} ${contrat.Prenom_client}</td>
+                                <td colspan="4">${contrat?.client} ${contrat?.Prenom_client}</td>
                             </tr>
                             <tr>
                                 <td style="background-color: #e6e7e9;">Groupe</td>
-                                <td colspan="4">${contrat.abonnement} ${contrat.type}</td>
+                                <td colspan="4">${contrat?.type}</td>
                             </tr>
                             <tr>
                                 <td style="background-color: #e6e7e9;">Abonnement</td>
-                                <td colspan="4">${contrat.abonnement}</td>
+                                <td colspan="4">${contrat?.abonnement}</td>
                             </tr>
                             <tr>
                                 <td style="background-color: #e6e7e9;">Début</td>
-                                <td colspan="4">${formatDate(contrat.date_debut)}</td>
+                                <td colspan="4">${formatDate(contrat?.date_debut)}</td>
                             </tr>
                             <tr>
                                 <td style="background-color: #e6e7e9;">Fin</td>
-                                <td colspan="4">${formatDate(contrat.date_fin)}</td>
+                                <td colspan="4">${formatDate(contrat?.date_fin)}</td>
                             </tr>
                             <tr>
                                 <td style="background-color: #e6e7e9;">Montant TTC</td>
@@ -177,7 +179,7 @@ export function printFacteur(contrat, paymentData) {
                             </tr>
                             <tr>
                                 <td style="background-color: #e6e7e9;">Montant Reçu</td>
-                                <td colspan="4">${paymentData.montant.toFixed(2)} Dhs</td>
+                                <td colspan="4">${paymentData.montant} Dhs</td>
                             </tr>
                             <tr>
                                 <td style="background-color: #e6e7e9;">Mode de paiement</td>
@@ -185,7 +187,7 @@ export function printFacteur(contrat, paymentData) {
                             </tr>
                             <tr>
                                 <td style="background-color: #e6e7e9;">Reste à régler</td>
-                                <td colspan="4">${contrat.reste.toFixed(2)} Dhs</td>
+                                <td colspan="4">${contrat?.reste} Dhs</td>
                             </tr>
                         </table>
                     </td>
