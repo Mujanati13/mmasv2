@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, message } from "antd";
+import { Button, message, Tag } from "antd";
 import { UsergroupAddOutlined } from "@ant-design/icons";
 
 function Client() {
@@ -47,9 +47,9 @@ function Client() {
           ) : (
             clientData && (
               <>
-                <div className="font-medium opacity-70 text-sm mt-5">Client: {clientData.length}</div>
-                <div className="font-medium opacity-70 text-sm mt-1">Active: {data.active}</div>
-                <div className="font-medium opacity-70 text-sm mt-1">Inactive: {data.inactive}</div>
+                <div className="font-medium opacity-70 text-sm mt-5"><Tag>Client</Tag>: {clientData.length}</div>
+                <div className="font-medium opacity-70 text-sm mt-2"><Tag>Active</Tag>: {data.active}</div>
+                <div className="font-medium opacity-70 text-sm mt-2"><Tag>Inactive</Tag>: {data.inactive}</div>
               </>
             )
           )}

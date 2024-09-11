@@ -39,6 +39,9 @@ function Teresorerie() {
       }
       const result = await response.json();
       setData(result.data);
+      console.log('====================================');
+      console.log(JSON.stringify(result.data) + " testttttttttttttt");
+      console.log('====================================');
     } catch (error) {
       message.error("Échec de la récupération des données");
     } finally {
@@ -60,7 +63,7 @@ function Teresorerie() {
   };
 
   return (
-    <div className="w-[55%] h-60 bg-white shadow-sm rounded-md">
+    <div className="w-[55%] h-60 bg-white shadow-sm rounded-md p-4">
       {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
       "Administration" ? (
         <div>
@@ -114,7 +117,7 @@ function Teresorerie() {
               <div className="font-medium mt-5">
                 {data ? (
                   hasPermission() ? (
-                    `${data.solde_peroid} MAD`
+                    `${data.solde_depense} MAD`
                   ) : (
                     <div className="text-sm">
                       Vous n'avez pas la permission de voir ceci
@@ -135,7 +138,7 @@ function Teresorerie() {
               <div className="font-medium mt-5">
                 {data ? (
                   hasPermission() ? (
-                    `${data.solde_recette} MAD`
+                    `${data.solde_peroid} MAD`
                   ) : (
                     <div className="text-sm">
                       Vous n'avez pas la permission de voir ceci
