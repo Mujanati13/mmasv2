@@ -78,7 +78,7 @@ const TableContract = () => {
     id_abn: null,
     Type: true,
     type: "",
-    reduction: "",
+    reduction: 0,
     id_etablissement: 19,
     abonnement: "",
     Mode_reglement: "Espèces",
@@ -255,13 +255,13 @@ const TableContract = () => {
 
     const dataToSend = {
       ...ContractData,
-      transactions: transactions.map(transaction => ({
+      transactions: transactions.map((transaction) => ({
         ...transaction,
         date: getCurrentDate(),
-      }))
+      })),
     };
     console.log(dataToSend);
-    
+
     const authToken = localStorage.getItem("jwtToken");
     try {
       // First, add the contract
@@ -398,7 +398,7 @@ const TableContract = () => {
               showSearch
               className="w-full"
               placeholder="Abonnement"
-              value={ContractData.abonnement}
+              value={ContractData.id_abn}
               onChange={(value) => {
                 const selectedAbonnement = abonnements.find(
                   (abonnement) => abonnement.id_abn === value
@@ -417,20 +417,18 @@ const TableContract = () => {
                     id_abn: id_abn,
                     date_fin: endDate,
                     tarif: tarif,
-                    abonnement: `${type_abonnement} ${namecat_conrat}`, // Update abonnement here
+                    abonnement: `${type_abonnement} ${namecat_conrat}`,
+                    reste: tarif,
+                    reduction:0
                   }));
-                  ContractData.reste = tarif;
-                  setTarif(tarif);
                 }
               }}
               optionFilterProp="children"
               filterOption={(input, option) =>
-                (option?.label ?? "").startsWith(input)
+                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
               }
               filterSort={(optionA, optionB) =>
-                (optionA?.label ?? "")
-                  .toLowerCase()
-                  .localeCompare((optionB?.label ?? "").toLowerCase())
+                (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())
               }
               options={abonnements.map((abonnement) => ({
                 value: abonnement.id_abn,
@@ -445,9 +443,24 @@ const TableContract = () => {
               showSearch
               value={ContractData.id_client}
               className="w-full"
-              onChange={(value) =>
-                setContractData({ ...ContractData, id_client: value })
-              }
+              onChange={(value) => {
+                setContractData({ ...ContractData, id_client: value });
+                const c = clients.find((e) => e.id_client == value);
+                console.log("====================================");
+                if (c.civilite == "Monsieur") {
+                  setContractData((prevContractData) => ({
+                    ...prevContractData,
+                    type: "Homme",
+                  }));
+                } else {
+                  setContractData((prevContractData) => ({
+                    ...prevContractData,
+                    type: "Femme",
+                  }));
+                }
+                console.log(c);
+                console.log("====================================");
+              }}
               placeholder="Client"
               optionFilterProp="children"
               filterOption={(input, option) =>
@@ -507,6 +520,7 @@ const TableContract = () => {
             <Select
               id="type"
               showSearch
+              disabled={true}
               placeholder="Type"
               value={ContractData.type} // Use ContractData.Type instead of ContractData.type
               className="w-full"
@@ -621,18 +635,26 @@ const TableContract = () => {
               },
             ]}
           />
-          <Button
-            icon={<PlusOutlined />}
-            onClick={handleAddTransaction}
-            style={{ marginTop: "10px" }}
-          >
-            Ajouter une transaction
-          </Button>
+          {ContractData.reste > 0 ? (
+            <Button
+              icon={<PlusOutlined />}
+              onClick={handleAddTransaction}
+              style={{ marginTop: "10px" }}
+            >
+              Ajouter une transaction
+            </Button>
+          ) : (
+            <p style={{ marginTop: "10px", color: "green" }}>
+              Le montant total a été payé. Aucune transaction supplémentaire
+              n'est nécessaire.
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-4 mt-5">
             <div>
               <label htmlFor="resteActuel">Le reste actuel</label>
               <Input
                 id="resteActuel"
+
                 disabled={true}
                 size="middle"
                 placeholder="Le reste actuel"
@@ -657,7 +679,10 @@ const TableContract = () => {
                 key === "description" ||
                 key === "id_admin" ||
                 key === "Mode_reglement" ||
-                key === "montant"
+                key === "montant" ||
+                value === null ||
+                value === undefined ||
+                value === ""
               )
                 return null;
               return (
@@ -665,35 +690,46 @@ const TableContract = () => {
                   <Col span={12}>
                     <strong>{toCapitalize(key.replaceAll("_", " "))}</strong>
                   </Col>
-                  <Col span={12}>{value || "Non spécifié"}</Col>
+                  <Col span={12}>{value}</Col>
                 </Row>
               );
             })}
 
-            <Divider />
-
-            <h3 style={{ marginTop: "16px", marginBottom: "8px" }}>
-              Transactions
-            </h3>
-            <Table
-              columns={[
-                { title: "Montant", dataIndex: "montant", key: "montant" },
-                {
-                  title: "Mode de Règlement",
-                  dataIndex: "Mode_reglement",
-                  key: "Mode_reglement",
-                },
-                {
-                  title: "Description",
-                  dataIndex: "description",
-                  key: "description",
-                  render: (text) => (text),
-                },
-              ]}
-              dataSource={transactions}
-              pagination={false}
-              size="small"
-            />
+            {transactions.filter((t) => t.montant && t.montant !== "").length >
+              0 && (
+              <>
+                <Divider />
+                <h3 style={{ marginTop: "16px", marginBottom: "8px" }}>
+                  Transactions
+                </h3>
+                <Table
+                  columns={[
+                    {
+                      title: "Montant",
+                      dataIndex: "montant",
+                      key: "montant",
+                      render: (text) => `${text} MAD`,
+                    },
+                    {
+                      title: "Mode de Règlement",
+                      dataIndex: "Mode_reglement",
+                      key: "Mode_reglement",
+                    },
+                    {
+                      title: "Description",
+                      dataIndex: "description",
+                      key: "description",
+                      render: (text) => text || "-",
+                    },
+                  ]}
+                  dataSource={transactions.filter(
+                    (t) => t.montant && t.montant !== ""
+                  )}
+                  pagination={false}
+                  size="small"
+                />
+              </>
+            )}
           </Card>
         </div>
       ),

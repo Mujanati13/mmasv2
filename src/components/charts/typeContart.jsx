@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Pie } from "@ant-design/plots";
+import { Column } from "@ant-design/plots";
 
-const TypeContart = () => {
+const TypeContract = () => {
   const [data, setData] = useState([]);
-  const [labels, setLabels] = useState([]);
   const authToken = localStorage.getItem("jwtToken");
 
   useEffect(() => {
@@ -23,8 +22,15 @@ const TypeContart = () => {
         }
 
         const result = await response.json();
-        setData(result.data);
-        setLabels(result.labels);
+        // Combine labels and data, filter out zero values
+        const combinedData = result.labels
+          .map((label, index) => ({
+            type: label,
+            value: result.data[index]
+          }))
+          .filter(item => item.value > 0);
+
+        setData(combinedData);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
@@ -34,64 +40,73 @@ const TypeContart = () => {
   }, []);
 
   const config = {
-    appendPadding: 20,
-    data: data.map((value, index) => ({ value, type: labels[index] })),
-    angleField: 'value',
-    colorField: 'type',
-    radius: 0.9,
-    innerRadius: 0.6,
+    data,
+    xField: 'type',
+    yField: 'value',
     label: {
-      type: 'outer',
-      content: '{name} {percentage}',
+      position: 'middle',
       style: {
-        fontSize: 16,
-        textAlign: 'center',
+        fill: '#FFFFFF',
+        opacity: 0.6,
       },
     },
-    interactions: [
-      {
-        type: 'element-selected',
-      },
-      {
-        type: 'element-active',
-      },
-    ],
-    statistic: {
-      title: {
-        style: {
-          fontSize: '24px',
-          lineHeight: '32px',
-        },
-        content: 'Contract Types',
-      },
-      content: {
-        style: {
-          fontSize: '20px',
-        },
+    xAxis: {
+      label: {
+        autoHide: true,
+        autoRotate: false,
       },
     },
-    legend: {
-      position: 'bottom',
-      itemName: {
-        style: {
-          fontSize: 14,
-        },
+    meta: {
+      type: {
+        alias: 'Contract Type',
+      },
+      value: {
+        alias: 'Number of Contracts',
       },
     },
-    height: 350,
-    width: 350,
+    tooltip: {
+      customContent: (title, items) => {
+        return (
+          <>
+            <h5 style={{ marginTop: 16 }}>{title}</h5>
+            <ul style={{ paddingLeft: 0 }}>
+              {items?.map((item, index) => {
+                const { name, value, color } = item;
+                return (
+                  <li
+                    key={item.name}
+                    style={{
+                      marginBottom: 4,
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        marginRight: 8,
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor: color,
+                      }}
+                    />
+                    {name}: {value} contracts
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        );
+      },
+    },
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',  // This ensures the container takes full viewport height
-    }}>
-      <Pie {...config} />
+    <div style={{ height: '300px', width: '90%' }}>
+      <Column {...config} />
     </div>
   );
 };
 
-export default TypeContart;
+export default TypeContract;

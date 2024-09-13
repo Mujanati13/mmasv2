@@ -191,9 +191,7 @@ const TableTransication = () => {
               <Descriptions.Item className="mt-4" label="Date">
                 {formatDateToYearMonthDay(transaction.date)}
               </Descriptions.Item>
-              <Descriptions.Item label="Type">
-                {transaction.type}
-              </Descriptions.Item>
+
               <Descriptions.Item label="Montant">
                 {transaction.montant}
               </Descriptions.Item>
@@ -204,7 +202,7 @@ const TableTransication = () => {
                 {transaction.description}
               </Descriptions.Item>
               <Descriptions.Item label="Fournisseur">
-                {transaction.societe}
+                <Tag color="green" className="text-normal">{transaction.fournisseur}</Tag>
               </Descriptions.Item>
             </>
           ) : transactionType == "service" ? (
@@ -212,9 +210,7 @@ const TableTransication = () => {
               <Descriptions.Item label="Date">
                 {formatDateToYearMonthDay(transaction.date)}
               </Descriptions.Item>
-              <Descriptions.Item label="Type">
-                {transaction.type}
-              </Descriptions.Item>
+
               <Descriptions.Item label="Montant">
                 {transaction.montant}
               </Descriptions.Item>
@@ -233,9 +229,7 @@ const TableTransication = () => {
               <Descriptions.Item label="Date">
                 {formatDateToYearMonthDay(transaction.date)}
               </Descriptions.Item>
-              <Descriptions.Item label="Type">
-                {transaction.Type ? "Entrée" : "Sortie"}
-              </Descriptions.Item>
+
               <Descriptions.Item label="Montant">
                 {transaction.montant}
               </Descriptions.Item>
@@ -302,7 +296,7 @@ const TableTransication = () => {
 
   const [transactionData, setTransactionData] = useState({
     date: getCurrentDate(),
-    Type: true,
+    Type: transactionType == "depense" ? false : true,
     montant: null,
     Mode_reglement: "",
     description: "",
@@ -402,13 +396,7 @@ const TableTransication = () => {
 
         switch (transactionType) {
           case "service":
-            desiredKeys = [
-              "date",
-              "type",
-              "montant",
-              "mode_reglement",
-              "description",
-            ];
+            desiredKeys = ["date", "montant", "mode_reglement", "description"];
             break;
           case "depense":
             // desiredKeys = ["date", "type", "montant", "mode_reglement", "description", "societe"];
@@ -423,11 +411,6 @@ const TableTransication = () => {
           key,
           render: (text, record) => {
             if (key === "Type" || key === "type") {
-              return transactionType === "service"
-                ? text
-                : text
-                ? "Entrée"
-                : "Sortie";
             } else if (key === "date") {
               return formatDateToYearMonthDay(text);
             }
@@ -639,18 +622,11 @@ const TableTransication = () => {
       let desiredKeys;
       switch (transactionType) {
         case "service":
-          desiredKeys = [
-            "date",
-            "type",
-            "montant",
-            "mode_reglement",
-            "description",
-          ];
+          desiredKeys = ["date", "montant", "mode_reglement", "description"];
           break;
         case "depense":
           desiredKeys = [
             "date",
-            "type",
             "montant",
             "mode_reglement",
             "description",
@@ -1283,7 +1259,7 @@ const TableTransication = () => {
                         ))}
                       </Select>
                     </div>
-                    <div>
+                    {/* <div>
                       <label htmlFor="contrat" className="block font-medium">
                         *Client
                       </label>
@@ -1310,7 +1286,7 @@ const TableTransication = () => {
                           value: cli.id_contrat,
                         }))}
                       />
-                    </div>
+                    </div> */}
                     <div>
                       <label htmlFor="montant" className="block font-medium">
                         Montant
@@ -1412,8 +1388,9 @@ const TableTransication = () => {
                       "Administration" ? (
                         <Select
                           id="selectEntree"
-                          placeholder="Type de service"
+                          placeholder="Type de Transaction"
                           value={transactionData.type}
+                          defaultValue={"Entrée"}
                           className="w-full"
                           onChange={(value, option) => {
                             setTransactionData({
@@ -1424,7 +1401,6 @@ const TableTransication = () => {
                           style={{ width: 200, marginBottom: 10 }}
                         >
                           <Option value="Entrée">Entrée</Option>
-                          <Option value="Sortie">Sortie</Option>
                         </Select>
                       ) : (
                         <Select
@@ -1483,11 +1459,12 @@ const TableTransication = () => {
                         htmlFor="typeDepense"
                         className="block font-medium"
                       >
-                        *Type de Dépense
+                        *Type de Transaction
                       </label>
                       <Select
                         id="typeDepense"
                         value={transactionData.type}
+                        defaultValue={"Sortie"}
                         onChange={(value) =>
                           setTransactionData({
                             ...transactionData,
@@ -1497,30 +1474,33 @@ const TableTransication = () => {
                         placeholder="Type de dépense"
                         className="w-full"
                       >
-                        <Select.Option value="Entrée">Entrée</Select.Option>
                         <Select.Option value="Sortie">Sortie</Select.Option>
                       </Select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="description"
+                        className="block font-medium"
+                      >
+                        Montant
+                      </label>
+                      <Input
+                        type="number"
+                        id="description"
+                        value={transactionData.montant}
+                        onChange={(e) => {
+                          setTransactionData({
+                            ...transactionData,
+                            montant: e.target.value,
+                          });
+                        }}
+                        placeholder="montant"
+                      />
                     </div>
                   </>
                 )}
                 {/* Common fields for all transaction types */}
-                <div>
-                  <label htmlFor="description" className="block font-medium">
-                    Montant
-                  </label>
-                  <Input
-                    type="number"
-                    id="description"
-                    value={transactionData.montant}
-                    onChange={(e) => {
-                      setTransactionData({
-                        ...transactionData,
-                        montant: e.target.value,
-                      });
-                    }}
-                    placeholder="montant"
-                  />
-                </div>
+
                 <div>
                   <label htmlFor="description" className="block font-medium">
                     Description
@@ -1562,7 +1542,7 @@ const TableTransication = () => {
                     }
                     options={[
                       { label: "Chèques", value: "chèques" },
-                      { label: "Espèces", value: "espèces" },
+                      { label: "Espèces", value: "Espèces" },
                       { label: "Prélèvements", value: "prélèvements" },
                       { label: "Autres", value: "autres" },
                     ]}

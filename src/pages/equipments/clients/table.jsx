@@ -14,7 +14,7 @@ import {
   Tooltip,
   Upload,
   DatePicker,
-  Progress
+  Progress,
 } from "antd";
 import {
   SearchOutlined,
@@ -25,7 +25,7 @@ import {
   PlusOutlined,
   DownloadOutlined,
   CloseOutlined,
-  CheckOutlined
+  CheckOutlined,
 } from "@ant-design/icons";
 import {
   addNewTrace,
@@ -1396,7 +1396,7 @@ const TableClient = () => {
                           value={ClientData.date_naissance}
                           onChange={handleDateChange}
                           max={moment()
-                            .subtract(16, "years")
+                            .subtract(10, "years")
                             .format("YYYY-MM-DD")}
                         />
                       </Tooltip>

@@ -54,9 +54,11 @@ const TableReservations = () => {
       id_service: reservation.id_service,
       title: reservation.service + " ",
       start: new Date(
-        reservation.date_presence + "T" + reservation.heure_debut
+        reservation.date_presence.split("T")[0] + "T" + reservation.heure_debut
       ),
-      end: new Date(reservation.date_presence + "T" + reservation.heure_fin),
+      end: new Date(
+        reservation.date_presence.split("T")[0] + "T" + reservation.heure_fin
+      ),
       heure_debut: new Date(
         reservation.date_presence + "T" + reservation.heure_debut
       ),
@@ -128,7 +130,7 @@ const TableReservations = () => {
     type: "Entrée",
     date: getCurrentDate(),
     Type: true,
-    mode_reglement: "",
+    mode_reglement: "Espèces",
     description: "",
     id_admin: localStorage.getItem("data")[0].id_employe,
     client: "",
@@ -267,7 +269,11 @@ const TableReservations = () => {
             "reservation_service"
           );
           fetchAndTransformReservations();
-          setIsisPaymentData({ ...ReservationData, mode_reservation: "admin" , tarif : selectedService.Tarif });
+          setIsisPaymentData({
+            ...ReservationData,
+            mode_reservation: "admin",
+            tarif: selectedService.Tarif,
+          });
           setIsPaymentModalVisible(true);
         } else {
           message.warning(res.msg);
@@ -570,6 +576,13 @@ const TableReservations = () => {
       return updatedData;
     });
   };
+  const calculateMontantApresReduction = () => {
+    const montant = selectedReservation
+      ? selectedReservation.montant
+      : isPaymentData?.tarif || 0;
+    const reduction = transactionData.reduction || 0;
+    return montant - montant * (reduction / 100);
+  };
 
   return (
     <div className="w-full p-2">
@@ -614,7 +627,9 @@ const TableReservations = () => {
               id="montant"
               disabled={true}
               value={
-                selectedReservation && selectedReservation?.montant  + " MAD" || isPaymentData?.tarif   + " MAD"
+                (selectedReservation &&
+                  selectedReservation?.montant + ".00 MAD") ||
+                isPaymentData?.tarif + " MAD"
               }
               onChange={(e) => {
                 setTransactionData({
@@ -670,16 +685,9 @@ const TableReservations = () => {
             </label>
             <Input
               id="montantApresReduction"
-              value={
-                selectedReservation &&
-                selectedReservation.montant -
-                  selectedReservation.montant *
-                    (transactionData.reduction / 100)
-              }
+              value={`${calculateMontantApresReduction().toFixed(2)} MAD`}
               disabled={true}
               readOnly
-              placeholder="Montant après réduction"
-              type="number"
             />
           </div>
           {/* <div className="mt-4 w-full">
@@ -997,15 +1005,21 @@ const TableReservationServicesPage = () => {
 
   const transformReservations = (reservations) => {
     console.log("====================================");
-    console.log(reservations);
+    console.log(
+      Date(reservations[0].date_presence + "T" + reservations[0].heure_fin)
+    );
     console.log("====================================");
     return reservations.map((reservation) => ({
       id: reservation.id_reservation,
       id_seance: reservation.id_seance,
       mode_reservation: reservation.mode_reservation,
       title: `${reservation.cour} - ${reservation.cour}`,
-      start: new Date(reservation.date_presence + "T" + reservation.heur_debut),
-      end: new Date(reservation.date_presence + "T" + reservation.heure_fin),
+      start: new Date(
+        reservation.date_presence.split("T")[0] + "T" + reservation.heur_debut
+      ),
+      end: new Date(
+        reservation.date_presence.split("T")[0] + "T" + reservation.heure_fin
+      ),
       datestart: reservation.heur_debut,
       dateend: reservation.heure_fin,
       coach: reservation.coach,
@@ -1245,6 +1259,9 @@ const TableReservationServicesPage = () => {
     const fetchAndTransformReservations = async () => {
       const reservations = await fetchReservations();
       const transformedEvents = transformReservations(reservations);
+      console.log("====================================");
+      console.log(transformedEvents);
+      console.log("====================================");
       setEvents(transformedEvents);
     };
 

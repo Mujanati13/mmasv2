@@ -60,9 +60,9 @@ const ContratsType = () => {
       <div className="font-medium">Contrats à échéance</div>
       <div className="mt-4 flex justify-center">
         <Segmented
-          default="Bientôt expirés"
-          defaultValue="Bientôt expirés"
-          defaultChecked="Bientôt expirés"
+          default="Expirés"
+          defaultValue="Expirés"
+          defaultChecked="Expirés"
           options={[
             {
               label: "Expirés",
