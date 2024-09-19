@@ -1020,14 +1020,14 @@ const TableFournisseur = () => {
                         id="prenom_client"
                         size="middle"
                         placeholder="Prénom"
-                        value={ClientData.prenom_client}
+                        value={ClientData.prenom}
                         className={
-                          formErrors.prenom_client ? "border-red-500" : ""
+                          formErrors.prenom ? "border-red-500" : ""
                         }
                         onChange={(e) =>
                           setClientData({
                             ...ClientData,
-                            prenom_client: e.target.value,
+                            prenom: e.target.value,
                           })
                         }
                       />

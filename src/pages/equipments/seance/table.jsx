@@ -129,6 +129,8 @@ const TableSeance = () => {
   const [occupiedSessions, setOccupiedSessions] = useState([]);
   const [availableSalles, setAvailableSalles] = useState([]);
   const [availableCoaches, setAvailableCoaches] = useState([]);
+  const [timeError, setTimeError] = useState("");
+
   // State for room related data
   const [ClientData, setClientData] = useState({
     id_cour: null,
@@ -845,7 +847,7 @@ const TableSeance = () => {
 
   useEffect(() => {
     console.log(editingClient);
-    
+
     if (editingClient != undefined) {
       checkAndFetchAvailability2(
         editingClient.jour,
@@ -859,6 +861,49 @@ const TableSeance = () => {
     editingClient?.heure_debut,
     editingClient?.heure_fin,
   ]);
+
+  const validateDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) return true;
+
+    const start = dayjs(startTime, "HH:mm");
+    const end = dayjs(endTime, "HH:mm");
+    const durationInMinutes = end.diff(start, "minute");
+
+    if (durationInMinutes < 15) {
+      setTimeError("La durée de la séance doit être d'au moins 15 minutes.");
+      return false;
+    }
+    if (durationInMinutes > 180) {
+      setTimeError("La durée de la séance ne peut pas dépasser 3 heures.");
+      return false;
+    }
+    setTimeError("");
+    return true;
+  };
+
+  const handleTimeChange = (time, type) => {
+    const updatedClientData = { ...ClientData, [type]: time };
+    setClientData(updatedClientData);
+    validateDuration(
+      updatedClientData.heure_debut,
+      updatedClientData.heure_fin
+    );
+    checkAndFetchAvailability();
+  };
+
+  const handleEditingTimeChange = (time, type) => {
+    const updatedEditingClient = { ...editingClient, [type]: time };
+    setEditingClient(updatedEditingClient);
+    validateDuration(
+      updatedEditingClient.heure_debut,
+      updatedEditingClient.heure_fin
+    );
+
+    if (time !== editingClient[type]) {
+      setIsFormChanged(true);
+      setChangedFields((prev) => [...new Set([...prev, type])]);
+    }
+  };
 
   return (
     <div className="w-full p-2">
@@ -1042,41 +1087,31 @@ const TableSeance = () => {
                       />
                     </div>
                     <div>
-                      <label>heur de début</label>
-                      <div>
-                        <Input
-                          type="time"
-                          className="w-full border bottom-1 border-gray-200 p-1 rounded-md"
-                          value={ClientData.heure_debut}
-                          onChange={(e) => {
-                            const selectedTime = e.target.value;
-                            setClientData({
-                              ...ClientData,
-                              heure_debut: selectedTime,
-                            });
-                            checkAndFetchAvailability();
-                          }}
-                        />
-                      </div>
+                      <label>Heure de début</label>
+                      <Input
+                        type="time"
+                        className="w-full border border-gray-200 p-1 rounded-md"
+                        value={ClientData.heure_debut}
+                        onChange={(e) =>
+                          handleTimeChange(e.target.value, "heure_debut")
+                        }
+                      />
                     </div>
                     <div>
-                      <label>Heur de fine</label>
-                      <div>
-                        <Input
-                          type="time"
-                          className="w-full border bottom-1 border-gray-200 p-1 rounded-md"
-                          value={ClientData.heure_fin}
-                          onChange={(e) => {
-                            const selectedTime = e.target.value;
-                            setClientData({
-                              ...ClientData,
-                              heure_fin: selectedTime,
-                            });
-                            checkAndFetchAvailability();
-                          }}
-                        />
-                      </div>
+                      <label>Heure de fin</label>
+                      <Input
+                        type="time"
+                        className="w-full border border-gray-200 p-1 rounded-md"
+                        value={ClientData.heure_fin}
+                        onChange={(e) =>
+                          handleTimeChange(e.target.value, "heure_fin")
+                        }
+                      />
                     </div>
+                    {timeError && (
+                      <div className="text-red-500">{timeError}</div>
+                    )}
+
                     <div>
                       <label htmlFor="civilite" className="block font-medium">
                         *Salle
@@ -1377,8 +1412,8 @@ const TableSeance = () => {
               onChange={(value, option) => {
                 if (value !== editingClient.jour) {
                   setIsFormChanged(true);
-                  editingClient.salle = ""
-                  editingClient.coach = ""
+                  editingClient.salle = "";
+                  editingClient.coach = "";
 
                   setChangedFields((prev) => [
                     ...new Set([...prev, "jour", "day_name"]),
@@ -1419,8 +1454,8 @@ const TableSeance = () => {
                 onChange={(event) => {
                   if (event.target.value !== editingClient.heure_debut) {
                     setIsFormChanged(true);
-                      editingClient.salle = ""
-                      editingClient.coach = ""  
+                    editingClient.salle = "";
+                    editingClient.coach = "";
                     setChangedFields((prev) => [
                       ...new Set([...prev, "heure_debut"]),
                     ]);
@@ -1447,8 +1482,8 @@ const TableSeance = () => {
                       ...new Set([...prev, "heure_fin"]),
                     ]);
                   }
-                  editingClient.salle = ""
-                  editingClient.coach = ""
+                  editingClient.salle = "";
+                  editingClient.coach = "";
                   setEditingClient({
                     ...editingClient,
                     heure_fin: event.target.value,

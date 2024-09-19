@@ -981,46 +981,46 @@ const TableClient = () => {
         footer={null}
         width={600}
       >
-        <Button
-          onClick={() => {
-            handleOpenContart();
-          }}
-          type="primary"
-        >
-          List des contart
-        </Button>
         {selectedClient && (
-          <Table
-            className="mt-4"
-            columns={[
-              {
-                title: "Champ",
-                dataIndex: "field",
-                key: "field",
-                width: "40%",
-              },
-              { title: "Valeur", dataIndex: "value", key: "value" },
-            ]}
-            dataSource={[
-              { key: "1", field: "Civilité", value: selectedClient.civilite },
-              {
-                key: "2",
-                field: "Nom complet",
-                value: `${selectedClient.nom_client} ${selectedClient.prenom_client}`,
-              },
-              { key: "3", field: "Adresse", value: selectedClient.adresse },
-              { key: "4", field: "Téléphone", value: selectedClient.tel },
-              { key: "5", field: "Mail", value: selectedClient.mail },
-              {
-                key: "9",
-                field: "Date d'inscription",
-                value: selectedClient.date_inscription,
-              },
-            ]}
-            pagination={false}
-            size="small"
-            bordered
-          />
+          <>
+            {getClientContracts( contartData,
+            selectedClient?.id_client).length > 0 && (
+              <Button onClick={handleOpenContart} type="primary">
+                Liste des contrats
+              </Button>
+            )}
+            <Table
+              className="mt-4"
+              columns={[
+                {
+                  title: "Champ",
+                  dataIndex: "field",
+                  key: "field",
+                  width: "40%",
+                },
+                { title: "Valeur", dataIndex: "value", key: "value" },
+              ]}
+              dataSource={[
+                { key: "1", field: "Civilité", value: selectedClient.civilite },
+                {
+                  key: "2",
+                  field: "Nom complet",
+                  value: `${selectedClient.nom_client} ${selectedClient.prenom_client}`,
+                },
+                { key: "3", field: "Adresse", value: selectedClient.adresse },
+                { key: "4", field: "Téléphone", value: selectedClient.tel },
+                { key: "5", field: "Mail", value: selectedClient.mail },
+                {
+                  key: "9",
+                  field: "Date d'inscription",
+                  value: selectedClient.date_inscription,
+                },
+              ]}
+              pagination={false}
+              size="small"
+              bordered
+            />
+          </>
         )}
       </Modal>
 

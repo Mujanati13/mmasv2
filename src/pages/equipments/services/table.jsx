@@ -45,13 +45,13 @@ const TableServices = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [selectedServices, setSelectedServices] = useState(null);
-
+  const [editFileList, setEditFileList] = useState([]);
   // State for service related data
   const [serviceData, setServiceData] = useState({
     service: "",
     Tarif: 0,
     description: "",
-    duree:null,
+    duree: null,
     photo: imagePath,
   });
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -79,52 +79,55 @@ const TableServices = () => {
   };
   const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
 
-  const handleUploadImage = async () => {
-    if (fileList.length === 0) {
+  const handleUploadImage = async (fileListToUse = fileList) => {
+    if (fileListToUse.length === 0) {
       return null;
     }
 
-    const file = fileList[0];
+    const file = fileListToUse[0].originFileObj || fileListToUse[0];
     const formData = new FormData();
-    formData.append("uploadedFile", file.originFileObj);
+    formData.append("uploadedFile", file);
     formData.append("path", "services/");
 
     setIsUploading(true);
     setUploadProgress(0);
 
     try {
-      const xhr = new XMLHttpRequest();
-      xhr.open(
-        "POST",
-        "https://fithouse.pythonanywhere.com/api/saveImage/",
-        true
-      );
+      const response = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open(
+          "POST",
+          "https://fithouse.pythonanywhere.com/api/saveImage/",
+          true
+        );
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          setUploadProgress(percentComplete);
-        }
-      };
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            setUploadProgress(percentComplete);
+          }
+        };
 
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const res = JSON.parse(xhr.responseText);
-          setimagePath(res.path);
-          serviceData.photo = res.path;
-          setIsUploading(false);
-          message.success("Image uploaded successfully");
-          return res.path;
-        } else {
-          throw new Error("Upload failed");
-        }
-      };
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            resolve(xhr.responseText);
+          } else {
+            reject(new Error("Upload failed"));
+          }
+        };
 
-      xhr.onerror = () => {
-        throw new Error("Upload failed");
-      };
+        xhr.onerror = () => {
+          reject(new Error("Upload failed"));
+        };
 
-      xhr.send(formData);
+        xhr.send(formData);
+      });
+
+      const res = JSON.parse(response);
+      setimagePath(res.path);
+      setIsUploading(false);
+      message.success("Image uploaded successfully");
+      return res.path;
     } catch (error) {
       console.error("Error during file upload:", error);
       message.error("File upload failed");
@@ -147,11 +150,18 @@ const TableServices = () => {
         message.warning("Veuillez remplir tous les champs requis");
         return;
       }
-      await handleUploadImage();
+
+      // Upload image first
+      const uploadedImagePath = await handleUploadImage();
+      if (!uploadedImagePath) {
+        message.error("Échec du téléchargement de l'image");
+        return;
+      }
+
       // Update the serviceData with the new image path
       const updatedServiceData = {
         ...serviceData,
-        photo: imagePath,
+        photo: uploadedImagePath,
       };
 
       const response = await fetch(
@@ -164,6 +174,7 @@ const TableServices = () => {
           body: JSON.stringify(updatedServiceData),
         }
       );
+
       if (response.ok) {
         const res = await response.json();
         message.success("Service ajouté avec succès");
@@ -173,13 +184,14 @@ const TableServices = () => {
           Tarif: 0,
           description: "",
           photo: "",
+          duree: null,
         });
         const id_staff = JSON.parse(localStorage.getItem("data"));
         await addNewTrace(
           id_staff[0].id_employe,
           "Ajout",
           getCurrentDate(),
-          `${JSON.stringify(serviceData)}`,
+          `${JSON.stringify(updatedServiceData)}`,
           "service"
         );
         onCloseR();
@@ -191,7 +203,6 @@ const TableServices = () => {
       message.error("Une erreur est survenue:", error);
     }
   };
-
   const showDrawerR = () => {
     setOpen1(true);
   };
@@ -254,6 +265,11 @@ const TableServices = () => {
             key: "description",
           },
           {
+            title: "Durée (Minutes)",
+            dataIndex: "duree",
+            key: "duree",
+          },
+          {
             title: "Actions",
             dataIndex: "actions",
             key: "actions",
@@ -304,22 +320,51 @@ const TableServices = () => {
     },
   };
 
-  // Handle edit button click
-  const handleEditClick = () => {
-    if (selectedRowKeys.length === 1) {
-      const serviceToEdit = data.find(
-        (service) => service.key === selectedRowKeys[0]
-      );
-      setEditingService(serviceToEdit);
-      form.setFieldsValue(serviceToEdit);
-      setIsModalVisible(true);
-    }
-  };
+  // // Handle edit button click
+  // const handleEditClick = () => {
+  //   if (selectedRowKeys.length === 1) {
+  //     const serviceToEdit = data.find(
+  //       (service) => service.key === selectedRowKeys[0]
+  //     );
+  //     setEditingService(serviceToEdit);
+  //     form.setFieldsValue(serviceToEdit);
+  //     setIsModalVisible(true);
+  //   }
+  // };
 
   const handleModalSubmit = async () => {
     try {
       const values = await form.validateFields();
       values.ID_service = editingService.ID_service;
+
+      // Handle photo upload if a new file is selected
+      if (editFileList.length > 0 && editFileList[0].originFileObj) {
+        const uploadedImagePath = await handleUploadImage(editFileList);
+        if (uploadedImagePath) {
+          values.photo = uploadedImagePath;
+        } else {
+          message.error("Failed to upload new image");
+          return;
+        }
+      } else if (editFileList.length > 0 && editFileList[0].url) {
+        // If no new file is uploaded, but there's an existing image, keep the current path
+        values.photo = editFileList[0].url.replace(
+          "https://fithouse.pythonanywhere.com/media/",
+          ""
+        );
+      } else {
+        // If no image is present, set photo to an empty string
+        values.photo = "";
+      }
+
+      // Ensure Tarif is sent as a number
+      values.Tarif = parseFloat(values.Tarif);
+
+      // Ensure duree is sent as a string
+      values.duree = values.duree ? values.duree.toString() : "";
+
+      console.log("Sending data:", values); // Log the data being sent
+
       const response = await fetch(
         `https://fithouse.pythonanywhere.com/api/service/${editingService.ID_service}`,
         {
@@ -335,7 +380,9 @@ const TableServices = () => {
       if (response.ok) {
         const updatedService = await response.json();
         const updatedData = data.map((service) =>
-          service.key === editingService.key ? updatedService : service
+          service.key === editingService.key
+            ? { ...updatedService, key: service.key }
+            : service
         );
         setUpdate(updatedData);
         setData(updatedData);
@@ -345,8 +392,15 @@ const TableServices = () => {
         setEditingService(null);
         setSelectedRowKeys([]);
         form.resetFields();
+        setEditFileList([]);
       } else {
-        message.error("Erreur lors de la mise à jour du service");
+        const errorData = await response.json();
+        console.error("Server response:", errorData);
+        message.error(
+          `Erreur lors de la mise à jour du service: ${JSON.stringify(
+            errorData
+          )}`
+        );
       }
     } catch (error) {
       console.error("Error updating service:", error);
@@ -436,6 +490,45 @@ const TableServices = () => {
     setServiceData({ ...serviceData, Tarif: value });
   };
 
+  const handleEditPreview = async (file) => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj);
+    }
+    setPreviewImage(file.url || file.preview);
+    setPreviewOpen(true);
+    setPreviewTitle(
+      file.name ||
+        (file.url ? file.url.substring(file.url.lastIndexOf("/") + 1) : "")
+    );
+  };
+
+  const handleEditChange = ({ fileList: newFileList }) =>
+    setEditFileList(newFileList);
+
+  // Update the handleEditClick function
+  const handleEditClick = () => {
+    if (selectedRowKeys.length === 1) {
+      const serviceToEdit = data.find(
+        (service) => service.key === selectedRowKeys[0]
+      );
+      setEditingService(serviceToEdit);
+      form.setFieldsValue(serviceToEdit);
+      setEditFileList(
+        serviceToEdit.photo
+          ? [
+              {
+                uid: "-1",
+                name: "current-image.jpg",
+                status: "done",
+                url: `https://fithouse.pythonanywhere.com/media/${serviceToEdit.photo}`,
+              },
+            ]
+          : []
+      );
+      setIsModalVisible(true);
+    }
+  };
+
   return (
     <div className="w-full p-2">
       <Modal
@@ -471,6 +564,11 @@ const TableServices = () => {
                 key: "3",
                 field: "Description",
                 value: selectedServices.description,
+              },
+              {
+                key: "3",
+                field: "Durée",
+                value: selectedServices.duree+" Min",
               },
               {
                 key: "4",
@@ -609,7 +707,7 @@ const TableServices = () => {
                   parser={(value) => value.replace(" MAD", "")}
                 />
               </div>
-              <div className="mt-4">
+              {/* <div className="mt-4">
                 <label htmlFor="description" className="block mb-1">
                   la duree
                 </label>
@@ -620,7 +718,7 @@ const TableServices = () => {
                   onChange={handleInputChange}
                   placeholder="Entrez la duree du service (minutes)"
                 />
-              </div>
+              </div> */}
               <div className="mt-4">
                 <label htmlFor="description" className="block mb-1">
                   Description
@@ -705,12 +803,20 @@ const TableServices = () => {
           <Form.Item name="description" label="Description">
             <Input.TextArea />
           </Form.Item>
-          <Form.Item name="photo" label="Photo">
-            {/* <Image src={"https://fithouse.pythonanywhere.com/media/services/"+} /> */}
-          </Form.Item>
-          {/* <Form.Item name="photo" label="Photo URL">
+          <Form.Item name="duree" label="Duree">
             <Input />
-          </Form.Item> */}
+          </Form.Item>
+          <Form.Item name="photo" label="Photo">
+            <Upload
+              listType="picture-card"
+              fileList={editFileList}
+              onPreview={handleEditPreview}
+              onChange={handleEditChange}
+              beforeUpload={() => false}
+            >
+              {editFileList.length >= 1 ? null : uploadButton}
+            </Upload>
+          </Form.Item>
         </Form>
       </Modal>
     </div>

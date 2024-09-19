@@ -33,6 +33,8 @@ const TableRecord = () => {
   const [form] = Form.useForm();
   const [open1, setOpen1] = useState(false);
   const [add, setAdd] = useState(false);
+  const [operationType, setOperationType] = useState("");
+  const [operationName, setOperationName] = useState("");
   const [isDescriptionModalVisible, setIsDescriptionModalVisible] =
     useState(false);
   const [selectedDescription, setSelectedDescription] = useState(null);
@@ -115,18 +117,18 @@ const TableRecord = () => {
     addClient();
   };
 
-  const showDescriptionModal = (description, type) => {
+  const showDescriptionModal = (description, type, name) => {
     setSelectedDescription(description);
-    setstypeDescription(type);
-    console.log("====================================");
-    console.log(type);
-    console.log("====================================");
+    setOperationType(type);
+    setOperationName(name);
     setIsDescriptionModalVisible(true);
   };
 
   const handleDescriptionModalCancel = () => {
     setIsDescriptionModalVisible(false);
     setSelectedDescription(null);
+    setOperationType("");
+    setOperationName("");
   };
 
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
@@ -152,14 +154,16 @@ const TableRecord = () => {
         }));
         setData(processedData);
         setFilteredData(processedData);
-
+        console.log('====================================');
+        console.log(processedData);
+        console.log('====================================');
         // Generate columns based on the desired keys
         const desiredKeys = [
           "staff",
           "type_operation",
           "date_operation",
-          "description",
           "cible",
+          "description",
           "",
         ];
         const generatedColumns = desiredKeys.map((key) => ({
@@ -347,104 +351,101 @@ const TableRecord = () => {
 
   const transformJsonToTableData = (jsonData) => {
     const parsedData = JSON.parse(jsonData);
+    console.log('====================================');
+    console.log(parsedData);
+    console.log('====================================');
     return Object.entries(parsedData)
-      .filter(([_, value]) => value !== null && typeof value !== 'number')
+      .filter(
+        ([key, value]) =>
+          value !== null &&
+          typeof value !== "number" &&
+          !key.startsWith("id") &&
+          !key.startsWith("user_id")
+      )
       .map(([key, value], index) => ({
         key: index,
         field: key,
-        value: typeof value === "object" ? JSON.stringify(value) : String(value),
+        value:
+          typeof value === "object" ? JSON.stringify(value) : String(value),
       }));
   };
 
   return (
     <div className="w-full p-2">
       <Modal
-        title="Détails de opération"
+        title={`Détails de l'opération: ${operationType}`}
         visible={isDescriptionModalVisible}
         onCancel={handleDescriptionModalCancel}
         footer={null}
         width={800}
       >
-        {selectedDescription &&
-          (stypeDescription == "Ajout" || stypeDescription == "Supprimer" ? (
-            <div>
-              <Table
-                dataSource={transformJsonToTableData(selectedDescription)}
-                pagination={false}
-                size="small"
-                columns={[
-                  {
-                    title: "",
-                    dataIndex: "field",
-                    key: "field",
-                    render: (text) => {
-                      const formattedText = text
-                        .replace(/^id_?/i, "")
-                        .replace(/_/g, " ");
-                      const capitalizedText =
-                        formattedText.charAt(0).toUpperCase() +
-                        formattedText.slice(1);
-                      return (
-                        <span className="font-bold">{capitalizedText}</span>
-                      );
+        {selectedDescription && (
+          <Table
+            dataSource={transformJsonToTableData(selectedDescription)}
+            pagination={{
+              pageSize: 6,
+              showQuickJumper: true,
+            }}
+            size="small"
+            columns={
+              operationType === "Ajout" || operationType === "Supprimer"
+                ? [
+                    {
+                      title: "Champ",
+                      dataIndex: "field",
+                      key: "field",
+                      render: (text) => {
+                        const formattedText = text
+                          .replace(/^id_?/i, "")
+                          .replace(/_/g, " ");
+                        const capitalizedText =
+                          formattedText.charAt(0).toUpperCase() +
+                          formattedText.slice(1);
+                        return (
+                          <span className="font-bold">{capitalizedText}</span>
+                        );
+                      },
                     },
-                  },
-                  {
-                    title: "",
-                    dataIndex: "value",
-                    key: "value",
-                    render: (text) => <span>{text}</span>,
-                  },
-                ]}
-              />
-            </div>
-          ) : (
-            <Table
-              dataSource={JSON.parse(selectedDescription).filter(
-                (item, index, self) =>
-                  index ===
-                  self.findIndex(
-                    (t) =>
-                      t.id_trace === item.id_trace &&
-                      t.name === item.name &&
-                      t.oldValue === item.oldValue &&
-                      t.newValue === item.newValue
-                  )
-              )}
-              pagination={{
-                pageSize: 6,
-                showQuickJumper: true,
-              }}
-              size="small"
-              columns={[
-                {
-                  title: "Champ",
-                  dataIndex: "name",
-                  key: "name",
-                  render: (name) => <span className="font-bold">{name}</span>,
-                },
-                {
-                  title: "Ancienne valeur",
-                  dataIndex: "oldValue",
-                  key: "oldValue",
-                  render: (oldValue) => (
-                    <span className="line-through text-gray-500">
-                      {oldValue}
-                    </span>
-                  ),
-                },
-                {
-                  title: "Nouvelle valeur",
-                  dataIndex: "newValue",
-                  key: "newValue",
-                  render: (newValue) => (
-                    <span className="text-green-500">{newValue}</span>
-                  ),
-                },
-              ]}
-            />
-          ))}
+                    {
+                      title: "Valeur",
+                      dataIndex: "value",
+                      key: "value",
+                      render: (text) => <span>{text}</span>,
+                    },
+                  ]
+                : [
+                    {
+                      title: "Champ",
+                      dataIndex: "field",
+                      key: "field",
+                      render: (name) => (
+                        <span className="font-bold">{name}</span>
+                      ),
+                    },
+                    {
+                      title: "Ancienne valeur",
+                      dataIndex: "oldValue",
+                      key: "oldValue",
+                      render: (oldValue) => (
+                        <span className="line-through text-gray-500">
+                          {oldValue}
+                        </span>
+                      ),
+                    },
+                    {
+                      title: "Nouvelle valeur",
+                      dataIndex: "newValue",
+                      key: "newValue",
+                      render: (newValue) => (
+                        <span className="text-green-500">{newValue}</span>
+                      ),
+                    },
+                  ]
+            }
+          />
+        )}
       </Modal>
+
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           <div className="w-52">

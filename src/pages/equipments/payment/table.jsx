@@ -392,16 +392,7 @@ const TablePayemnt = () => {
                   nom_periode: option.label,
                 }));
               }}
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              filterSort={(optionA, optionB) =>
-                (optionA?.label ?? "")
-                  .toLowerCase()
-                  .localeCompare((optionB?.label ?? "").toLowerCase())
-              }
+             
               options={peried}
             />
           </div>

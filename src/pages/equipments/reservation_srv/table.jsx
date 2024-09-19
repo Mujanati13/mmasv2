@@ -92,7 +92,7 @@ const TableReservations = () => {
     id_service: null,
     date_resrv: getCurrentDate(),
     date_presence: null,
-    heure_debut: null,
+    heure_debut: "08:00",
     heure_fin: null,
     anonymous_client_name: "",
     status: true,
@@ -719,7 +719,7 @@ const TableReservations = () => {
             <Select
               id="modeReglement"
               value={transactionData.mode_reglement}
-              defaultValue={"Espèces"}
+              // defaultValue={"Espèces"}
               showSearch
               placeholder="Mode de règlement"
               className="w-full"
@@ -1149,10 +1149,11 @@ const TableReservationServicesPage = () => {
 
   const fetchSeance = async (id_client, cour_id) => {
     const authToken = localStorage.getItem("jwtToken");
+     
     if (id_client && cour_id) {
       try {
         const response = await fetch(
-          `https://fithouse.pythonanywhere.com/api/seance`,
+          `https://fithouse.pythonanywhere.com/api/seance/?cour_id=${cour_id}&client_id=${id_client}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
