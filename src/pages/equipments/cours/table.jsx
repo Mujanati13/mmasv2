@@ -671,7 +671,7 @@ const TableCours = () => {
               ]}
             >
               <Select placeholder="Select a gene">
-                <Option value="Home">Home</Option>
+                <Option value="Homme">Homme</Option>
                 <Option value="Femme">Femme</Option>
                 <Option value="Mixte">Mixte</Option>
                 <Option value="Junior">Junior</Option>

@@ -1,32 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Line } from '@ant-design/plots';
-import { DatePicker, Spin, Card } from 'antd';
-import moment from 'moment';
-
-const { RangePicker } = DatePicker;
+import { Spin, Card } from 'antd';
 
 const DemoDualAxes = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [dateRange, setDateRange] = useState([
-    moment().subtract(1, 'month'),
-    moment(),
-  ]);
+  const [startDate, setStartDate] = useState(
+    new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0]
+  );
+  const [endDate, setEndDate] = useState(
+    new Date().toISOString().split('T')[0]
+  );
 
   const authToken = localStorage.getItem('jwtToken');
 
   useEffect(() => {
     fetchData();
-  }, [dateRange]);
+  }, [startDate, endDate]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [start, end] = dateRange;
       const response = await fetch(
-        `https://fithouse.pythonanywhere.com/api/reservations/date/course/?start_date=${start.format(
-          'YYYY-MM-DD'
-        )}&end_date=${end.format('YYYY-MM-DD')}`,
+        `https://fithouse.pythonanywhere.com/api/reservations/date/course/?start_date=${startDate}&end_date=${endDate}`,
         {
           headers: {
             Authorization: authToken,
@@ -48,16 +44,22 @@ const DemoDualAxes = () => {
 
   const processData = (jsonData) => {
     return Object.entries(jsonData).flatMap(([date, courses]) => 
-      Object.entries(courses).map(([course, value]) => ({
-        date,
-        course,
-        value
-      }))
+      Object.entries(courses)
+        .filter(([_, value]) => value !== 0)  // Filter out zero values
+        .map(([course, value]) => ({
+          date,
+          course,
+          value
+        }))
     );
   };
 
-  const handleDateRangeChange = (dates) => {
-    setDateRange(dates);
+  const handleStartDateChange = (e) => {
+    setStartDate(e.target.value);
+  };
+
+  const handleEndDateChange = (e) => {
+    setEndDate(e.target.value);
   };
 
   const config = {
@@ -86,12 +88,27 @@ const DemoDualAxes = () => {
   };
 
   return (
-    <Card title="Daily Activity Chart" extra={
-      <RangePicker
-        value={dateRange}
-        onChange={handleDateRangeChange}
-      />
-    }>
+    <Card 
+      title="Daily Activity Chart" 
+      extra={
+        <div>
+          <label htmlFor="start-date">Start Date: </label>
+          <input
+            type="date"
+            id="start-date"
+            value={startDate}
+            onChange={handleStartDateChange}
+          />
+          <label htmlFor="end-date"> End Date: </label>
+          <input
+            type="date"
+            id="end-date"
+            value={endDate}
+            onChange={handleEndDateChange}
+          />
+        </div>
+      }
+    >
       {loading ? (
         <Spin size="large" />
       ) : (

@@ -1558,7 +1558,7 @@ const TableReservationServicesPage = () => {
           </div>
 
           <div className="h-96 overflow-y-auto mt-10">
-            <div>List des clients</div>
+            <div>Liste des clients qu’ont réservé la séance</div>
             <Table
               columns={[
                 {
