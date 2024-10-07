@@ -44,7 +44,7 @@ export default function Login() {
         setIsloading(true);
 
         try {
-            const response = await fetch(Endpoint() + "/api/loginAdmin", {
+            const response = await fetch("https://JyssrMmas.pythonanywhere.com" + "/api/loginAdmin", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
