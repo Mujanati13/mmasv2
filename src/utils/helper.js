@@ -23,6 +23,20 @@ export function getCurrentDate() {
 
   return `${year}-${month}-${day}`;
 }
+export function getTimes(event) {
+  // Create Date objects from ISO strings
+  const startDate = new Date(event.startDate);
+  const endDate = new Date(event.endDate);
+
+  // Format time to HH:MM:SS (24-hour format)
+  const startTime = startDate.toISOString().substr(11, 8); // Extracts 'HH:MM:SS'
+  const endTime = endDate.toISOString().substr(11, 8);     // Same for the end date
+
+  return {
+    startTime,
+    endTime
+  };
+}
 
 export function addMonths(duration) {
   // Get the current date

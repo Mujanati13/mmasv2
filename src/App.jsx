@@ -1,17 +1,14 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Entry from "./pages/Entry";
-import '../src/style/output.css'
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import ForgetPassword from "./pages/ForgetPassword";
-import TryingApp from "./pages/DashBoradPrim";
+import Dashboard from "./pages/dashboard";
+import Login from "./pages/login";
+import ForgetPassword from "./pages/forgetPaw";
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route exact path="/" element={<Entry />} />
-        <Route exact path="/login" element={<Login />} />
+        {/* <Route exact path="/" element={<Entry />} /> */}
+        <Route exact path="/" element={<Login />} />
         <Route exact path="/forget-password" element={<ForgetPassword />} />
         <Route exact path="/dashboard" element={<Dashboard />} />
       </Routes>
