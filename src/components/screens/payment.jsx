@@ -8,7 +8,7 @@ import {
   Drawer,
   Button,
   Modal,
-  ConfigProvider
+  ConfigProvider,
 } from "antd";
 import {
   SearchOutlined,
@@ -23,10 +23,11 @@ import StepLabel from "@mui/material/StepLabel";
 import StepContent from "@mui/material/StepContent";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import { handlePrintPayment } from "../../utils/printable/payment";
 // import { handlePrintPayment } from "../../../utils/printable/payment";
 // import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
-const TablePayemnt = ({darkmode}) => {
+const TablePayemnt = ({ darkmode }) => {
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [Loading, setLoading] = useState(false);
@@ -50,6 +51,8 @@ const TablePayemnt = ({darkmode}) => {
   const [selectedPaymentData, setSelectedPaymentData] = useState(null);
   const [changedFields, setChangedFields] = useState([]);
   const [isFormChanged, setIsFormChanged] = useState(false);
+  const [columnFilterText, setColumnFilterText] = useState("");
+  const [filteredInfo, setFilteredInfo] = useState({});
 
   // State for contract related data
   const [PaymentData, setPaymentData] = useState({
@@ -63,8 +66,7 @@ const TablePayemnt = ({darkmode}) => {
     image: "",
     type: "",
     nom_contrat: "",
-    salaire_final: 0.0,  // Add this line
-
+    salaire_final: 0.0, // Add this line
   });
 
   const handleViewPaymentData = (record) => {
@@ -112,15 +114,15 @@ const TablePayemnt = ({darkmode}) => {
       const Client = contarctClient.filter(
         (client) => client.id_employe === ContractData.id_staff
       );
-      //   handlePrintPayment(
-      //     ContractData.staff,
-      //     Client[0].prenom,
-      //     Client[0].cin,
-      //     ContractData.fonction,
-      //     ContractData.nom_periode,
-      //     ContractData.salaire,
-      //     Client[0].validite_CIN
-      //   );
+      handlePrintPayment(
+        ContractData.staff,
+        Client.prenom,
+        Client.cin,
+        ContractData.fonction,
+        ContractData.nom_periode,
+        ContractData.salaire,
+        Client.validite_CIN
+      );
     });
   };
 
@@ -147,8 +149,10 @@ const TablePayemnt = ({darkmode}) => {
     const updatedPaymentData = {
       ...PaymentData,
       salaire_base: PaymentData.salaire,
-      salaire_final: PaymentData.salaire_final ? PaymentData.salaire_final : parseInt(PaymentData.salaire) + parseInt(PaymentData.prime),
-      id_admin: initialAdminId
+      salaire_final: PaymentData.salaire_final
+        ? PaymentData.salaire_final
+        : parseInt(PaymentData.salaire) + parseInt(PaymentData.prime),
+      id_admin: initialAdminId,
     };
 
     try {
@@ -430,7 +434,6 @@ const TablePayemnt = ({darkmode}) => {
                   nom_periode: option.label,
                 }));
               }}
-
               options={peried}
             />
           </div>
@@ -448,7 +451,8 @@ const TablePayemnt = ({darkmode}) => {
             onChange={(e) =>
               setPaymentData((prevPaymentData) => ({
                 ...prevPaymentData,
-                salaire_final: parseInt(e.target.value) + parseInt(PaymentData.prime),
+                salaire_final:
+                  parseInt(e.target.value) + parseInt(PaymentData.prime),
               }))
             }
           />{" "}
@@ -500,7 +504,9 @@ const TablePayemnt = ({darkmode}) => {
   };
 
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
-
+  const handleChange = (pagination, filters, sorter) => {
+    setFilteredInfo(filters);
+  };
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -509,20 +515,20 @@ const TablePayemnt = ({darkmode}) => {
           "https://JyssrMmas.pythonanywhere.com/api/salaire/",
           {
             headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+              Authorization: `Bearer ${authToken}`,
             },
           }
         );
         const jsonData = await response.json();
+        setLoading(false);
+
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id || index, // Assuming each item has a unique id, otherwise use index
+          key: item.id_contrat || index,
         }));
-        console.log(processedData);
         setData(processedData);
         setFilteredData(processedData);
 
-        // Generate columns based on the desired keys
         const desiredKeys = ["nom_periode", "staff", "fonction", "type"];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(
@@ -535,6 +541,11 @@ const TablePayemnt = ({darkmode}) => {
           ),
           dataIndex: key,
           key,
+          filters: Array.from(
+            new Set(processedData.map((item) => item[key]))
+          ).map((value) => ({ text: value, value })),
+          filteredValue: filteredInfo[key] || null,
+          onFilter: (value, record) => record[key].includes(value),
           render: (text, record) => {
             if (key === "salaire_final") {
               return (
@@ -549,7 +560,6 @@ const TablePayemnt = ({darkmode}) => {
           },
         }));
 
-        // Add a new column for the sum of "salaire" and "prime"
         generatedColumns.push({
           title: "Salaire final",
           key: "salaireEtPrime",
@@ -571,6 +581,7 @@ const TablePayemnt = ({darkmode}) => {
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setLoading(false);
       }
     };
 
@@ -618,7 +629,15 @@ const TablePayemnt = ({darkmode}) => {
     const value = e.target.value.toLowerCase();
     setSearchText(value);
     const filtered = data.filter((item) =>
-      item.client.toLowerCase().includes(value)
+      item.staff.toLowerCase().includes(value)
+    );
+    setFilteredData(filtered);
+  };
+  const handleColumnFilterChange = (e) => {
+    const value = e.target.value.toLowerCase();
+    setColumnFilterText(value);
+    const filtered = data.filter((item) =>
+      item.columnName.toLowerCase().includes(value)
     );
     setFilteredData(filtered);
   };
@@ -630,7 +649,7 @@ const TablePayemnt = ({darkmode}) => {
           const ContractData = data.find((client) => client.key === key);
           console.log(ContractData);
           const response = await fetch(
-            `https://JyssrMmas.pythonanywhere.com/api/salaire//${ContractData.id}`,
+            `https://JyssrMmas.pythonanywhere.com/api/salaire/${ContractData.id}`,
             {
               method: "DELETE",
               headers: {
@@ -706,11 +725,10 @@ const TablePayemnt = ({darkmode}) => {
       <ConfigProvider
         theme={{
           token: {
-            colorPrimary: darkmode ? '#00b96b' : '#1677ff',
-            colorBgBase: darkmode ? '#141414' : '#fff',
-            colorTextBase: darkmode ? '#fff' : '#000',
-            colorBorder: darkmode ? '#fff' : '#d9d9d9', // Set border to white in dark mode
-
+            colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+            colorBgBase: darkmode ? "#141414" : "#fff",
+            colorTextBase: darkmode ? "#fff" : "#000",
+            colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
           },
         }}
       >
@@ -776,11 +794,7 @@ const TablePayemnt = ({darkmode}) => {
 
               ""
             )} */}
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "Administration" ||
-                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
-                selectedRowKeys.length >= 1 ? (
+              {true && selectedRowKeys.length >= 1 ? (
                 <PrinterOutlined onClick={handlePrint} disabled={true} />
               ) : (
                 ""
@@ -794,9 +808,8 @@ const TablePayemnt = ({darkmode}) => {
                 {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                   "prof" ||
                   JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                  "secretaire") && (
-                    ""
-                  )}
+                    "secretaire") &&
+                  ""}
                 <Button
                   type="default"
                   onClick={showDrawerR}
@@ -888,6 +901,7 @@ const TablePayemnt = ({darkmode}) => {
           columns={columns}
           dataSource={filteredData}
           loading={Loading}
+          onChange={handleChange}
         />
       </ConfigProvider>
     </div>

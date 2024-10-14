@@ -136,42 +136,111 @@ export function getTimeFromISOString(isoString) {
 
 export function convertToDateTime(obj) {
   const parseTime = (timeStr) => {
-    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-    return { hours, minutes, seconds };
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    return { hours, minutes };
   };
 
-  const parseDate = (dateStr) => {
-    const [year, month, day] = dateStr.split("-").map(Number);
-    return { year, month: month - 1, day }; // month - 1 because Date month is zero-indexed
+  const getDateOfWeekday = (weekday, weekNumber) => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const januaryFirst = new Date(currentYear, 0, 1);
+    const daysOffset = (weekNumber - 1) * 7 + (weekday - 1);
+    const targetDate = new Date(januaryFirst);
+    targetDate.setDate(januaryFirst.getDate() + daysOffset);
+
+    // Adjust if the calculated date is in the past
+    if (targetDate < now) {
+      targetDate.setFullYear(currentYear + 1);
+    }
+
+    return targetDate;
   };
 
-  const { year, month, day } = parseDate(obj.date_reservation);
+  const getCurrentWeek = () => {
+    const now = new Date();
+    const onejan = new Date(now.getFullYear(), 0, 1);
+    return Math.ceil((((now - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+  };
+
+  const currentWeek = getCurrentWeek();
+  const targetDate = getDateOfWeekday(obj.jour, currentWeek);
   const startTime = parseTime(obj.heure_debut);
   const endTime = parseTime(obj.heure_fin);
 
-  const startDate = new Date(
-    year,
-    month,
-    day,
-    startTime.hours,
-    startTime.minutes,
-    startTime.seconds
-  );
-  const endDate = new Date(
-    year,
-    month,
-    day,
-    endTime.hours,
-    endTime.minutes,
-    endTime.seconds
-  );
+  const startDate = new Date(targetDate);
+  startDate.setHours(startTime.hours, startTime.minutes, 0, 0);
+
+  const endDate = new Date(targetDate);
+  endDate.setHours(endTime.hours, endTime.minutes, 0, 0);
+
+  // Format the dates to the desired string format with milliseconds
+  const formatDate = (date) => {
+    return date.toISOString();
+  };
+
+  // Convert color from "Color(0xff673ab7)" format to hex
+  const convertColor = (colorString) => {
+    const match = colorString.match(/0x([0-9a-fA-F]{6})/);
+    return match ? `#${match[1]}` : "#000000"; // Default to black if no match
+  };
 
   return {
-    ...obj,
-    startDate,
-    endDate,
+    id: obj.id_seance,
+    title: obj.cour,
+    startDate: formatDate(startDate),
+    endDate: formatDate(endDate),
+    color: convertColor(obj.color)
   };
 }
+
+ const adjustDateToCurrentWeek = (date, dayOfWeek) => {
+  const today = new Date();
+  const currentDayOfWeek = today.getDay();
+  const diff = dayOfWeek - currentDayOfWeek;
+  
+  // Clone the date to avoid modifying the original
+  const adjustedDate = new Date(today);
+  
+  // Adjust to the correct day of the week
+  adjustedDate.setDate(today.getDate() + diff);
+  
+  // If the adjusted date is in the past, move it to next week
+  if (adjustedDate < today) {
+    adjustedDate.setDate(adjustedDate.getDate() + 7);
+  }
+  
+  return adjustedDate;
+};
+
+export const parseSeance = (seance) => {
+  const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  
+  // Adjust the date to the current week
+  const adjustedDate = adjustDateToCurrentWeek(new Date(), seance.jour);
+  
+  // Format the adjusted date
+  const year = adjustedDate.getFullYear();
+  const month = adjustedDate.getMonth() + 1; // getMonth() returns 0-11
+  const day = adjustedDate.getDate();
+  
+  // Combine adjusted date with time
+  const startDateTime = new Date(`${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${seance.heure_debut}`);
+  const endDateTime = new Date(`${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${seance.heure_fin}`);
+  
+  return {
+    ...seance,
+    formatted_date: {
+      year,
+      month,
+      day,
+      dayOfWeek: seance.jour,
+      dayName: dayNames[seance.jour],
+    },
+    date_reservation: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
+    startDateTime: startDateTime.toISOString(),
+    endDateTime: endDateTime.toISOString(),
+  };
+};
 
 export function getTimeInHHMM(dateString) {
   const startTime = new Date(dateString);

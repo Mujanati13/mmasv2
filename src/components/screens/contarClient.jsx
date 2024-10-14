@@ -11,6 +11,7 @@ import StepLabel from "@mui/material/StepLabel";
 import StepContent from "@mui/material/StepContent";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import { handlePrintContract } from '../../utils/printable/contract';
 const { Option } = Select;
 
 const TableContract = ({darkmode}) => {
@@ -176,7 +177,7 @@ const TableContract = ({darkmode}) => {
             setTransactionModalVisible(true);
         } catch (error) {
             console.error("Error fetching transactions:", error);
-            message.error("An error occurred while fetching transactions");
+            // message.error("An error occurred while fetching transactions");
         }
     };
 
@@ -1152,10 +1153,7 @@ const TableContract = ({darkmode}) => {
                         </div>
                         <div className="flex items-center space-x-6">
                             {selectedRowKeys.length === 1 ? "" : ""}
-                            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                                "Administration" ||
-                                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                                "secretaire") &&
+                            {(true) &&
                                 selectedRowKeys.length >= 1 ? (
                                 <Popconfirm
                                     title="Supprimer le contact"
@@ -1165,15 +1163,12 @@ const TableContract = ({darkmode}) => {
                                     okText="Yes"
                                     cancelText="No"
                                 >
-                                    <DeleteOutlined className="cursor-pointer" />{" "}
+                                    {selectedRowKeys.length} <DeleteOutlined className="cursor-pointer" />{" "}
                                 </Popconfirm>
                             ) : (
                                 ""
                             )}
-                            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                                "Administration" ||
-                                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                                "secretaire") &&
+                            {(true) &&
                                 selectedRowKeys.length >= 1 ? (
                                 <PrinterOutlined onClick={handlePrint} disabled={true} />
                             ) : (

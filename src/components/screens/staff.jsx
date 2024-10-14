@@ -144,7 +144,7 @@ const TableStaff = ({ darkmode }) => {
                 ClientData.image = res.path;
             } else {
                 const errorResponse = await response.json();
-                message.error(`File upload failed: ${errorResponse.detail}`);
+                // message.error(`File upload failed: ${errorResponse.detail}`);
             }
         } catch (error) {
             console.error("Error during file upload:", error);
@@ -543,6 +543,7 @@ const TableStaff = ({ darkmode }) => {
             if (response.ok) {
                 // ... (update logic remains the same)
                 message.success("Staff mis à jour avec succès");
+                setAdd(Math.random()*1000)
                 setIsModalVisible(false);
                 setEditingClient(null);
                 setSelectedRowKeys([]);
@@ -791,10 +792,7 @@ const TableStaff = ({ darkmode }) => {
                             </Select>
                         </div>
                         <div className="flex items-center space-x-6">
-                            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                                "Administration" ||
-                                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                                "secretaire") &&
+                            {(true) &&
                                 selectedRowKeys.length === 1 ? (
                                 <EditOutlined
                                     className="cursor-pointer"

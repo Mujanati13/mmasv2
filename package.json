@@ -9,7 +9,7 @@
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "tw": "npx tailwindcss -i ./src/style/input.css -o ./src/style/output.css --watch"
+    "tw": "npx tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch"
   },
   "dependencies": {
     "@ant-design/plots": "^2.2.2",

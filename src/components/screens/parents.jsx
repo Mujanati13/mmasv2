@@ -78,18 +78,9 @@ const TableParent = ({ darkmode }) => {
         );
     };
     const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
-    const handleUploadImage = async () => {
-        // Check if there is a file to upload
-        if (fileList.length === 0) {
-            // message.error("No files to upload.");
-            return;
-        }
-
-        const file = fileList[0]; // Only upload the first file
-        console.log(file.originFileObj);
-
+    const handleUploadImage = async (file) => {
         const formData = new FormData();
-        formData.append("uploadedFile", file.originFileObj);
+        formData.append("uploadedFile", file);
         formData.append("path", "parent/");
 
         try {
@@ -97,21 +88,26 @@ const TableParent = ({ darkmode }) => {
                 "https://jyssrmmas.pythonanywhere.com/api/saveImage/",
                 {
                     method: "POST",
-                    body: formData, // Corrected: Pass formData directly as the body
+                    body: formData,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${authToken}`,
+                    },
                 }
             );
 
             if (response.ok) {
                 const res = await response.json();
-                setimagePath(res.path);
-                ClientData.image = res.path;
+                return res.path;
             } else {
                 const errorResponse = await response.json();
                 message.error(`File upload failed: ${errorResponse.detail}`);
+                return null;
             }
         } catch (error) {
             console.error("Error during file upload:", error);
             message.error("File upload failed");
+            return null;
         }
     };
     const uploadButton = (
@@ -214,7 +210,6 @@ const TableParent = ({ darkmode }) => {
         },
     };
 
-    // Handle edit button click
     const handleEditClick = () => {
         if (selectedRowKeys.length === 1) {
             const parentToEdit = data.find(
@@ -223,19 +218,45 @@ const TableParent = ({ darkmode }) => {
             parentToEdit.password = null;
             setEditingParent(parentToEdit);
             form.setFieldsValue(parentToEdit);
+            
+            // Set the fileList with the existing image if it exists
+            if (parentToEdit.image) {
+                setFileList([
+                    {
+                        uid: '-1',
+                        name: 'image.png',
+                        status: 'done',
+                        url: parentToEdit.image,
+                    }
+                ]);
+            } else {
+                setFileList([]);
+            }
+            
             setIsModalVisible(true);
         } else {
             message.warning("Veuillez sélectionner un parent à modifier");
         }
     };
-
+   
     const handleModalSubmit = async () => {
         try {
             const values = await form.validateFields();
-            values.id_parent = editingParent.id_parent
-            if (values.password == "") {
-                values.password = null
+            values.id_parent = editingParent.id_parent;
+            if (values.password === "") {
+                values.password = null;
             }
+            
+            // Handle image upload if there's a new image
+            if (fileList.length > 0 && fileList[0].originFileObj) {
+                const imageUrl = await handleUploadImage(fileList[0].originFileObj);
+                values.image = imageUrl;
+            } else if (fileList.length > 0) {
+                values.image = fileList[0].url;
+            } else {
+                values.image = null; // Set to null if no image is present
+            }
+
             const response = await fetch(
                 `https://jyssrmmas.pythonanywhere.com/api/Parentt//`,
                 {
@@ -261,6 +282,7 @@ const TableParent = ({ darkmode }) => {
                 setEditingParent(null);
                 setSelectedRowKeys([]);
                 form.resetFields();
+                setFileList([]);
             } else {
                 message.error("Erreur lors de la mise à jour du parent");
             }
@@ -303,6 +325,18 @@ const TableParent = ({ darkmode }) => {
                 message.warning("Veuillez remplir tous les champs requis");
                 return;
             }
+    
+            // Handle image upload if there's a new image
+            let imageUrl = null;
+            if (fileList.length > 0 && fileList[0].originFileObj) {
+                imageUrl = await handleUploadImage(fileList[0].originFileObj);
+            }
+    
+            const parentDataToSend = {
+                ...parentData,
+                image: imageUrl || imagePath // Use uploaded image URL or default image path
+            };
+    
             const response = await fetch(
                 "https://jyssrmmas.pythonanywhere.com/api/Parentt/",
                 {
@@ -311,13 +345,14 @@ const TableParent = ({ darkmode }) => {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${authToken}`,
                     },
-                    body: JSON.stringify(parentData),
+                    body: JSON.stringify(parentDataToSend),
                 }
             );
             if (response.ok) {
                 message.success("Parent ajouté avec succès");
                 setAdd(Math.random() * 1000);
                 onCloseR();
+                setFileList([]); // Reset file list after successful submission
             } else {
                 message.error("Erreur lors de l'ajout du parent");
             }
@@ -326,6 +361,7 @@ const TableParent = ({ darkmode }) => {
             message.error("Une erreur s'est produite:", error);
         }
     };
+    
 
     // Enhanced columns with filtering
     const columns = [
@@ -509,6 +545,28 @@ const TableParent = ({ darkmode }) => {
                                     </Select.Option>
                                 ))}
                             </Select>
+                        </Form.Item>
+                        <Form.Item name="statut" label="Statut">
+                            <Select>
+                                <Select.Option value={true}>Actf</Select.Option>
+                                <Select.Option value={false}>Inactif</Select.Option>
+                            </Select>
+                        </Form.Item>
+                        <Form.Item name="image" label="Image">
+                            <Upload
+                                listType="picture-card"
+                                fileList={fileList}
+                                onPreview={handlePreview}
+                                onChange={({ fileList: newFileList }) => setFileList(newFileList)}
+                                beforeUpload={() => false}
+                            >
+                                {fileList.length >= 1 ? null : (
+                                    <div>
+                                        <PlusOutlined />
+                                        <div style={{ marginTop: 8 }}>Upload</div>
+                                    </div>
+                                )}
+                            </Upload>
                         </Form.Item>
                     </Form>
                 </Modal>

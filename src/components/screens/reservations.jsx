@@ -32,6 +32,7 @@ import {
   getDayNameInFrench,
   addNewTrace,
   getTimes,
+  parseSeance,
 } from "../../utils/helper";
 import Paper from "@mui/material/Paper";
 import { ViewState, EditingState } from "@devexpress/dx-react-scheduler";
@@ -55,7 +56,15 @@ const TableReservation = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [changedFields, setChangedFields] = useState([]);
   const [isFormChanged, setIsFormChanged] = useState(false);
-
+  const [filters, setFilters] = useState({
+    cour: [],
+    coach: [],
+    salle: [],
+    jour: [],
+  });
+  const getUniqueColumnValues = (dataIndex) => {
+    return [...new Set(data.map((item) => item[dataIndex]))];
+  };
   const commitChanges = ({ added, changed, deleted }) => {
     setData2((prevData) => {
       let updatedData = prevData;
@@ -167,10 +176,12 @@ const TableReservation = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log(selectedSeance);
+      
       setLoading(true);
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/etudiants/",
+          "https://jyssrmmas.pythonanywhere.com/api/Etudiant_by_resevation_id?id_seance="+selectedSeance.id,
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -185,7 +196,7 @@ const TableReservation = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedSeance]);
 
   const handleReservationClick = (seanceId) => {
     const seance = data2.find((item) => item.id === seanceId);
@@ -315,7 +326,7 @@ const TableReservation = () => {
     ) {
       try {
         const response = await fetch(
-          `https://jyssrmmas.pythonanywhere.com/api/sallesProfnondispo/?jour=${ClientData.jour}&heur_debut=${ClientData.heure_debut}&heur_fin=${ClientData.heure_fin}`,
+          `https://jyssrmmas.pythonanywhere.com/api/sallesdispo/?jour=${ClientData.jour}&heur_debut=${ClientData.heure_debut}&heur_fin=${ClientData.heure_fin}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -401,7 +412,8 @@ const TableReservation = () => {
       const id_staff = JSON.parse(localStorage.getItem("data"));
       // ClientData.id_coach = id_staff[0].id_employe
       console.log("====================================");
-      console.log(ClientData.id_coach);
+      ClientData.id_prof = ClientData.id_coach
+      ClientData.type_seance = "Aide aux devoirs"
       console.log("====================================");
       const response = await fetch(
         "https://jyssrmmas.pythonanywhere.com/api/seance/",
@@ -498,29 +510,26 @@ const TableReservation = () => {
           "https://jyssrmmas.pythonanywhere.com/api/seance/",
           {
             headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+              Authorization: `Bearer ${authToken}`,
             },
           }
         );
         const jsonData = await response.json();
 
-        // Replace "day_name" with "jour" in the jsonData
         const modifiedData = jsonData.data.map((item) => ({
           ...item,
-          Jour: item.day_name, // Create a new "jour" property with the value of "day_name"
-          Cours: item.cour, // Create a new "jour" property with the value of "day_name"
+          Jour: item.day_name,
+          Cours: item.cour,
         }));
 
-        // Ensure each row has a unique key
         const processedData = modifiedData.map((item, index) => ({
           ...item,
-          key: item.id_seance || index, // Assuming each item has a unique id, otherwise use index
+          key: item.id_seance || index,
         }));
 
         setData(processedData);
         setFilteredData(processedData);
 
-        // Generate columns based on the desired keys
         const desiredKeys = [
           "Cours",
           "coach",
@@ -531,23 +540,30 @@ const TableReservation = () => {
           "heure_fin",
           "capacity",
         ];
-        const generatedColumns = desiredKeys.map((key) => ({
-          title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
-          dataIndex: key,
-          key,
-          render: (text, record) => {
-            if (key === "sitewebetablissement") {
-              return (
-                <a href={text} target="_blank" rel="noopener noreferrer">
-                  {text}
-                </a>
-              );
-            } else if (key === "date_inscription") {
-              return <Tag>{text}</Tag>;
-            }
-            return text;
-          },
-        }));
+
+        const generatedColumns = desiredKeys.map((key) => {
+          let column = {
+            title: capitalizeFirstLetter(key.replace(/\_/g, " ")),
+            dataIndex: key,
+            key,
+            render: (text) => text,
+          };
+
+          // Add filters for specific columns
+          if (["Cours", "coach", "salle", "Jour"].includes(key)) {
+            column = {
+              ...column,
+              filters: getUniqueColumnValues(key).map((value) => ({
+                text: value,
+                value,
+              })),
+              onFilter: (value, record) => record[key].indexOf(value) === 0,
+            };
+          }
+
+          return column;
+        });
+
         setColumns(generatedColumns);
         setLoading(false);
       } catch (error) {
@@ -558,6 +574,7 @@ const TableReservation = () => {
 
     fetchData();
   }, [authToken, update, add]);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -574,12 +591,14 @@ const TableReservation = () => {
         );
 
         const data = await response.json();
-        const formattedData = data.data.map((item) => ({
-          id: item.id_seance,
-          title: item.cour,
-          startDate: convertToDateTime(item).startDate,
-          endDate: convertToDateTime(item).endDate,
-        }));
+        const formattedData = data.data.map((item) => {
+          return {
+            id: item.id_seance,
+            title: item.cour,
+            startDate: parseSeance(item).startDateTime,
+            endDate: parseSeance(item).endDateTime,
+          };
+        });
 
         setData2(formattedData);
         console.log(formattedData);
@@ -1051,48 +1070,48 @@ const TableReservation = () => {
 
   return (
     <div className="w-full p-2">
-    <Drawer
-      title="Réserver une séance"
-      placement="right"
-      closable={false}
-      onClose={onClose}
-      visible={isReservationDrawerVisible}
-      width={400}
-    >
-      <Form form={form} layout="vertical">
-        <Form.Item
-          name="client"
-          label="Sélectionner un client"
-          rules={[
-            { required: true, message: "Veuillez sélectionner un client" },
-          ]}
-        >
-          <Select
-            showSearch
-            placeholder="Sélectionner un client"
-            optionFilterProp="children"
-            filterOption={(input, option) =>
-              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
-            onChange={(v)=>{setSelectedClient(v)}}
+      <Drawer
+        title="Réserver une séance"
+        placement="right"
+        closable={false}
+        onClose={onClose}
+        visible={isReservationDrawerVisible}
+        width={400}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="client"
+            label="Sélectionner un client"
+            rules={[
+              { required: true, message: "Veuillez sélectionner un client" },
+            ]}
           >
-            {clients.map((client) => (
-              <Select.Option
-                key={client.id_etudiant}
-                value={client.id_etudiant}
-              >
-                {`${client.nom} ${client.prenom}`}
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item className="flex space-x-2">
-          <Button type="primary" onClick={handleReservationSubmit}>
-            Confirmer la réservation
-          </Button>
-        </Form.Item>
-      </Form>
-    </Drawer>
+            <Select
+              showSearch
+              placeholder="Sélectionner un client"
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              onChange={(v) => { setSelectedClient(v) }}
+            >
+              {clients.map((client) => (
+                <Select.Option
+                  key={client.id_etudiant}
+                  value={client.id_etudiant}
+                >
+                  {`${client.nom} ${client.prenom}`}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item className="flex space-x-2">
+            <Button type="primary" onClick={handleReservationSubmit}>
+              Confirmer la réservation
+            </Button>
+          </Form.Item>
+        </Form>
+      </Drawer>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center space-x-7">
           {display ? (
@@ -1116,11 +1135,7 @@ const TableReservation = () => {
             " "
           )}
           <div className="flex items-center space-x-6">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
-            selectedRowKeys.length === 1 ? (
+            {selectedRowKeys.length === 1 ? (
               <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
@@ -1128,11 +1143,7 @@ const TableReservation = () => {
             ) : (
               ""
             )}
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
-            selectedRowKeys.length >= 1 ? (
+            {selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer la séance"
                 description="Êtes-vous sûr de supprimer cette séance ?"
@@ -1156,21 +1167,13 @@ const TableReservation = () => {
         {/* add new client  */}
         <div>
           <div className="flex items-center space-x-3">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
-            display ? (
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
-              >
-                Ajout seance
-              </Button>
-            ) : (
-              " "
-            )}
+            <Button
+              type="default"
+              onClick={showDrawerR}
+              icon={<UserAddOutlined />}
+            >
+              Ajout seance
+            </Button>
 
             <Segmented
               onChange={(v) => {
@@ -1388,11 +1391,24 @@ const TableReservation = () => {
           columns={columns}
           dataSource={filteredData}
           rowSelection={rowSelection}
+          onChange={(pagination, filters, sorter) => {
+            setFilters(filters);
+            // Apply filters to data
+            let newFilteredData = data;
+            Object.keys(filters).forEach((key) => {
+              if (filters[key] && filters[key].length > 0) {
+                newFilteredData = newFilteredData.filter((item) =>
+                  filters[key].includes(item[key])
+                );
+              }
+            });
+            setFilteredData(newFilteredData);
+          }}
         />
       ) : (
         <div className="mt-5">
           <Paper>
-            <Scheduler data={data2} height={405} locale="fr-FR">
+            <Scheduler data={data2} height={410} locale="fr-FR">
               <ViewState currentDate={currentDate} />
               <EditingState
                 onCommitChanges={commitChanges}

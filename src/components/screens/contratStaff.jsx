@@ -22,6 +22,7 @@ import {
 } from "@ant-design/icons";
 
 import moment from "moment";
+import { handlePrintContractStaff } from "../../utils/printable/contraStaff";
 // import { handlePrintContractStaff } from "../../../utils/printable/contraStaff";
 // import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
@@ -157,10 +158,10 @@ const TableContractStaff = ({ darkmode }) => {
       const Client = contarctClient.find(
         (client) => client.id_employe === ContractData.id_employe
       );
-      //   handlePrintContractStaff(
-      //     Client,
-      //     ContractData
-      //   );
+        handlePrintContractStaff(
+          Client,
+          ContractData
+        );
     });
   };
 
@@ -487,7 +488,7 @@ const TableContractStaff = ({ darkmode }) => {
         setFilteredData(updatedData);
         setSelectedRowKeys([]);
         message.success(
-          `${selectedRowKeys.length} client(s) supprimé(s) avec succès`
+          `${selectedRowKeys.length} contact(s) supprimé(s) avec succès`
         );
       } catch (error) {
         console.error("Error deleting clients:", error);
@@ -544,10 +545,7 @@ const TableContractStaff = ({ darkmode }) => {
               />
             </div>
             <div className="flex items-center space-x-6">
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "Administration" ||
-                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
+              {(true) &&
                 selectedRowKeys.length >= 1 ? (
                 <Popconfirm
                   title="Supprimer le contact"
@@ -557,15 +555,12 @@ const TableContractStaff = ({ darkmode }) => {
                   okText="Yes"
                   cancelText="No"
                 >
-                  <DeleteOutlined className="cursor-pointer" />{" "}
+                  {selectedRowKeys.length} <DeleteOutlined className="cursor-pointer" />{" "}
                 </Popconfirm>
               ) : (
                 ""
               )}
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "Administration" ||
-                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
+              {(true) &&
                 selectedRowKeys.length == 1 ? (
                 <PrinterOutlined onClick={handlePrint} disabled={true} />
               ) : (

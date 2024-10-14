@@ -3,7 +3,7 @@ import { UserOutlined, KeyOutlined } from "@ant-design/icons";
 import { Button, Input, message } from "antd";
 import { Endpoint } from "../utils/endpoint";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png"; // Import the image using ES6 import
+import logo  from "../../src/assets/logo.png"
 
 export default function Login() {
     const navigate = useNavigate();
@@ -44,7 +44,7 @@ export default function Login() {
         setIsloading(true);
 
         try {
-            const response = await fetch(Endpoint() + "/api/loginAdmin", {
+            const response = await fetch("https://JyssrMmas.pythonanywhere.com" + "/api/loginAdmin", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -84,9 +84,7 @@ export default function Login() {
                 <img
                     height={100}
                     width={100}
-                    className=""
-                    src={"../assets/logo.png"}
-                    alt="logo sportx"
+                    src={"../../src/assets/logo.png"}
                 />
             </div>
             <div className="w-80 h-60 m-auto mt-1 flex flex-col justify-center items-center space-y-5">

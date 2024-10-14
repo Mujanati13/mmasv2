@@ -355,10 +355,7 @@ const TablePeriod = ({darkmode}) => {
               />
             </div>
             <div className="flex items-center space-x-6">
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "Administration" ||
-                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") &&
+              {(true) &&
                 selectedRowKeys.length >= 1 ? (
                 <Popconfirm
                   title="Supprimer la période"
@@ -368,7 +365,7 @@ const TablePeriod = ({darkmode}) => {
                   okText="Yes"
                   cancelText="No"
                 >
-                  <DeleteOutlined className="cursor-pointer" />{" "}
+                  {selectedRowKeys.length} <DeleteOutlined className="cursor-pointer" />{" "}
                 </Popconfirm>
               ) : (
                 ""
