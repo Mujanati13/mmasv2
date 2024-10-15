@@ -118,39 +118,40 @@ const TableStaff = ({ darkmode }) => {
     const handleUploadImage = async () => {
         // Check if there is a file to upload
         if (fileList.length === 0) {
-            // message.error("No files to upload.");
-            return;
+          // message.error("No files to upload.");
+          return;
         }
-
+    
         const file = fileList[0]; // Only upload the first file
         console.log(file.originFileObj);
-
+    
         const formData = new FormData();
         formData.append("uploadedFile", file.originFileObj);
         formData.append("path", "staff/");
-
+    
         try {
-            const response = await fetch(
-                "https://JyssrMmas.pythonanywhere.com/api/saveImage/",
-                {
-                    method: "POST",
-                    body: formData, // Corrected: Pass formData directly as the body
-                }
-            );
-
-            if (response.ok) {
-                const res = await response.json();
-                setimagePath(res.path);
-                ClientData.image = res.path;
-            } else {
-                const errorResponse = await response.json();
-                // message.error(`File upload failed: ${errorResponse.detail}`);
+          const response = await fetch(
+            "https://jyssrmmas.pythonanywhere.com/api/saveImage/",
+            {
+              method: "POST",
+              body: formData, // Corrected: Pass formData directly as the body
             }
+          );
+    
+          if (response.ok) {
+            const res = await response.json();
+            setimagePath(res.path);
+            ClientData.image = res.path;
+            return res.path;
+          } else {
+            const errorResponse = await response.json();
+            // message.error(`File upload failed: ${errorResponse.detail}`);
+          }
         } catch (error) {
-            console.error("Error during file upload:", error);
-            message.error("File upload failed");
+          console.error("Error during file upload:", error);
+          //   message.error("File upload failed");
         }
-    };
+      };
     const uploadButton = (
         <div>
             <PlusOutlined />
@@ -1267,10 +1268,10 @@ const TableStaff = ({ darkmode }) => {
                                                             value: "Prof",
                                                             label: "Prof",
                                                         },
-                                                        //   {
-                                                        //     value: "secretaire",
-                                                        //     label: "secretaire",
-                                                        //   },
+                                                          {
+                                                            value: "staff",
+                                                            label: "staff",
+                                                          },
                                                         // {
                                                         //   value: "autres",
                                                         //   label: "autres",

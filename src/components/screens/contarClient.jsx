@@ -1153,7 +1153,8 @@ const TableContract = ({darkmode}) => {
                         </div>
                         <div className="flex items-center space-x-6">
                             {selectedRowKeys.length === 1 ? "" : ""}
-                            {(true) &&
+                            {/* security isseu */}
+                            {/* {(true) &&
                                 selectedRowKeys.length >= 1 ? (
                                 <Popconfirm
                                     title="Supprimer le contact"
@@ -1167,7 +1168,7 @@ const TableContract = ({darkmode}) => {
                                 </Popconfirm>
                             ) : (
                                 ""
-                            )}
+                            )} */}
                             {(true) &&
                                 selectedRowKeys.length >= 1 ? (
                                 <PrinterOutlined onClick={handlePrint} disabled={true} />

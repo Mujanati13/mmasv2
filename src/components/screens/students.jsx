@@ -43,6 +43,7 @@ const TableStudent = ({ darkmode }) => {
   const [classes, setClasses] = useState([]);
   const [imagePath, setimagePath] = useState("/student/avatar.png");
   const [filters, setFilters] = useState({});
+  const [imageUrl, setImageUrl] = useState("");
   const [studentData, setStudentData] = useState({
     civilite: "",
     nom: "",
@@ -112,13 +113,14 @@ const TableStudent = ({ darkmode }) => {
         const res = await response.json();
         setimagePath(res.path);
         ClientData.image = res.path;
+        return res.path;
       } else {
         const errorResponse = await response.json();
-        message.error(`File upload failed: ${errorResponse.detail}`);
+        // message.error(`File upload failed: ${errorResponse.detail}`);
       }
     } catch (error) {
       console.error("Error during file upload:", error);
-      message.error("File upload failed");
+      //   message.error("File upload failed");
     }
   };
   const uploadButton = (
@@ -303,6 +305,9 @@ const TableStudent = ({ darkmode }) => {
       );
       studentToEdit.password = null;
       setEditingStudent(studentToEdit);
+      setImageUrl(
+        "https://jyssrmmas.pythonanywhere.com/media/" + studentToEdit.image
+      );
       form.setFieldsValue({
         ...studentToEdit,
         date_naissance: moment(studentToEdit.date_naissance),
@@ -314,7 +319,6 @@ const TableStudent = ({ darkmode }) => {
       message.warning("Veuillez sélectionner un étudiant à modifier");
     }
   };
-
   const handleModalSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -328,6 +332,15 @@ const TableStudent = ({ darkmode }) => {
       values.date_inscription = moment(values.date_inscription).format(
         "YYYY-MM-DD"
       );
+
+      if (true) {
+        console.log('====================================');
+        console.log(imagePath);
+        console.log('====================================');
+        const imagePaths = await handleUploadImage();
+        values.image = imagePath;
+      }
+
       const response = await fetch(
         `https://jyssrmmas.pythonanywhere.com/api/etudiants/`,
         {
@@ -354,6 +367,7 @@ const TableStudent = ({ darkmode }) => {
         setEditingStudent(null);
         setSelectedRowKeys([]);
         form.resetFields();
+        setFileList([]);
       } else {
         message.error("Erreur lors de la mise à jour de l'étudiant");
       }
@@ -362,6 +376,18 @@ const TableStudent = ({ darkmode }) => {
       message.error(
         "Une erreur s'est produite lors de la mise à jour de l'étudiant"
       );
+    }
+  };
+  const handleImageChange = async (info) => {
+    const { status } = info.file;
+    if (status === "done") {
+      const imageUrl = await handleUploadImage(info.file.originFileObj);
+      if (imageUrl) {
+        setImageUrl(imageUrl);
+        message.success(`${info.file.name} file uploaded successfully.`);
+      }
+    } else if (status === "error") {
+      message.error(`${info.file.name} file upload failed.`);
     }
   };
 
@@ -411,6 +437,23 @@ const TableStudent = ({ darkmode }) => {
         message.warning("Veuillez remplir tous les champs requis");
         return;
       }
+
+      // Upload image first
+      const imagePaths = await handleUploadImage();
+      if (!imagePath) {
+        console.log("====================================");
+        console.log(imagePath);
+        console.log("====================================");
+        message.error("Erreur lors de l'upload de l'image");
+        return;
+      }
+
+      // Update studentData with the new image path
+      const updatedStudentData = {
+        ...studentData,
+        image: imagePath,
+      };
+
       const response = await fetch(
         "https://jyssrmmas.pythonanywhere.com/api/etudiants/",
         {
@@ -419,19 +462,21 @@ const TableStudent = ({ darkmode }) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify(studentData),
+          body: JSON.stringify(updatedStudentData),
         }
       );
+
       if (response.ok) {
         message.success("Étudiant ajouté avec succès");
         setAdd(Math.random() * 1000);
+        setimagePath("/student/avatar.png");
         onCloseR();
       } else {
         message.error("Erreur lors de l'ajout de l'étudiant");
       }
     } catch (error) {
-      console.log(error);
-      message.error("Une erreur s'est produite:", error);
+      console.error("Une erreur s'est produite:", error);
+      message.error("Une erreur s'est produite lors de l'ajout de l'étudiant");
     }
   };
 
@@ -439,6 +484,33 @@ const TableStudent = ({ darkmode }) => {
     setSortedInfo(sorter);
     setFilters(filters);
   };
+
+  // const handleUploadImage = async (file) => {
+  //   const formData = new FormData();
+  //   formData.append("uploadedFile", file);
+  //   formData.append("path", "student/");
+
+  //   try {
+  //     const response = await fetch(
+  //       "https://jyssrmmas.pythonanywhere.com/api/saveImage/",
+  //       {
+  //         method: "POST",
+  //         body: formData,
+  //       }
+  //     );
+
+  //     if (response.ok) {
+  //       const res = await response.json();
+  //       return `https://jyssrmmas.pythonanywhere.com/media/${res.path}`;
+  //     } else {
+  //       const errorResponse = await response.json();
+  //       message.error(`File upload failed: ${errorResponse.detail}`);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during file upload:", error);
+  //     message.error("File upload failed");
+  //   }
+  // };
 
   return (
     <div className="w-full p-2">
@@ -555,6 +627,26 @@ const TableStudent = ({ darkmode }) => {
                   </Select.Option>
                 ))}
               </Select>
+            </Form.Item>
+            <Form.Item label="Image">
+              <Upload
+                listType="picture-card"
+                fileList={fileList}
+                onPreview={handlePreview}
+                onChange={handleChange}
+                beforeUpload={() => false}
+              >
+                {imageUrl && fileList.length == 0 ? (
+                  <img src={imageUrl} alt="avatar" style={{ width: '100%' }} />
+                ) : (
+                  fileList.length >= 1 ? null : (
+                    <div>
+                      <PlusOutlined />
+                      <div style={{ marginTop: 8 }}>Upload</div>
+                    </div>
+                  )
+                )}
+              </Upload>
             </Form.Item>
           </Form>
         </Modal>

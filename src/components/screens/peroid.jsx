@@ -355,7 +355,8 @@ const TablePeriod = ({darkmode}) => {
               />
             </div>
             <div className="flex items-center space-x-6">
-              {(true) &&
+              {/* \waiting for added controlle */}
+              {/* {(true) &&
                 selectedRowKeys.length >= 1 ? (
                 <Popconfirm
                   title="Supprimer la période"
@@ -369,7 +370,7 @@ const TablePeriod = ({darkmode}) => {
                 </Popconfirm>
               ) : (
                 ""
-              )}
+              )} */}
             </div>
           </div>
           {/* add new client  */}
