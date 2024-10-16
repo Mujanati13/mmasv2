@@ -53,6 +53,7 @@ import DashboardInterface from "../components/screens/dashboard";
 import TableSalle from "../components/screens/salle";
 import TableCours from "../components/screens/cours";
 import TableTransication from "../components/screens/transactions";
+import logo  from "../../src/assets/logo.png"
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -283,7 +284,7 @@ const Dashboard = () => {
           <img
             style={{ margin: "14px 20px" }}
             width={140}
-            src="./src/assets/logo.png"
+            src={logo}
             alt="Logo"
           />
         )}
