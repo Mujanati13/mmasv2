@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { UserOutlined, KeyOutlined } from "@ant-design/icons";
 import { Button, Input, message } from "antd";
-import { Endpoint } from "../utils/endpoint";
 import { Link, useNavigate } from "react-router-dom";
 import logo  from "../../src/assets/logo.png"
 
