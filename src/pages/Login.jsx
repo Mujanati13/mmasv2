@@ -83,7 +83,7 @@ export default function Login() {
                 <img
                     height={100}
                     width={100}
-                    src={"../../src/assets/logo.png"}
+                    src={logo}
                 />
             </div>
             <div className="w-80 h-60 m-auto mt-1 flex flex-col justify-center items-center space-y-5">
