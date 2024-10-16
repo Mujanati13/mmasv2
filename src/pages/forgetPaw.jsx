@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { UserOutlined, KeyOutlined } from "@ant-design/icons";
 import { Button, Input, Watermark, message } from "antd";
-import { Endpoint } from "../../src/utils/endpoint";
 import logo from "../assets/logo.png"; // Import the image using ES6 import
 import { Link, useNavigate } from "react-router-dom";
 
@@ -40,7 +39,7 @@ export default function ForgetPassword() {
     setIsloading(true);
 
     try {
-      const response = await fetch(Endpoint() + "/api/loginAdmin", {
+      const response = await fetch("https://JyssrMmas.pythonanywhere.com" + "/api/loginAdmin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
