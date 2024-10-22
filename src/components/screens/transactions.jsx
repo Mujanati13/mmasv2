@@ -15,6 +15,7 @@ import {
   Segmented,
   Checkbox,
   DatePicker,
+  ConfigProvider
 } from "antd";
 import {
   SearchOutlined,
@@ -33,7 +34,7 @@ import * as XLSX from "xlsx";
 // import { printFacteur } from "../../../utils/printable/facteur";
 // import { handlePrintPayment } from "../../../utils/printable/payment";
 
-const TableTransication = () => {
+const TableTransication = ({darkmode}) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -892,6 +893,17 @@ const TableTransication = () => {
   };
 
   return (
+    <ConfigProvider
+    theme={{
+        token: {
+            colorPrimary: darkmode ? '#00b96b' : '#1677ff',
+            colorBgBase: darkmode ? '#141414' : '#fff',
+            colorTextBase: darkmode ? '#fff' : '#000',
+            colorBorder: darkmode ? '#fff' : '#d9d9d9', // Set border to white in dark mode
+
+        },
+    }}
+>
     <div className="w-full p-2">
       <Modal
         title="Export Transactions"
@@ -1502,6 +1514,7 @@ const TableTransication = () => {
         }}
       />
     </div>
+    </ConfigProvider>
   );
 };
 

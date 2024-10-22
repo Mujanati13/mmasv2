@@ -863,7 +863,7 @@ const TableContract = ({darkmode}) => {
                     }
                     const id_staff = JSON.parse(localStorage.getItem("data"));
                     const res = await addNewTrace(
-                        id_staff[0].id_employe,
+                        id_staff[0].id_admin,
                         "Supprimer",
                         getCurrentDate(),
                         `${JSON.stringify(ContractData)}`,

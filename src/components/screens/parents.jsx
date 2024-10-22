@@ -21,6 +21,7 @@ import {
   EditOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
+import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
 const TableParent = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -289,6 +290,14 @@ const TableParent = ({ darkmode }) => {
         setIsModalVisible(false);
         setEditingParent(null);
         setSelectedRowKeys([]);
+        const id_staff = JSON.parse(localStorage.getItem("data"));
+        const res = await addNewTrace(
+          id_staff[0].id_admin,
+          "Modification",
+          getCurrentDate(),
+          `${JSON.stringify(values)}`,
+          "parent"
+        );
         setimagePath("client/avatar.png");
         form.resetFields();
         setFileList([]);
@@ -368,6 +377,14 @@ const TableParent = ({ darkmode }) => {
         message.success("Parent ajouté avec succès");
         setAdd(Math.random() * 1000);
         onCloseR();
+        const id_staff = JSON.parse(localStorage.getItem("data"));
+        const res = await addNewTrace(
+          id_staff[0].id_admin,
+          "Ajout",
+          getCurrentDate(),
+          `${JSON.stringify(parentDataToSend)}`,
+          "parent"
+        );
         setFileList([]); // Reset file list after successful submission
       } else {
         message.error("Erreur lors de l'ajout du parent");

@@ -13,6 +13,7 @@ import {
   Space,
   Card,
   Segmented,
+  ConfigProvider
 } from "antd";
 import {
   SearchOutlined,
@@ -47,7 +48,7 @@ import {
 } from "@devexpress/dx-react-scheduler-material-ui";
 import dayjs from "dayjs";
 
-const TableReservation = () => {
+const TableReservation = ({darkmode}) => {
   const [data2, setData2] = useState([]);
   const [currentDate] = useState(getCurrentDate());
   const [addedAppointment, setAddedAppointment] = useState({});
@@ -1069,6 +1070,17 @@ const TableReservation = () => {
 
 
   return (
+    <ConfigProvider
+    theme={{
+        token: {
+            colorPrimary: darkmode ? '#00b96b' : '#1677ff',
+            colorBgBase: darkmode ? '#141414' : '#fff',
+            colorTextBase: darkmode ? '#fff' : '#000',
+            colorBorder: darkmode ? '#fff' : '#d9d9d9', // Set border to white in dark mode
+
+        },
+    }}
+>
     <div className="w-full p-2">
       <Drawer
         title="Réserver une séance"
@@ -1717,6 +1729,7 @@ const TableReservation = () => {
         </div>
       </Modal>
     </div>
+    </ConfigProvider>
   );
 };
 

@@ -18,6 +18,7 @@ import {
   UserAddOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
+import { getCurrentDate, addNewTrace } from "../../utils/helper";
 // import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
 const TablePeriod = ({darkmode}) => {
@@ -81,13 +82,13 @@ const TablePeriod = ({darkmode}) => {
             PeriodeSalaire: "",
           });
           const id_staff = JSON.parse(localStorage.getItem("data"));
-          //   const res = await addNewTrace(
-          //     id_staff[0].id_employe,
-          //     "Ajout",
-          //     getCurrentDate(),
-          //     `${JSON.stringify(ClientData)}`,
-          //     "période"
-          //   );
+            const res = await addNewTrace(
+              id_staff[0].id_admin,
+              "Ajout",
+              getCurrentDate(),
+              `${JSON.stringify(ClientData)}`,
+              "période"
+            );
           onCloseR();
         } else {
           message.warning("Deja un Période créer avec cette attribut");

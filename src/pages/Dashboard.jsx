@@ -22,7 +22,7 @@ import {
   DollarOutlined,
   FileProtectOutlined,
   LogoutOutlined,
-  BookOutlined
+  BookOutlined,
 } from "@ant-design/icons";
 import {
   Layout,
@@ -53,6 +53,7 @@ import DashboardInterface from "../components/screens/dashboard";
 import TableSalle from "../components/screens/salle";
 import TableCours from "../components/screens/cours";
 import TableTransication from "../components/screens/transactions";
+import TableReservationCoachs from "../components/screens/presense";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -122,10 +123,19 @@ const Dashboard = () => {
           icon: <ScheduleOutlined />,
           label: "Reservation",
         },
-        { key: "interface_seance", icon: <SolutionOutlined />, label: "Seance" },
-        { key: "presence", icon: <TeamOutlined />, label: "Présence" },
+        {
+          key: "interface_seance",
+          icon: <SolutionOutlined />,
+          label: "Seance",
+        },
+        {
+          key: "interface_presence",
+          icon: <TeamOutlined />,
+          label: "Présence",
+        },
         { key: "interface_cours", icon: <ReadOutlined />, label: "Cours" },
-        { key: "interface_classes", icon: <BookOutlined />, label: "Classes" }      ],
+        { key: "interface_classes", icon: <BookOutlined />, label: "Classes" },
+      ],
     },
     {
       key: "gestionEtudiants",
@@ -190,19 +200,19 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (selectedMenu) {
       case "interface_etablissement":
-        return <TableEtablissement />;
+        return <TableEtablissement darkmode={isDarkMode} />;
       case "interface_dashboard":
-        return <DashboardInterface />;
+        return <DashboardInterface darkmode={isDarkMode} />;
       case "interface_notification":
-        return <TableNotification />;
+        return <TableNotification darkmode={isDarkMode} />;
       case "interface_transaction":
-        return <TableTransication />;
+        return <TableTransication darkmode={isDarkMode} />;
       case "interface_salle":
-        return <TableSalle />;
+        return <TableSalle darkmode={isDarkMode} />;
       case "interface_abonnement":
-        return <TableAbonnement />;
+        return <TableAbonnement darkmode={isDarkMode} />;
       case "interface_reservation":
-        return <TableReservation />;
+        return <TableReservation darkmode={isDarkMode} />;
       case "interface_seance":
         return (
           <Card title="Sessions" bordered={false}>
@@ -210,15 +220,11 @@ const Dashboard = () => {
           </Card>
         );
       case "interface_presence":
-        return (
-          <Card title="Attendance" bordered={false}>
-            <p>Track and manage student attendance here.</p>
-          </Card>
-        );
+        return <TableReservationCoachs darkmode={isDarkMode} />;
       case "interface_cours":
-        return <TableCours />;
+        return <TableCours darkmode={isDarkMode} />;
       case "interface_classes":
-        return <TableClasse />;
+        return <TableClasse darkmode={isDarkMode} />;
       case "interface_Etudiants":
         return <TableStudent darkmode={isDarkMode} />;
       case "interface_Parents":

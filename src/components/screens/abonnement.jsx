@@ -13,6 +13,7 @@ import {
   Space,
   Tooltip,
   Divider,
+  ConfigProvider
 } from "antd";
 import {
   SearchOutlined,
@@ -25,7 +26,7 @@ import {
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
-const TableAbonnement = () => {
+const TableAbonnement = ({darkmode}) => {
   const [data1, setData1] = useState([]);
   const [data, setData] = useState([]);
   const [filteredData1, setFilteredData1] = useState([]);
@@ -717,6 +718,17 @@ const TableAbonnement = () => {
   };
 
   return (
+    <ConfigProvider
+    theme={{
+        token: {
+            colorPrimary: darkmode ? '#00b96b' : '#1677ff',
+            colorBgBase: darkmode ? '#141414' : '#fff',
+            colorTextBase: darkmode ? '#fff' : '#000',
+            colorBorder: darkmode ? '#fff' : '#d9d9d9', // Set border to white in dark mode
+
+        },
+    }}
+>
     <div className="w-full p-2">
       <AbonnementDetailsModal
         visible={showAbonnementModal}
@@ -1189,6 +1201,7 @@ const TableAbonnement = () => {
         </div>
       </Modal>
     </div>
+    </ConfigProvider>
   );
 };
 

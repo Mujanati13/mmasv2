@@ -73,7 +73,7 @@ const StudentGradeDistribution = () => {
 
     return (
         <div className='w-full h-96 bg-white pt-5 pb-0'>
-            <h2 className='font-medium' style={{ textAlign: 'center', marginBottom: '0px' }}>Etudiant par neveau</h2>
+            <h2 className='font-medium' style={{ textAlign: 'center', marginBottom: '0px' }}>Etudiants par niveau</h2>
             <div style={{height:"22rem"}} className='h-80'>
             <Column {...config} />
 

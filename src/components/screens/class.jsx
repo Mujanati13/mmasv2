@@ -13,6 +13,7 @@ import {
   Space,
   Tooltip,
   Divider,
+  ConfigProvider,
 } from "antd";
 import {
   SearchOutlined,
@@ -25,7 +26,7 @@ import {
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
-const TableClasse = () => {
+const TableClasse = ({darkmode}) => {
   const [data1, setData1] = useState([]);
   const [data, setData] = useState([]);
   const [filteredData1, setFilteredData1] = useState([]);
@@ -65,7 +66,6 @@ const TableClasse = () => {
   });
 
   const [CategoireData, setCategoireData] = useState({
-   
     niveau: "",
   });
 
@@ -136,10 +136,8 @@ const TableClasse = () => {
 
   // Validation function to check if all required fields are filled for the room form
   const isRoomFormValid = () => {
-    const { groupe, niveau } =
-      ClientData;
-    if ((groupe, niveau))
-      return true;
+    const { groupe, niveau } = ClientData;
+    if ((groupe, niveau)) return true;
     else false;
   };
 
@@ -168,7 +166,7 @@ const TableClasse = () => {
               groupe: null,
               id_niveau: null,
             });
-          
+
             onCloseR();
           } else {
             message.warning(res.msg);
@@ -188,7 +186,6 @@ const TableClasse = () => {
   };
 
   const addCtegeries = async () => {
-   
     try {
       const response = await fetch(
         "https://JyssrMMAS.pythonanywhere.com/api/niveau/",
@@ -286,11 +283,7 @@ const TableClasse = () => {
         setFilteredData(processedData);
 
         // Generate columns based on the desired keys
-        const desiredKeys = [
-          "groupe",
-          "niveau",
-         
-        ];
+        const desiredKeys = ["groupe", "niveau"];
 
         const generatedColumns = desiredKeys.map((key) => ({
           title: getColumnTitle(key),
@@ -325,7 +318,6 @@ const TableClasse = () => {
     const titles = {
       niveau: "Niveau",
       groupe: "Groupe",
-    
     };
     return (
       titles[key] ||
@@ -459,7 +451,6 @@ const TableClasse = () => {
             niveau: editingClient.niveau,
             groupe: editingClient.groupe,
             id_niveau: editingClient.id_niveau,
-           
           }),
         }
       );
@@ -467,9 +458,8 @@ const TableClasse = () => {
       if (response.ok) {
         const updatedClient = await response.json();
         if (updatedClient.msg == "Upadated Successfully!!") {
-          
           console.log("====================================");
-          
+
           console.log("====================================");
           setChangedFields([]);
           setIsFormChanged(false);
@@ -588,7 +578,6 @@ const TableClasse = () => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
-          
         });
 
         await Promise.all(promises);
@@ -694,171 +683,178 @@ const TableClasse = () => {
   };
 
   return (
-    <div className="w-full p-2">
-     
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center space-x-7">
-          <div className="w-52">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="recherche Classe"
-              value={searchText}
-              onChange={handleSearch}
-            />
-          </div>
-          <div className="flex items-center space-x-6">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length === 1 ? (
-              <EditOutlined
-                className="cursor-pointer"
-                onClick={handleEditClick}
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+          colorBgBase: darkmode ? "#141414" : "#fff",
+          colorTextBase: darkmode ? "#fff" : "#000",
+          colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
+        },
+      }}
+    >
+      <div className="w-full p-2">
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center space-x-7">
+            <div className="w-52">
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder="recherche Classe"
+                value={searchText}
+                onChange={handleSearch}
               />
-            ) : (
-              ""
-            )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length >= 1 ? (
-              <Popconfirm
-                title="Supprimer de la classe"
-                description="Êtes-vous sûr de supprimer cette classe"
-                onConfirm={confirm}
-                onCancel={cancel}
-                okText="Yes"
-                cancelText="No"
-              >
-                <DeleteOutlined className="cursor-pointer" />{" "}
-              </Popconfirm>
-            ) : (
-              ""
-            )}
-          </div>
-        </div>
-        {/* add new client  */}
-        <div>
-          <div className="flex items-center space-x-3">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
-              >
-                Ajouter Classe
-              </Button>
-            )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-              <Button
-                type="default"
-                onClick={showDrawerC}
-                icon={<BorderOuterOutlined />}
-              >
-                Niveau
-              </Button>
-            )}
-          </div>
-          <Drawer
-            title="Saisir une classe"
-            width={720}
-            onClose={onCloseR}
-            closeIcon={false}
-            open={open1}
-            bodyStyle={{
-              paddingBottom: 80,
-            }}
-          >
-            <div>
-              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                <div className="">
-                  <div className="grid grid-cols-2 gap-4 mt-5">
-                
-                  
-                    <div>
-                      <label htmlFor="Année" className="block font-medium">
-                        *Niveau
-                      </label>
-                      <Select
-                        id="niveau"
-                        showSearch
-                        placeholder="niveau"
-                        value={ClientData.niveau}
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, option) => {
-                          const data = contarctValue.filter(
-                            (val) => val.id_niveau == value
-                          );
-                          setClientData({
-                            ...ClientData,
-                            id_niveau: value,
-                            niveau: option.label,
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={categories}
-                      />
-                    </div>
-                    <div>
-                      <div>*Groupe</div>
-                      <Input
-                        value={ClientData.groupe}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            groupe: value.target.value,
-                          })
-                        }
-                        placeholder="groupe "
-                      ></Input>
-                    </div>
-                   
-                
-                  </div>
-                </div>
-                <Space className="mt-10">
-                  <Button danger onClick={onCloseR}>
-                    Annuler
-                  </Button>
-                  <Button onClick={handleRoomSubmit} type="default">
-                    Enregistrer
-                  </Button>
-                </Space>
-              </div>
             </div>
-          </Drawer>
-          <Drawer
-            title="Saisir une classe"
-            width={720}
-            onClose={onCloseC}
-            closeIcon={false}
-            open={open2}
-            bodyStyle={{
-              paddingBottom: 80,
-            }}
-          >
-            <div>
-              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                <div className="">
-                  <div className="flex items-center space-x-5">
-                    <div>
-                      <Input
-                        value={CategoireData.niveau}
-                        onChange={(value) =>
-                          setCategoireData({
-                            ...CategoireData,
-                            niveau: value.target.value,
-                          })
-                        }
-                        placeholder="niveau"
-                      ></Input>
+            <div className="flex items-center space-x-6">
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+              selectedRowKeys.length === 1 ? (
+                <EditOutlined
+                  className="cursor-pointer"
+                  onClick={handleEditClick}
+                />
+              ) : (
+                ""
+              )}
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+              selectedRowKeys.length >= 1 ? (
+                <Popconfirm
+                  title="Supprimer de la classe"
+                  description="Êtes-vous sûr de supprimer cette classe"
+                  onConfirm={confirm}
+                  onCancel={cancel}
+                  okText="Yes"
+                  cancelText="No"
+                >
+                  <DeleteOutlined className="cursor-pointer" />{" "}
+                </Popconfirm>
+              ) : (
+                ""
+              )}
+            </div>
+          </div>
+          {/* add new client  */}
+          <div>
+            <div className="flex items-center space-x-3">
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajouter Classe
+                </Button>
+              )}
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+                <Button
+                  type="default"
+                  onClick={showDrawerC}
+                  icon={<BorderOuterOutlined />}
+                >
+                  Niveau
+                </Button>
+              )}
+            </div>
+            <Drawer
+              title="Saisir une classe"
+              width={720}
+              onClose={onCloseR}
+              closeIcon={false}
+              open={open1}
+              bodyStyle={{
+                paddingBottom: 80,
+              }}
+            >
+              <div>
+                <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+                  <div className="">
+                    <div className="grid grid-cols-2 gap-4 mt-5">
+                      <div>
+                        <label htmlFor="Année" className="block font-medium">
+                          *Niveau
+                        </label>
+                        <Select
+                          id="niveau"
+                          showSearch
+                          placeholder="niveau"
+                          value={ClientData.niveau}
+                          className="w-full"
+                          optionFilterProp="children"
+                          onChange={(value, option) => {
+                            const data = contarctValue.filter(
+                              (val) => val.id_niveau == value
+                            );
+                            setClientData({
+                              ...ClientData,
+                              id_niveau: value,
+                              niveau: option.label,
+                            });
+                          }}
+                          filterOption={(input, option) =>
+                            (option?.label ?? "").startsWith(input)
+                          }
+                          filterSort={(optionA, optionB) =>
+                            (optionA?.label ?? "")
+                              .toLowerCase()
+                              .localeCompare(
+                                (optionB?.label ?? "").toLowerCase()
+                              )
+                          }
+                          options={categories}
+                        />
+                      </div>
+                      <div>
+                        <div>*Groupe</div>
+                        <Input
+                          value={ClientData.groupe}
+                          onChange={(value) =>
+                            setClientData({
+                              ...ClientData,
+                              groupe: value.target.value,
+                            })
+                          }
+                          placeholder="groupe "
+                        ></Input>
+                      </div>
                     </div>
-                    <div>
-                      {/* <Input
+                  </div>
+                  <Space className="mt-10">
+                    <Button danger onClick={onCloseR}>
+                      Annuler
+                    </Button>
+                    <Button onClick={handleRoomSubmit} type="default">
+                      Enregistrer
+                    </Button>
+                  </Space>
+                </div>
+              </div>
+            </Drawer>
+            <Drawer
+              title="Saisir une classe"
+              width={720}
+              onClose={onCloseC}
+              closeIcon={false}
+              open={open2}
+              bodyStyle={{
+                paddingBottom: 80,
+              }}
+            >
+              <div>
+                <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+                  <div className="">
+                    <div className="flex items-center space-x-5">
+                      <div>
+                        <Input
+                          value={CategoireData.niveau}
+                          onChange={(value) =>
+                            setCategoireData({
+                              ...CategoireData,
+                              niveau: value.target.value,
+                            })
+                          }
+                          placeholder="niveau"
+                        ></Input>
+                      </div>
+                      <div>
+                        {/* <Input
                         value={CategoireData.duree_mois}
                         type="number"
                         count={{
@@ -873,168 +869,175 @@ const TableClasse = () => {
                           })
                         }
                       /> */}
-                     
+                      </div>
+                      <Tooltip title="Ajoute un niveau">
+                        <Button
+                          icon={<PlusOutlined />}
+                          className="cursor-pointer"
+                          onClick={addCtegeries}
+                        >
+                          Ajoute
+                        </Button>
+                      </Tooltip>
                     </div>
-                    <Tooltip title="Ajoute un niveau">
-                      <Button
-                        icon={<PlusOutlined />}
-                        className="cursor-pointer"
-                        onClick={addCtegeries}
-                      >Ajoute</Button>
-                    </Tooltip>
                   </div>
                 </div>
-              </div>
-              <Divider />
-              <div className="mt-5">
-                <div className="flex items-center space-x-6">
-                  <Input
-                    prefix={<SearchOutlined />}
-                    placeholder="recherche niveau"
-                    className="w-48"
-                    value={searchText1}
-                    onChange={handleSearch2}
-                  />
-                  {selectedRowKeys1.length === 1 ? (
-                    <EditOutlined
-                      className="cursor-pointer"
-                      onClick={handleEditClick1}
+                <Divider />
+                <div className="mt-5">
+                  <div className="flex items-center space-x-6">
+                    <Input
+                      prefix={<SearchOutlined />}
+                      placeholder="recherche niveau"
+                      className="w-48"
+                      value={searchText1}
+                      onChange={handleSearch2}
                     />
-                  ) : (
-                    ""
-                  )}
-                  {selectedRowKeys1.length >= 1 ? (
-                    <Popconfirm
-                      title="Supprimer le niveau"
-                      description="Êtes-vous sûr de supprimer ce niveau"
-                      onConfirm={confirm1}
-                      onCancel={cancel}
-                      okText="Yes"
-                      cancelText="No"
-                    >
-                      <DeleteOutlined className="cursor-pointer" />{" "}
-                    </Popconfirm>
-                  ) : (
-                    ""
-                  )}
-                 
+                    {selectedRowKeys1.length === 1 ? (
+                      <EditOutlined
+                        className="cursor-pointer"
+                        onClick={handleEditClick1}
+                      />
+                    ) : (
+                      ""
+                    )}
+                    {selectedRowKeys1.length >= 1 ? (
+                      <Popconfirm
+                        title="Supprimer le niveau"
+                        description="Êtes-vous sûr de supprimer ce niveau"
+                        onConfirm={confirm1}
+                        onCancel={cancel}
+                        okText="Yes"
+                        cancelText="No"
+                      >
+                        <DeleteOutlined className="cursor-pointer" />{" "}
+                      </Popconfirm>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                  <Table
+                    loading={loading}
+                    pagination={{
+                      pageSize: 5,
+                      showQuickJumper: true,
+                    }}
+                    size="small"
+                    className="w-full mt-5"
+                    columns={columns1}
+                    dataSource={filteredData1}
+                    rowSelection={rowSelection2}
+                  />
                 </div>
-                <Table
-                  loading={loading}
-                  pagination={{
-                    pageSize: 5,
-                    showQuickJumper: true,
-                  }}
-                  size="small"
-                  className="w-full mt-5"
-                  columns={columns1}
-                  dataSource={filteredData1}
-                  rowSelection={rowSelection2}
-                />
               </div>
-            </div>
-          </Drawer>
+            </Drawer>
+          </div>
         </div>
-      </div>
-      <Table
-        loading={loading}
-        pagination={{
-          pageSize: 7,
-          showQuickJumper: true,
-        }}
-        size="small"
-        className="w-full mt-5"
-        columns={columns}
-        dataSource={filteredData}
-        rowSelection={rowSelection}
-      />
-      <Modal
-        title="Edit Classe"
-        visible={isModalVisible}
-        onOk={handleModalSubmit}
-        onCancel={handleModalCancel}
-        okButtonProps={{ disabled: !isFormChanged }}
-        okText="Soumettre"
-        cancelText="Annuler"
-      >
-        <div className="h-96 overflow-y-auto">
-          <Form form={form} onValuesChange={handleFormChange} layout="vertical">
-            <Form.Item name="groupe" label="groupe">
-              <Input rules={[{ required: true, message: "Nom salle" }]} />
-            </Form.Item>
-
-            <Form.Item
-              name="niveau"
-              label="niveau"
-              rules={[
-                { required: true, message: "Categorie selection is required" },
-              ]}
+        <Table
+          loading={loading}
+          pagination={{
+            pageSize: 7,
+            showQuickJumper: true,
+          }}
+          size="small"
+          className="w-full mt-5"
+          columns={columns}
+          dataSource={filteredData}
+          rowSelection={rowSelection}
+        />
+        <Modal
+          title="Edit Classe"
+          visible={isModalVisible}
+          onOk={handleModalSubmit}
+          onCancel={handleModalCancel}
+          okButtonProps={{ disabled: !isFormChanged }}
+          okText="Soumettre"
+          cancelText="Annuler"
+        >
+          <div className="h-96 overflow-y-auto">
+            <Form
+              form={form}
+              onValuesChange={handleFormChange}
+              layout="vertical"
             >
-              <Select
-                id="niveau"
-                showSearch
-                placeholder="niveau"
-                className="w-full"
-                optionFilterProp="children"
-                onChange={(value, option) => {
-                  {
-                    const data = contarctValue.filter(
-                      (val) => val.id_niveau == value
-                    );
-                    
-                    setEditingClient({
-                      ...editingClient,
-                      id_niveau: value,
-                      niveau: option.label,
-                    });
-                  }
-                }}
-                filterOption={(input, option) =>
-                  (option?.label ?? "").startsWith(input)
-                }
-                filterSort={(optionA, optionB) =>
-                  (optionA?.label ?? "")
-                    .toLowerCase()
-                    .localeCompare((optionB?.label ?? "").toLowerCase())
-                }
-                options={categories}
-              />
-            </Form.Item>
-          </Form>
-        </div>
-      </Modal>
+              <Form.Item name="groupe" label="groupe">
+                <Input rules={[{ required: true, message: "Nom salle" }]} />
+              </Form.Item>
 
-      <Modal
-        title="Modifier Classe"
-        visible={isModalVisible1}
-        onOk={handleModalSubmit1}
-        onCancel={handleModalCancel1}
-        footer={[
-          <Button key="back" onClick={handleModalCancel1}>
-            Annuler
-          </Button>,
-          <Button key="submit" type="primary" onClick={handleModalSubmit1}>
-            Valider
-          </Button>,
-        ]}
-      >
-        <div className="h-96 overflow-y-auto mt-10">
-          <Form form={form1} layout="vertical">
-            <Form.Item name="niveau" label="niveau">
-              <Input
+              <Form.Item
+                name="niveau"
+                label="niveau"
                 rules={[
                   {
                     required: true,
-                    message: "Veuillez entrer le type de contrat",
+                    message: "Categorie selection is required",
                   },
                 ]}
-              />
-            </Form.Item>
-         
-          </Form>
-        </div>
-      </Modal>
-    </div>
+              >
+                <Select
+                  id="niveau"
+                  showSearch
+                  placeholder="niveau"
+                  className="w-full"
+                  optionFilterProp="children"
+                  onChange={(value, option) => {
+                    {
+                      const data = contarctValue.filter(
+                        (val) => val.id_niveau == value
+                      );
+
+                      setEditingClient({
+                        ...editingClient,
+                        id_niveau: value,
+                        niveau: option.label,
+                      });
+                    }
+                  }}
+                  filterOption={(input, option) =>
+                    (option?.label ?? "").startsWith(input)
+                  }
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? "")
+                      .toLowerCase()
+                      .localeCompare((optionB?.label ?? "").toLowerCase())
+                  }
+                  options={categories}
+                />
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
+
+        <Modal
+          title="Modifier Classe"
+          visible={isModalVisible1}
+          onOk={handleModalSubmit1}
+          onCancel={handleModalCancel1}
+          footer={[
+            <Button key="back" onClick={handleModalCancel1}>
+              Annuler
+            </Button>,
+            <Button key="submit" type="primary" onClick={handleModalSubmit1}>
+              Valider
+            </Button>,
+          ]}
+        >
+          <div className="h-96 overflow-y-auto mt-10">
+            <Form form={form1} layout="vertical">
+              <Form.Item name="niveau" label="niveau">
+                <Input
+                  rules={[
+                    {
+                      required: true,
+                      message: "Veuillez entrer le type de contrat",
+                    },
+                  ]}
+                />
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
+      </div>
+    </ConfigProvider>
   );
 };
 

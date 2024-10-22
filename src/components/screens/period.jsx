@@ -17,7 +17,7 @@ import {
   UserAddOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { addNewTrace, getCurrentDate } from "../../../utils/helper";
+import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
 const TablePeriod = () => {
   const [data, setData] = useState([]);
@@ -78,6 +78,14 @@ const TablePeriod = () => {
           setClientData({
             PeriodeSalaire: "",
           });
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            id_staff[0].id_admin,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "Period"
+          );
 
           onCloseR();
         } else {
@@ -345,11 +353,10 @@ const TablePeriod = () => {
               onClick={showDrawerR}
               icon={<UserAddOutlined />}
             >
-              Ajoute Priod 
+              Ajoute Priod
             </Button>
           </div>
 
-         
           <Drawer
             title="Saisir une période"
             width={720}

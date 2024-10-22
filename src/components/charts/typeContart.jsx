@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Column } from "@ant-design/plots";
+import { ConfigProvider } from "antd";
 
-const TypeContract = () => {
+const TypeContract = ({ darkmode }) => {
   const [data, setData] = useState([]);
   const authToken = localStorage.getItem("jwtToken");
 
@@ -26,9 +27,9 @@ const TypeContract = () => {
         const combinedData = result.labels
           .map((label, index) => ({
             type: label,
-            value: result.data[index]
+            value: result.data[index],
           }))
-          .filter(item => item.value > 0);
+          .filter((item) => item.value > 0);
 
         setData(combinedData);
       } catch (error) {
@@ -41,12 +42,12 @@ const TypeContract = () => {
 
   const config = {
     data,
-    xField: 'type',
-    yField: 'value',
+    xField: "type",
+    yField: "value",
     label: {
-      position: 'middle',
+      position: "middle",
       style: {
-        fill: '#FFFFFF',
+        fill: "#FFFFFF",
         opacity: 0.6,
       },
     },
@@ -58,10 +59,10 @@ const TypeContract = () => {
     },
     meta: {
       type: {
-        alias: 'Contract Type',
+        alias: "Contract Type",
       },
       value: {
-        alias: 'Number of Contracts',
+        alias: "Number of Contracts",
       },
     },
     tooltip: {
@@ -77,17 +78,17 @@ const TypeContract = () => {
                     key={item.name}
                     style={{
                       marginBottom: 4,
-                      display: 'flex',
-                      alignItems: 'center',
+                      display: "flex",
+                      alignItems: "center",
                     }}
                   >
                     <span
                       style={{
-                        display: 'inline-block',
+                        display: "inline-block",
                         marginRight: 8,
                         width: 8,
                         height: 8,
-                        borderRadius: '50%',
+                        borderRadius: "50%",
                         backgroundColor: color,
                       }}
                     />
@@ -103,9 +104,20 @@ const TypeContract = () => {
   };
 
   return (
-    <div style={{ height: '300px', width: '90%' }}>
-      <Column {...config} />
-    </div>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+          colorBgBase: darkmode ? "#141414" : "#fff",
+          colorTextBase: darkmode ? "#fff" : "#000",
+          colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
+        },
+      }}
+    >
+      <div style={{ height: "300px", width: "90%" }}>
+        <Column {...config} />
+      </div>
+    </ConfigProvider>
   );
 };
 

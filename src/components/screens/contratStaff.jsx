@@ -24,7 +24,7 @@ import {
 import moment from "moment";
 import { handlePrintContractStaff } from "../../utils/printable/contraStaff";
 // import { handlePrintContractStaff } from "../../../utils/printable/contraStaff";
-// import { addNewTrace, getCurrentDate } from "../../../utils/helper";
+import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
 const TableContractStaff = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -243,13 +243,13 @@ const TableContractStaff = ({ darkmode }) => {
             image: "",
           });
           const id_staff = JSON.parse(localStorage.getItem("data"));
-          //   const res = await addNewTrace(
-          //     id_staff[0].id_employe,
-          //     "Ajout",
-          //     getCurrentDate(),
-          //     `${JSON.stringify(ClientData)}`,
-          //     "contart staff"
-          //   );
+            const res = await addNewTrace(
+              id_staff[0].id_admin,
+              "Ajout",
+              getCurrentDate(),
+              `${JSON.stringify(ClientData)}`,
+              "contart staff"
+            );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -470,13 +470,13 @@ const TableContractStaff = ({ darkmode }) => {
             throw new Error(`Failed to delete contart staff with key ${key}`);
           }
           const id_staff = JSON.parse(localStorage.getItem("data"));
-          //   const res = await addNewTrace(
-          //     id_staff[0].id_employe,
-          //     "Supprimer",
-          //     getCurrentDate(),
-          //     `${JSON.stringify(clientToDelete)}`,
-          //     "contart staff"
-          //   );
+            const res = await addNewTrace(
+              id_staff[0].id_admin,
+              "Supprimer",
+              getCurrentDate(),
+              `${JSON.stringify(clientToDelete)}`,
+              "contart staff"
+            );
         });
 
         await Promise.all(promises);

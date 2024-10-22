@@ -11,6 +11,7 @@ import {
   Button,
   Drawer,
   Space,
+  ConfigProvider,
 } from "antd";
 import {
   SearchOutlined,
@@ -23,7 +24,7 @@ import moment from "moment";
 // import { handlePrintContractStaff } from "../../../utils/printable/contraStaff";
 // import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
-const TableCours = () => {
+const TableCours = ({ darkmode }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -102,10 +103,18 @@ const TableCours = () => {
 
   // Validation function to check if all required fields are filled for the room form
   const isRoomFormValid = () => {
-    const { nom_cour, description, Programme, id_niveau,code_couleur,
-      is_published } = ClientData;
-    if ((nom_cour, description, Programme, id_niveau,code_couleur,
-      is_published)) return true;
+    const {
+      nom_cour,
+      description,
+      Programme,
+      id_niveau,
+      code_couleur,
+      is_published,
+    } = ClientData;
+    if (
+      (nom_cour, description, Programme, id_niveau, code_couleur, is_published)
+    )
+      return true;
   };
 
   // Function to add a new chamber
@@ -113,7 +122,6 @@ const TableCours = () => {
     // check in contra staf
     try {
       // Check if the form is valid before submitting
-     
 
       const response = await fetch(
         "https://JyssrMMAS.pythonanywhere.com/api/cours/",
@@ -137,10 +145,10 @@ const TableCours = () => {
             Programme: "",
             id_niveau: "",
             image: "",
-            code_couleur:" ",
-            is_published:"true",
+            code_couleur: " ",
+            is_published: "true",
           });
-          
+
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -208,13 +216,7 @@ const TableCours = () => {
         setFilteredData(processedData);
 
         // Generate columns based on the desired keys
-        const desiredKeys = [
-          "nom_cours",
-          "description",
-          
-          "niveau",
-          "",
-        ];
+        const desiredKeys = ["nom_cours", "description", "niveau", ""];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(key.replace(/\_/g, " ")), // Capitalize the first letter
           dataIndex: key,
@@ -312,7 +314,7 @@ const TableCours = () => {
         setData(updatedData);
         setFilteredData(updatedData);
         message.success("Cour mis à jour avec succès");
-      
+
         setChangedFields([]);
         setIsFormChanged(false);
         setIsModalVisible(false);
@@ -356,7 +358,6 @@ const TableCours = () => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
-        
         });
 
         await Promise.all(promises);
@@ -416,62 +417,71 @@ const TableCours = () => {
   };
 
   return (
-    <div className="w-full p-2">
-      <Modal
-      title={`Détails de ${selectedCourse?.nom_cour}`}
-      visible={isViewModalVisible}
-      onCancel={() => {
-        setIsViewModalVisible(false);
-        setSelectedCourse(null);
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+          colorBgBase: darkmode ? "#141414" : "#fff",
+          colorTextBase: darkmode ? "#fff" : "#000",
+          colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
+        },
       }}
-      footer={null}
     >
-      <Table
-        columns={[
-          {
-            title: 'Nom du Cours',
-            dataIndex: 'nom_cour',
-            key: 'nom_cour',
-          },
-          {
-            title: 'Description',
-            dataIndex: 'description',
-            key: 'description',
-          },
-          {
-            title: 'Programme',
-            dataIndex: 'Programme',
-            key: 'Programme',
-          },
-          {
-            title: 'Niveau',
-            dataIndex: 'Niveau',
-            key: 'Niveau',
-          },
-          // Add other details columns as needed
-        ]}
-        dataSource={selectedCourse ? [selectedCourse] : []}
-        pagination={false}
-        rowKey="id_cour"
-      />
-    </Modal>
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center space-x-7">
-          <div className="w-52">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="Search Cours"
-              value={searchText}
-              onChange={handleSearch}
-            />
-          </div>
-          <div className="flex items-center space-x-6">
-            
+      <div className="w-full p-2">
+        <Modal
+          title={`Détails de ${selectedCourse?.nom_cour}`}
+          visible={isViewModalVisible}
+          onCancel={() => {
+            setIsViewModalVisible(false);
+            setSelectedCourse(null);
+          }}
+          footer={null}
+        >
+          <Table
+            columns={[
+              {
+                title: "Nom du Cours",
+                dataIndex: "nom_cour",
+                key: "nom_cour",
+              },
+              {
+                title: "Description",
+                dataIndex: "description",
+                key: "description",
+              },
+              {
+                title: "Programme",
+                dataIndex: "Programme",
+                key: "Programme",
+              },
+              {
+                title: "Niveau",
+                dataIndex: "Niveau",
+                key: "Niveau",
+              },
+              // Add other details columns as needed
+            ]}
+            dataSource={selectedCourse ? [selectedCourse] : []}
+            pagination={false}
+            rowKey="id_cour"
+          />
+        </Modal>
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center space-x-7">
+            <div className="w-52">
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder="Search Cours"
+                value={searchText}
+                onChange={handleSearch}
+              />
+            </div>
+            <div className="flex items-center space-x-6">
               {/* <EditOutlined
                 className="cursor-pointer"
                 onClick={handleEditClick}
               /> */}
-          
+
               <Popconfirm
                 title="Supprimer le cours"
                 description="Êtes-vous sûr de supprimer ce cours"
@@ -482,177 +492,181 @@ const TableCours = () => {
               >
                 <DeleteOutlined className="cursor-pointer" />{" "}
               </Popconfirm>
-          
+            </div>
           </div>
-        </div>
-        {/* add new client  */}
-        <div>
-          <div className="flex items-center space-x-3">
-          
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<UserAddOutlined />}
-                >
-                  Ajoute Cours
-                </Button>
-        
-          </div>
-          <Drawer
-            title="Saisir un nouveau Cours"
-            width={720}
-            onClose={onCloseR}
-            closeIcon={false}
-            open={open1}
-            bodyStyle={{
-              paddingBottom: 80,
-            }}
-          >
-            <div>
-              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                <div className="">
-                  <div className="grid grid-cols-2 gap-4 mt-5">
-                    <div>
-                      <div>*Nom cours</div>
-                      <Input
-                        value={ClientData.nom_cour}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            nom_cour: value.target.value,
-                          })
-                        }
-                        placeholder="Nom cours"
-                      ></Input>
-                    </div>
-                    <div>
-                      <div>*Description</div>
-                      <Input
-                        value={ClientData.description}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            description: value.target.value,
-                          })
-                        }
-                        placeholder="Description"
-                      ></Input>
-                    </div>
-                    <div>
-                      <div>*Programme</div>
-                      <Input
-                        value={ClientData.Programme}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            Programme: value.target.value,
-                          })
-                        }
-                        placeholder="Programme"
-                      ></Input>
-                    </div>
-                    <div>
-                      <label htmlFor="Année" className="block font-medium">
-                        *Niveau
-                      </label>
-                      <Select
-                        id="Niveau"
-                        showSearch
-                        placeholder="Niveau"
-                        value={ClientData.niveau}
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, option) => {
-                          setClientData({
-                            ...ClientData,
-                            niveau: value,
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={[
-                          { value: "12th grade", label: "12th grade" },
-                          { value: "11th grade", label: "11th grade" },
-                          { value: "10th grade", label: "10th grade" },
-                          { value: "9th grade", label: "9th grade" },
-                          { value: "8th grade", label: "8th grade" },
-                          { value: "7th grade", label: "7th grade" },
-                          { value: "6th grade", label: "6th grade" },
-                          { value: "5th grade", label: "5th grade" },
-                        ]}
-                      />
+          {/* add new client  */}
+          <div>
+            <div className="flex items-center space-x-3">
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajoute Cours
+              </Button>
+            </div>
+            <Drawer
+              title="Saisir un nouveau Cours"
+              width={720}
+              onClose={onCloseR}
+              closeIcon={false}
+              open={open1}
+              bodyStyle={{
+                paddingBottom: 80,
+              }}
+            >
+              <div>
+                <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+                  <div className="">
+                    <div className="grid grid-cols-2 gap-4 mt-5">
+                      <div>
+                        <div>*Nom cours</div>
+                        <Input
+                          value={ClientData.nom_cour}
+                          onChange={(value) =>
+                            setClientData({
+                              ...ClientData,
+                              nom_cour: value.target.value,
+                            })
+                          }
+                          placeholder="Nom cours"
+                        ></Input>
+                      </div>
+                      <div>
+                        <div>*Description</div>
+                        <Input
+                          value={ClientData.description}
+                          onChange={(value) =>
+                            setClientData({
+                              ...ClientData,
+                              description: value.target.value,
+                            })
+                          }
+                          placeholder="Description"
+                        ></Input>
+                      </div>
+                      <div>
+                        <div>*Programme</div>
+                        <Input
+                          value={ClientData.Programme}
+                          onChange={(value) =>
+                            setClientData({
+                              ...ClientData,
+                              Programme: value.target.value,
+                            })
+                          }
+                          placeholder="Programme"
+                        ></Input>
+                      </div>
+                      <div>
+                        <label htmlFor="Année" className="block font-medium">
+                          *Niveau
+                        </label>
+                        <Select
+                          id="Niveau"
+                          showSearch
+                          placeholder="Niveau"
+                          value={ClientData.niveau}
+                          className="w-full"
+                          optionFilterProp="children"
+                          onChange={(value, option) => {
+                            setClientData({
+                              ...ClientData,
+                              niveau: value,
+                            });
+                          }}
+                          filterOption={(input, option) =>
+                            (option?.label ?? "").startsWith(input)
+                          }
+                          filterSort={(optionA, optionB) =>
+                            (optionA?.label ?? "")
+                              .toLowerCase()
+                              .localeCompare(
+                                (optionB?.label ?? "").toLowerCase()
+                              )
+                          }
+                          options={[
+                            { value: "12th grade", label: "12th grade" },
+                            { value: "11th grade", label: "11th grade" },
+                            { value: "10th grade", label: "10th grade" },
+                            { value: "9th grade", label: "9th grade" },
+                            { value: "8th grade", label: "8th grade" },
+                            { value: "7th grade", label: "7th grade" },
+                            { value: "6th grade", label: "6th grade" },
+                            { value: "5th grade", label: "5th grade" },
+                          ]}
+                        />
+                      </div>
                     </div>
                   </div>
+                  <Space className="mt-10">
+                    <Button danger onClick={onCloseR}>
+                      Annuler
+                    </Button>
+                    <Button onClick={handleRoomSubmit} type="default">
+                      Enregistrer
+                    </Button>
+                  </Space>
                 </div>
-                <Space className="mt-10">
-                  <Button danger onClick={onCloseR}>
-                    Annuler
-                  </Button>
-                  <Button onClick={handleRoomSubmit} type="default">
-                    Enregistrer
-                  </Button>
-                </Space>
               </div>
-            </div>
-          </Drawer>
+            </Drawer>
+          </div>
         </div>
-      </div>
-      <Table
-        loading={loading}
-        pagination={{
-          pageSize: 7,
-          showQuickJumper: true,
-        }}
-        size="small"
-        className="w-full mt-5"
-        columns={columns}
-        dataSource={filteredData}
-        rowSelection={rowSelection}
-      />
-      <Modal
-        title="Edit Cours"
-        visible={isModalVisible}
-        onOk={handleModalSubmit}
-        onCancel={handleModalCancel}
-        okButtonProps={{ disabled: !isFormChanged }}
-        okText="Soumettre"
-        cancelText="Annuler"
-      >
-        <div className="h-96 overflow-y-auto">
-          <Form onValuesChange={handleFormChange} form={form} layout="vertical">
-            <Form.Item name="nom_cour" label="Nom cours">
-              <Input rules={[{ required: true, message: "Nom cours" }]} />
-            </Form.Item>
-            <Form.Item name="description" label="description">
-              <Input rules={[{ required: true, message: "description" }]} />
-            </Form.Item>
-            <Form.Item name="programme" label="programme">
-              <Input rules={[{ required: true, message: "programme" }]} />
-            </Form.Item>
-            <Form.Item
-              name="genre"
-              label="Genre"
-              rules={[
-                { required: true, message: "Gene selection is required" },
-              ]}
+        <Table
+          loading={loading}
+          pagination={{
+            pageSize: 7,
+            showQuickJumper: true,
+          }}
+          size="small"
+          className="w-full mt-5"
+          columns={columns}
+          dataSource={filteredData}
+          rowSelection={rowSelection}
+        />
+        <Modal
+          title="Edit Cours"
+          visible={isModalVisible}
+          onOk={handleModalSubmit}
+          onCancel={handleModalCancel}
+          okButtonProps={{ disabled: !isFormChanged }}
+          okText="Soumettre"
+          cancelText="Annuler"
+        >
+          <div className="h-96 overflow-y-auto">
+            <Form
+              onValuesChange={handleFormChange}
+              form={form}
+              layout="vertical"
             >
-              <Select placeholder="Select a gene">
-                <Option value="Home">Home</Option>
-                <Option value="Femme">Femme</Option>
-                <Option value="Mixte">Mixte</Option>
-                <Option value="Junior">Junior</Option>
-              </Select>
-            </Form.Item>
-          </Form>
-        </div>
-      </Modal>
-    </div>
+              <Form.Item name="nom_cour" label="Nom cours">
+                <Input rules={[{ required: true, message: "Nom cours" }]} />
+              </Form.Item>
+              <Form.Item name="description" label="description">
+                <Input rules={[{ required: true, message: "description" }]} />
+              </Form.Item>
+              <Form.Item name="programme" label="programme">
+                <Input rules={[{ required: true, message: "programme" }]} />
+              </Form.Item>
+              <Form.Item
+                name="genre"
+                label="Genre"
+                rules={[
+                  { required: true, message: "Gene selection is required" },
+                ]}
+              >
+                <Select placeholder="Select a gene">
+                  <Option value="Home">Home</Option>
+                  <Option value="Femme">Femme</Option>
+                  <Option value="Mixte">Mixte</Option>
+                  <Option value="Junior">Junior</Option>
+                </Select>
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
+      </div>
+    </ConfigProvider>
   );
 };
 

@@ -13,6 +13,7 @@ import {
   Space,
   Tooltip,
   Divider,
+  ConfigProvider,
 } from "antd";
 import {
   SearchOutlined,
@@ -25,7 +26,7 @@ import {
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
-const TableSalle = () => {
+const TableSalle = ({ darkmode }) => {
   const [data1, setData1] = useState([]);
   const [data, setData] = useState([]);
   const [filteredData1, setFilteredData1] = useState([]);
@@ -692,358 +693,377 @@ const TableSalle = () => {
   // Create the data source for the table
 
   return (
-    <div className="w-full p-2">
-      <Modal
-        title={`Les détails de ${selectedRoom?.nom_salle}`}
-        visible={isViewModalVisible}
-        onCancel={() => {
-          setIsViewModalVisible(false);
-          setSelectedRoom(null);
-        }}
-        footer={null}
-      >
-        <Table
-          columns={[
-            {
-              title: "Nom de la Salle",
-              dataIndex: "nom_salle",
-              key: "nom_salle",
-            },
-            {
-              title: "Catégorie",
-              dataIndex: "category",
-              key: "category",
-            },
-            {
-              title: "Capacité",
-              dataIndex: "capacity",
-              key: "capacity",
-            },
-            // Add other details columns as needed
-          ]}
-          dataSource={selectedRoom ? [selectedRoom] : []}
-          pagination={false}
-          rowKey="id_salle"
-        />
-      </Modal>
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center space-x-7">
-          <div className="w-52">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="Rechercher salle"
-              value={searchText}
-              onChange={handleSearch}
-            />
-          </div>
-          <div className="flex items-center space-x-6">
-            {selectedRowKeys.length === 1 ? (
-              <EditOutlined
-                className="cursor-pointer"
-                onClick={handleEditClick}
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+          colorBgBase: darkmode ? "#141414" : "#fff",
+          colorTextBase: darkmode ? "#fff" : "#000",
+          colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
+        },
+      }}
+    >
+      <div className="w-full p-2">
+        <Modal
+          title={`Les détails de ${selectedRoom?.nom_salle}`}
+          visible={isViewModalVisible}
+          onCancel={() => {
+            setIsViewModalVisible(false);
+            setSelectedRoom(null);
+          }}
+          footer={null}
+        >
+          <Table
+            columns={[
+              {
+                title: "Nom de la Salle",
+                dataIndex: "nom_salle",
+                key: "nom_salle",
+              },
+              {
+                title: "Catégorie",
+                dataIndex: "category",
+                key: "category",
+              },
+              {
+                title: "Capacité",
+                dataIndex: "capacity",
+                key: "capacity",
+              },
+              // Add other details columns as needed
+            ]}
+            dataSource={selectedRoom ? [selectedRoom] : []}
+            pagination={false}
+            rowKey="id_salle"
+          />
+        </Modal>
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center space-x-7">
+            <div className="w-52">
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder="Rechercher salle"
+                value={searchText}
+                onChange={handleSearch}
               />
-            ) : (
-              ""
-            )}
-            {selectedRowKeys.length >= 1 ? (
-              <Popconfirm
-                title="Supprimer la salle"
-                description="Êtes-vous sûr de supprimer cette salle"
-                onConfirm={confirm}
-                onCancel={cancel}
-                okText="Oui"
-                cancelText="Non"
-              >
-                <DeleteOutlined className="cursor-pointer" />{" "}
-              </Popconfirm>
-            ) : (
-              ""
-            )}
+            </div>
+            <div className="flex items-center space-x-6">
+              {selectedRowKeys.length === 1 ? (
+                <EditOutlined
+                  className="cursor-pointer"
+                  onClick={handleEditClick}
+                />
+              ) : (
+                ""
+              )}
+              {selectedRowKeys.length >= 1 ? (
+                <Popconfirm
+                  title="Supprimer la salle"
+                  description="Êtes-vous sûr de supprimer cette salle"
+                  onConfirm={confirm}
+                  onCancel={cancel}
+                  okText="Oui"
+                  cancelText="Non"
+                >
+                  <DeleteOutlined className="cursor-pointer" />{" "}
+                </Popconfirm>
+              ) : (
+                ""
+              )}
+            </div>
           </div>
-        </div>
-        {/* add new client  */}
-        <div>
-          <div className="flex items-center space-x-3">
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") && (
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
-              >
-                Ajout salle
-              </Button>
-            )}
-            {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-              "Administration" ||
-              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") && (
-              <Button
-                type="default"
-                onClick={showDrawerC}
-                icon={<BorderOuterOutlined />}
-              >
-                Ajout categorie
-              </Button>
-            )}
-          </div>
-          <Drawer
-            title="Saisir un nouveau salle"
-            width={720}
-            onClose={onCloseR}
-            closeIcon={false}
-            open={open1}
-            bodyStyle={{
-              paddingBottom: 80,
-            }}
-          >
-            <div>
-              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                <div className="">
-                  <div className="grid grid-cols-2 gap-4 mt-5">
-                    <div>
-                      <div>*Nom Salle</div>
-                      <Input
-                        value={ClientData.nom_salle}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            nom_salle: value.target.value,
-                          })
-                        }
-                        placeholder="Nom salle"
-                      ></Input>
-                    </div>
-                    <div>
-                      <div>*Capacité</div>
-                      <Input
-                        value={ClientData.capacity}
-                        onChange={(value) => {
-                          const newValue = value.target.value;
-                          if (newValue >= 0 && newValue <= 150) {
+          {/* add new client  */}
+          <div>
+            <div className="flex items-center space-x-3">
+              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "Administration" ||
+                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                  "secretaire") && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajout salle
+                </Button>
+              )}
+              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "Administration" ||
+                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                  "secretaire") && (
+                <Button
+                  type="default"
+                  onClick={showDrawerC}
+                  icon={<BorderOuterOutlined />}
+                >
+                  Ajout categorie
+                </Button>
+              )}
+            </div>
+            <Drawer
+              title="Saisir un nouveau salle"
+              width={720}
+              onClose={onCloseR}
+              closeIcon={false}
+              open={open1}
+              bodyStyle={{
+                paddingBottom: 80,
+              }}
+            >
+              <div>
+                <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+                  <div className="">
+                    <div className="grid grid-cols-2 gap-4 mt-5">
+                      <div>
+                        <div>*Nom Salle</div>
+                        <Input
+                          value={ClientData.nom_salle}
+                          onChange={(value) =>
                             setClientData({
                               ...ClientData,
-                              capacity: newValue,
-                            });
-                          } else {
-                            message.warning(
-                              "La valeur doit être comprise entre 0 et 150"
-                            );
+                              nom_salle: value.target.value,
+                            })
                           }
-                        }}
-                        placeholder="Capacity"
-                      ></Input>
-                    </div>
-                    <div>
-                      <label htmlFor="Année" className="block font-medium">
-                        *Categorie
-                      </label>
-                      <Select
-                        id="categorie"
-                        showSearch
-                        placeholder="categorie"
-                        value={ClientData.category}
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, option) => {
-                          setClientData({
-                            ...ClientData,
-                            id_category: value,
-                            category: option.label,
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={categories}
-                      />
+                          placeholder="Nom salle"
+                        ></Input>
+                      </div>
+                      <div>
+                        <div>*Capacité</div>
+                        <Input
+                          value={ClientData.capacity}
+                          onChange={(value) => {
+                            const newValue = value.target.value;
+                            if (newValue >= 0 && newValue <= 150) {
+                              setClientData({
+                                ...ClientData,
+                                capacity: newValue,
+                              });
+                            } else {
+                              message.warning(
+                                "La valeur doit être comprise entre 0 et 150"
+                              );
+                            }
+                          }}
+                          placeholder="Capacity"
+                        ></Input>
+                      </div>
+                      <div>
+                        <label htmlFor="Année" className="block font-medium">
+                          *Categorie
+                        </label>
+                        <Select
+                          id="categorie"
+                          showSearch
+                          placeholder="categorie"
+                          value={ClientData.category}
+                          className="w-full"
+                          optionFilterProp="children"
+                          onChange={(value, option) => {
+                            setClientData({
+                              ...ClientData,
+                              id_category: value,
+                              category: option.label,
+                            });
+                          }}
+                          filterOption={(input, option) =>
+                            (option?.label ?? "").startsWith(input)
+                          }
+                          filterSort={(optionA, optionB) =>
+                            (optionA?.label ?? "")
+                              .toLowerCase()
+                              .localeCompare(
+                                (optionB?.label ?? "").toLowerCase()
+                              )
+                          }
+                          options={categories}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <Space className="mt-10">
-                  <Button onClick={handleRoomSubmit} type="default">
-                    Enregistrer
-                  </Button>
-                  <Button danger onClick={onCloseR}>
-                    Annuler
-                  </Button>
-                </Space>
-              </div>
-            </div>
-          </Drawer>
-          <Drawer
-            title="Saisir un nouveau categorie"
-            width={720}
-            onClose={onCloseC}
-            closeIcon={false}
-            open={open2}
-            bodyStyle={{
-              paddingBottom: 80,
-            }}
-          >
-            <div>
-              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                <div className="">
-                  <div className="flex items-center space-x-5">
-                    <div>
-                      {/* <div>*Nom categorie</div> */}
-                      <Input
-                        value={CategoireData.nom_category}
-                        onChange={(value) =>
-                          setCategoireData({
-                            ...CategoireData,
-                            nom_category: value.target.value,
-                          })
-                        }
-                        placeholder="Nom Categorie"
-                      ></Input>
-                    </div>
-                    <Tooltip title="Ajoute un nouveau categorie">
-                      <Button
-                        icon={<PlusOutlined />}
-                        className="cursor-pointer"
-                        onClick={addCtegeries}
-                      >Ajouter</Button>
-                    </Tooltip>
-                  </div>
+                  <Space className="mt-10">
+                    <Button onClick={handleRoomSubmit} type="default">
+                      Enregistrer
+                    </Button>
+                    <Button danger onClick={onCloseR}>
+                      Annuler
+                    </Button>
+                  </Space>
                 </div>
               </div>
-              <Divider />
-              <div className="mt-5">
-                <div className="flex items-center space-x-6">
-                  <Input
-                    prefix={<SearchOutlined />}
-                    placeholder="Rechercher une catégorie"
-                    className="w-48"
-                    value={searchText1}
-                    onChange={handleSearch2}
-                  />
-                  {selectedRowKeys1.length === 1 ? (
-                    <EditOutlined
-                      className="cursor-pointer"
-                      onClick={handleEditClick1}
-                    />
-                  ) : (
-                    ""
-                  )}
-                  {selectedRowKeys1.length >= 1 ? (
-                    <Popconfirm
-                      title="Supprimer la catégorie"
-                      description="Etes-vous sûr de vouloir supprimer cette catégorie"
-                      onConfirm={confirm1}
-                      onCancel={cancel}
-                      okText="Yes"
-                      cancelText="No"
-                    >
-                      <DeleteOutlined className="cursor-pointer" />{" "}
-                    </Popconfirm>
-                  ) : (
-                    ""
-                  )}
-                </div>
-                <Table
-                  loading={loading}
-                  pagination={{
-                    pageSize: 5,
-                    showQuickJumper: true,
-                  }}
-                  size="small"
-                  className="w-full mt-5"
-                  columns={columns1}
-                  dataSource={filteredData1}
-                  rowSelection={rowSelection2}
-                />
-              </div>
-            </div>
-          </Drawer>
-        </div>
-      </div>
-      <Table
-        loading={loading}
-        pagination={{
-          pageSize: 7,
-          showQuickJumper: true,
-        }}
-        size="small"
-        className="w-full mt-5"
-        columns={columns}
-        dataSource={filteredData}
-        rowSelection={rowSelection}
-      />
-      <Modal
-        title="Edit Salle"
-        visible={isModalVisible}
-        onOk={handleModalSubmit}
-        onCancel={handleModalCancel}
-        okButtonProps={{ disabled: !isFormChanged }}
-        okText="Soumettre"
-        cancelText="Annuler"
-      >
-        <div className="h-96 overflow-y-auto">
-          <Form onValuesChange={handleFormChange} form={form} layout="vertical">
-            <Form.Item name="nom_salle" label="Nom salle">
-              <Input rules={[{ required: true, message: "Nom salle" }]} />
-            </Form.Item>
-            <Form.Item name="capacity" label="capacity">
-              <Input rules={[{ required: true, message: "capacity" }]} />
-            </Form.Item>
-            <Form.Item
-              name="category"
-              label="Category"
-              rules={[
-                { required: true, message: "Gene selection is required" },
-              ]}
+            </Drawer>
+            <Drawer
+              title="Saisir un nouveau categorie"
+              width={720}
+              onClose={onCloseC}
+              closeIcon={false}
+              open={open2}
+              bodyStyle={{
+                paddingBottom: 80,
+              }}
             >
-              <Select
-                id="categorie"
-                showSearch
-                placeholder="categorie"
-                className="w-full"
-                optionFilterProp="children"
-                onChange={(value, option) => {
-                  setEditingClient({
-                    ...editingClient,
-                    id_category: value,
-                    category: option.label,
-                  });
-                }}
-                filterOption={(input, option) =>
-                  (option?.label ?? "").startsWith(input)
-                }
-                filterSort={(optionA, optionB) =>
-                  (optionA?.label ?? "")
-                    .toLowerCase()
-                    .localeCompare((optionB?.label ?? "").toLowerCase())
-                }
-                options={categories}
-              />
-            </Form.Item>
-          </Form>
+              <div>
+                <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+                  <div className="">
+                    <div className="flex items-center space-x-5">
+                      <div>
+                        {/* <div>*Nom categorie</div> */}
+                        <Input
+                          value={CategoireData.nom_category}
+                          onChange={(value) =>
+                            setCategoireData({
+                              ...CategoireData,
+                              nom_category: value.target.value,
+                            })
+                          }
+                          placeholder="Nom Categorie"
+                        ></Input>
+                      </div>
+                      <Tooltip title="Ajoute un nouveau categorie">
+                        <Button
+                          icon={<PlusOutlined />}
+                          className="cursor-pointer"
+                          onClick={addCtegeries}
+                        >
+                          Ajouter
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  </div>
+                </div>
+                <Divider />
+                <div className="mt-5">
+                  <div className="flex items-center space-x-6">
+                    <Input
+                      prefix={<SearchOutlined />}
+                      placeholder="Rechercher une catégorie"
+                      className="w-48"
+                      value={searchText1}
+                      onChange={handleSearch2}
+                    />
+                    {selectedRowKeys1.length === 1 ? (
+                      <EditOutlined
+                        className="cursor-pointer"
+                        onClick={handleEditClick1}
+                      />
+                    ) : (
+                      ""
+                    )}
+                    {selectedRowKeys1.length >= 1 ? (
+                      <Popconfirm
+                        title="Supprimer la catégorie"
+                        description="Etes-vous sûr de vouloir supprimer cette catégorie"
+                        onConfirm={confirm1}
+                        onCancel={cancel}
+                        okText="Yes"
+                        cancelText="No"
+                      >
+                        <DeleteOutlined className="cursor-pointer" />{" "}
+                      </Popconfirm>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                  <Table
+                    loading={loading}
+                    pagination={{
+                      pageSize: 5,
+                      showQuickJumper: true,
+                    }}
+                    size="small"
+                    className="w-full mt-5"
+                    columns={columns1}
+                    dataSource={filteredData1}
+                    rowSelection={rowSelection2}
+                  />
+                </div>
+              </div>
+            </Drawer>
+          </div>
         </div>
-      </Modal>
+        <Table
+          loading={loading}
+          pagination={{
+            pageSize: 7,
+            showQuickJumper: true,
+          }}
+          size="small"
+          className="w-full mt-5"
+          columns={columns}
+          dataSource={filteredData}
+          rowSelection={rowSelection}
+        />
+        <Modal
+          title="Edit Salle"
+          visible={isModalVisible}
+          onOk={handleModalSubmit}
+          onCancel={handleModalCancel}
+          okButtonProps={{ disabled: !isFormChanged }}
+          okText="Soumettre"
+          cancelText="Annuler"
+        >
+          <div className="h-96 overflow-y-auto">
+            <Form
+              onValuesChange={handleFormChange}
+              form={form}
+              layout="vertical"
+            >
+              <Form.Item name="nom_salle" label="Nom salle">
+                <Input rules={[{ required: true, message: "Nom salle" }]} />
+              </Form.Item>
+              <Form.Item name="capacity" label="capacity">
+                <Input rules={[{ required: true, message: "capacity" }]} />
+              </Form.Item>
+              <Form.Item
+                name="category"
+                label="Category"
+                rules={[
+                  { required: true, message: "Gene selection is required" },
+                ]}
+              >
+                <Select
+                  id="categorie"
+                  showSearch
+                  placeholder="categorie"
+                  className="w-full"
+                  optionFilterProp="children"
+                  onChange={(value, option) => {
+                    setEditingClient({
+                      ...editingClient,
+                      id_category: value,
+                      category: option.label,
+                    });
+                  }}
+                  filterOption={(input, option) =>
+                    (option?.label ?? "").startsWith(input)
+                  }
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? "")
+                      .toLowerCase()
+                      .localeCompare((optionB?.label ?? "").toLowerCase())
+                  }
+                  options={categories}
+                />
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
 
-      <Modal
-        title="Edit Categorie"
-        visible={isModalVisible1}
-        onOk={handleModalSubmit1}
-        onCancel={handleModalCancel1}
-      >
-        <div className="h-96 overflow-y-auto mt-10">
-          <Form form={form1} layout="vertical">
-            <Form.Item name="nom_category" label="Nom categorie">
-              <Input rules={[{ required: true, message: "categorie" }]} />
-            </Form.Item>
-          </Form>
-        </div>
-      </Modal>
-    </div>
+        <Modal
+          title="Edit Categorie"
+          visible={isModalVisible1}
+          onOk={handleModalSubmit1}
+          onCancel={handleModalCancel1}
+        >
+          <div className="h-96 overflow-y-auto mt-10">
+            <Form form={form1} layout="vertical">
+              <Form.Item name="nom_category" label="Nom categorie">
+                <Input rules={[{ required: true, message: "categorie" }]} />
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
+      </div>
+    </ConfigProvider>
   );
 };
 

@@ -277,7 +277,7 @@ export async function addNewTrace(
   description,
   cible
 ) {
-  const url = "https://fithouse.pythonanywhere.com/api/trace/";
+  const url = "https://jyssrmmas.pythonanywhere.com/api/trace/";
 
   const data = {
     id_staff: id_staff,

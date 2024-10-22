@@ -63,7 +63,7 @@ const SalaryContractChart = () => {
 
     return (
         <div className='w-96 h-96 bg-white pt-5 pb-10'>
-            <h2 className='font-medium' style={{ textAlign: 'center', marginBottom: '10px' }}>Contrat salaries</h2>
+            <h2 className='font-medium' style={{ textAlign: 'center', marginBottom: '10px' }}>Contrats salarié</h2>
             <div className='w-full h-80'>
                 <Pie {...config} />
             </div>

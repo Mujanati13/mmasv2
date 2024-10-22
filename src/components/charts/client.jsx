@@ -34,7 +34,7 @@ function Client() {
           <div className="h-10 w-10 rounded-full bg-green-200 flex justify-center ">
             <UsergroupAddOutlined className="text-lg" />
           </div>
-          <div className="text-sm font-medium">Client</div>
+          <div className="text-sm font-medium">Etudiants</div>
         </div>
         <div className="p-2 flex flex-col justify-center w-full">
           {loading ? (

@@ -25,7 +25,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { handlePrintPayment } from "../../utils/printable/payment";
 // import { handlePrintPayment } from "../../../utils/printable/payment";
-// import { addNewTrace, getCurrentDate } from "../../../utils/helper";
+import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
 const TablePayemnt = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -53,6 +53,7 @@ const TablePayemnt = ({ darkmode }) => {
   const [isFormChanged, setIsFormChanged] = useState(false);
   const [columnFilterText, setColumnFilterText] = useState("");
   const [filteredInfo, setFilteredInfo] = useState({});
+  const [sorterInfo, setSorterInfo] = useState({});
 
   // State for contract related data
   const [PaymentData, setPaymentData] = useState({
@@ -109,19 +110,27 @@ const TablePayemnt = ({ darkmode }) => {
   };
 
   const handlePrint = () => {
+    console.log('====================================');
+    console.log();
+    console.log('====================================');
     selectedRowKeys.map(async (key) => {
       const ContractData = data.find((client) => client.key === key);
-      const Client = contarctClient.filter(
-        (client) => client.id_employe === ContractData.id_staff
+      console.log('====================================');
+      console.log(ContractData);
+      console.log('====================================');
+      const Client = contractFilter.filter(
+        (client) => client.id_contratStaff === ContractData.id_contrat
       );
+      console.log('====================================');
+      console.log(Client.id_employe);
+      console.log('====================================');
+      const salaire = contarctClient.filter(
+        (client) => client.id_employe === Client.id_employe
+      );
+      console.log(salaire);
       handlePrintPayment(
-        ContractData.staff,
-        Client.prenom,
-        Client.cin,
-        ContractData.fonction,
-        ContractData.nom_periode,
-        ContractData.salaire,
-        Client.validite_CIN
+        ContractData,
+        Client,
       );
     });
   };
@@ -174,13 +183,13 @@ const TablePayemnt = ({ darkmode }) => {
           setAdd(Math.random() * 1000);
           onCloseR();
           const id_staff = JSON.parse(localStorage.getItem("data"));
-          //   const res = await addNewTrace(
-          //     id_staff[0].id_employe,
-          //     "Ajout",
-          //     getCurrentDate(),
-          //     `${JSON.stringify(PaymentData)}`,
-          //     "paiement"
-          //   );
+            const res = await addNewTrace(
+              id_staff[0].id_admin,
+              "Ajout",
+              getCurrentDate(),
+              `${JSON.stringify(updatedPaymentData)}`,
+              "paiement"
+            );
         } else if (
           res.errors.non_field_errors[0] ==
           "The fields periode, id_contrat must make a unique set."
@@ -506,7 +515,9 @@ const TablePayemnt = ({ darkmode }) => {
   const authToken = localStorage.getItem("jwtToken"); // Replace with your actual auth token
   const handleChange = (pagination, filters, sorter) => {
     setFilteredInfo(filters);
+    setSorterInfo(sorter);
   };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -520,11 +531,10 @@ const TablePayemnt = ({ darkmode }) => {
           }
         );
         const jsonData = await response.json();
-        setLoading(false);
 
         const processedData = jsonData.data.map((item, index) => ({
           ...item,
-          key: item.id_contrat || index,
+          key: item.id_trans,
         }));
         setData(processedData);
         setFilteredData(processedData);
@@ -545,7 +555,6 @@ const TablePayemnt = ({ darkmode }) => {
             new Set(processedData.map((item) => item[key]))
           ).map((value) => ({ text: value, value })),
           filteredValue: filteredInfo[key] || null,
-          onFilter: (value, record) => record[key].includes(value),
           render: (text, record) => {
             if (key === "salaire_final") {
               return (
@@ -586,7 +595,32 @@ const TablePayemnt = ({ darkmode }) => {
     };
 
     fetchData();
-  }, [authToken, add]);
+  }, [authToken]);
+
+  useEffect(() => {
+    if (data.length > 0) {
+      let newFilteredData = data;
+      
+      Object.keys(filteredInfo).forEach(key => {
+        const filterValues = filteredInfo[key];
+        if (filterValues && filterValues.length > 0) {
+          newFilteredData = newFilteredData.filter(item => 
+            filterValues.includes(item[key])
+          );
+        }
+      });
+      
+      // Apply sorting if sorterInfo is available
+      if (sorterInfo.column) {
+        newFilteredData.sort((a, b) => {
+          const result = a[sorterInfo.field] > b[sorterInfo.field] ? 1 : -1;
+          return sorterInfo.order === 'descend' ? -result : result;
+        });
+      }
+      
+      setFilteredData(newFilteredData);
+    }
+  }, [filteredInfo, sorterInfo, data]);
 
   useEffect(() => {
     const fetchData = async () => {

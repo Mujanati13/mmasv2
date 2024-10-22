@@ -72,7 +72,7 @@ const DailyActivityChart = () => {
 
   return (
     <Card
-      title="Nombre des nscriptions par period"
+      title="Nombre des inscriptions par période"
     >
       <Statistic
         title="Total Inscriptions"

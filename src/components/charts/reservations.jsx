@@ -43,7 +43,7 @@ function Reservations() {
         <div className="h-10 w-10 rounded-full bg-orange-200 flex justify-center items-center">
           <CalendarOutlined className="text-lg" />
         </div>
-        <div className="text-lg font-medium">Séance</div>
+        <div className="font-medium">Séances</div>
       </div>
 
       {loading ? (

@@ -18,6 +18,7 @@ import {
     EditOutlined,
     EyeOutlined,
 } from "@ant-design/icons";
+import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
 const TableAffiliation = ({darkmode}) => {
     const [data, setData] = useState([]);
@@ -224,6 +225,14 @@ const TableAffiliation = ({darkmode}) => {
 
             if (response.ok) {
                 message.success("Affiliation ajoutée avec succès");
+                const id_staff = JSON.parse(localStorage.getItem("data"));
+                const res = await addNewTrace(
+                    id_staff[0].id_admin,
+                    "ajoute",
+                    getCurrentDate(),
+                    `${JSON.stringify(affiliationData)}`,
+                    "Affiliation"
+                  );
                 onClose();
                 fetchData();
             } else {

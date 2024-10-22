@@ -23,6 +23,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
+import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
 const TableStudent = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -360,6 +361,14 @@ const TableStudent = ({ darkmode }) => {
         );
         setUpdate(updatedData);
         setData(updatedData);
+        const id_staff = JSON.parse(localStorage.getItem("data"));
+        const res = await addNewTrace(
+          id_staff[0].id_admin,
+          "Modification",
+          getCurrentDate(),
+          `${JSON.stringify(values)}`,
+          "student"
+        );
         const filtered = filterData(updatedData, searchText, filters);
         setFilteredData(filtered);
         message.success("Étudiant mis à jour avec succès");
@@ -470,6 +479,14 @@ const TableStudent = ({ darkmode }) => {
         message.success("Étudiant ajouté avec succès");
         setAdd(Math.random() * 1000);
         setimagePath("/student/avatar.png");
+        const id_staff = JSON.parse(localStorage.getItem("data"));
+        const res = await addNewTrace(
+          id_staff[0].id_admin,
+          "Ajout",
+          getCurrentDate(),
+          `${JSON.stringify(updatedStudentData)}`,
+          "student"
+        );
         onCloseR();
       } else {
         message.error("Erreur lors de l'ajout de l'étudiant");

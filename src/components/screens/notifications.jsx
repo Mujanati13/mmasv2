@@ -11,6 +11,7 @@ import {
   Tooltip,
   Modal,
   DatePicker,
+  ConfigProvider,
 } from "antd";
 import {
   SearchOutlined,
@@ -37,7 +38,7 @@ import {
 } from "../../utils/helper";
 import TextArea from "antd/es/input/TextArea";
 
-const TableNotification = () => {
+const TableNotification = ({ darkmode }) => {
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [Loading, setLoading] = useState(false);
@@ -137,7 +138,7 @@ const TableNotification = () => {
           render: (text, record) => {
             if (key === "civilite") {
               return <Tag>{text}</Tag>;
-            } 
+            }
             return text;
           },
         }));
@@ -191,7 +192,7 @@ const TableNotification = () => {
     PaymentData.id_admin = staff[0].id_admin;
     PaymentData.id_staff = staff[0].id_admin;
     PaymentData.cible = selectedValues.toString();
-  
+
     const authToken = localStorage.getItem("jwtToken");
     try {
       const response = await fetch(
@@ -211,7 +212,7 @@ const TableNotification = () => {
           let usersToNotify;
           if (selectedRowKeys.length === 0) {
             // If no users are selected, use all users from filteredData1
-            usersToNotify = filteredData1.map(item => item.id_parent);
+            usersToNotify = filteredData1.map((item) => item.id_parent);
           } else {
             // Otherwise, use the selected users
             usersToNotify = selectedRowKeys.map(
@@ -220,7 +221,7 @@ const TableNotification = () => {
           }
 
           console.log(usersToNotify);
-  
+
           for (const userId of usersToNotify) {
             const notificationData = {
               user_id: userId.toString(),
@@ -228,7 +229,7 @@ const TableNotification = () => {
               body: PaymentData.contenu,
               id_admin: PaymentData.id_admin,
             };
-  
+
             const pushResponse = await fetch(
               "https://JyssrMMAS.pythonanywhere.com/api/send/notification/",
               {
@@ -240,7 +241,7 @@ const TableNotification = () => {
                 body: JSON.stringify(notificationData),
               }
             );
-  
+
             if (!pushResponse.ok) {
               console.error(
                 `Failed to send push notification to user ${userId}`
@@ -249,7 +250,7 @@ const TableNotification = () => {
               console.log(notificationData);
             }
           }
-  
+
           message.success("Notification ajoutée avec succès");
           setChangedFields([]);
           setAdd(Math.random() * 1000);
@@ -672,25 +673,35 @@ const TableNotification = () => {
   };
 
   return (
-    <div className="w-full p-2">
-      <NotificationDetailsModal
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        notification={selectedNotification}
-      />
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center space-x-7">
-          <div className="w-52">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="Search Notification"
-              value={searchText}
-              onChange={handleSearch}
-            />
-          </div>
-          <div className="flex items-center space-x-6">
-            {selectedRowKeys.length === 1 ? "" : ""}
-           
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+          colorBgBase: darkmode ? "#141414" : "#fff",
+          colorTextBase: darkmode ? "#fff" : "#000",
+          colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
+        },
+      }}
+    >
+      <div className="w-full p-2">
+        <NotificationDetailsModal
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          notification={selectedNotification}
+        />
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center space-x-7">
+            <div className="w-52">
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder="Search Notification"
+                value={searchText}
+                onChange={handleSearch}
+              />
+            </div>
+            <div className="flex items-center space-x-6">
+              {selectedRowKeys.length === 1 ? "" : ""}
+
               <Popconfirm
                 title="Supprimer le notification"
                 description="Êtes-vous sûr de supprimer ce notification ?"
@@ -701,7 +712,7 @@ const TableNotification = () => {
               >
                 <DeleteOutlined className="cursor-pointer" />{" "}
               </Popconfirm>
-          
+
               <EyeOutlined
                 style={{ cursor: "pointer" }}
                 onClick={() => {
@@ -711,7 +722,7 @@ const TableNotification = () => {
                   setIsModalVisible(true);
                 }}
               />
-           
+
               <Tooltip title="dupliquer cette notification">
                 <img
                   className="cursor-pointer"
@@ -726,108 +737,106 @@ const TableNotification = () => {
                   }}
                 />
               </Tooltip>
-           
+            </div>
+          </div>
+          {/* add contract */}
+          <div>
+            <>
+              <div className="flex items-center space-x-3">
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<FileAddOutlined />}
+                >
+                  Ajouter Notification
+                </Button>
+              </div>
+              <Drawer
+                title="Saisir une nouvelle notification"
+                width={720}
+                onClose={onCloseR}
+                closeIcon={false}
+                open={open1}
+                bodyStyle={{
+                  paddingBottom: 80,
+                }}
+              >
+                <div>
+                  <Box sx={{ maxWidth: "auto" }}>
+                    <Stepper activeStep={activeStep} orientation="vertical">
+                      {steps.map((step, index) => (
+                        <Step key={step.label}>
+                          <StepLabel
+                            optional={
+                              index === 2 ? (
+                                <Typography variant="caption">
+                                  Dernière étape
+                                </Typography>
+                              ) : null
+                            }
+                          >
+                            {step.label}
+                          </StepLabel>
+                          <StepContent>
+                            <Typography>{step.description}</Typography>
+                            <Box sx={{ mb: 2 }}>
+                              <div>
+                                <Button
+                                  variant="contained"
+                                  onClick={handleNext}
+                                  sx={{ mt: 1, mr: 1 }}
+                                >
+                                  {index === steps.length - 1
+                                    ? "Terminer"
+                                    : "Continuer"}
+                                </Button>
+                                <Button
+                                  className="ml-3 mt-3"
+                                  disabled={index === 0}
+                                  onClick={handleBack}
+                                  sx={{ mt: 1, mr: 1, ml: 2 }}
+                                >
+                                  Retour
+                                </Button>
+                              </div>
+                            </Box>
+                          </StepContent>
+                        </Step>
+                      ))}
+                    </Stepper>
+                    {activeStep === steps.length && (
+                      <Paper square elevation={0} sx={{ p: 3 }}>
+                        <Typography>
+                          Toutes les étapes sont terminées - vous avez terminé
+                        </Typography>
+                        <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
+                          Réinitialiser
+                        </Button>
+                      </Paper>
+                    )}
+                  </Box>
+                </div>
+              </Drawer>
+            </>
           </div>
         </div>
-        {/* add contract */}
-        <div>
-          <>
-            <div className="flex items-center space-x-3">
-             
-                  <Button
-                    type="default"
-                    onClick={showDrawerR}
-                    icon={<FileAddOutlined />}
-                  >
-                    Ajouter Notification
-                  </Button>
-                
-            </div>
-            <Drawer
-              title="Saisir une nouvelle notification"
-              width={720}
-              onClose={onCloseR}
-              closeIcon={false}
-              open={open1}
-              bodyStyle={{
-                paddingBottom: 80,
-              }}
-            >
-              <div>
-                <Box sx={{ maxWidth: "auto" }}>
-                  <Stepper activeStep={activeStep} orientation="vertical">
-                    {steps.map((step, index) => (
-                      <Step key={step.label}>
-                        <StepLabel
-                          optional={
-                            index === 2 ? (
-                              <Typography variant="caption">
-                                Dernière étape
-                              </Typography>
-                            ) : null
-                          }
-                        >
-                          {step.label}
-                        </StepLabel>
-                        <StepContent>
-                          <Typography>{step.description}</Typography>
-                          <Box sx={{ mb: 2 }}>
-                            <div>
-                              <Button
-                                variant="contained"
-                                onClick={handleNext}
-                                sx={{ mt: 1, mr: 1 }}
-                              >
-                                {index === steps.length - 1
-                                  ? "Terminer"
-                                  : "Continuer"}
-                              </Button>
-                              <Button
-                                className="ml-3 mt-3"
-                                disabled={index === 0}
-                                onClick={handleBack}
-                                sx={{ mt: 1, mr: 1, ml: 2 }}
-                              >
-                                Retour
-                              </Button>
-                            </div>
-                          </Box>
-                        </StepContent>
-                      </Step>
-                    ))}
-                  </Stepper>
-                  {activeStep === steps.length && (
-                    <Paper square elevation={0} sx={{ p: 3 }}>
-                      <Typography>
-                        Toutes les étapes sont terminées - vous avez terminé
-                      </Typography>
-                      <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-                        Réinitialiser
-                      </Button>
-                    </Paper>
-                  )}
-                </Box>
-              </div>
-            </Drawer>
-          </>
-        </div>
+        <Table
+          pagination={{
+            pageSize: 7,
+            showQuickJumper: true,
+          }}
+          rowSelection={{
+            type: "checkbox",
+            ...rowSelection,
+          }}
+          size="small"
+          className="w-full mt-5"
+          columns={columns}
+          dataSource={filteredData}
+          loading={Loading}
+        />
       </div>
-      <Table
-        pagination={{
-          pageSize: 7,
-          showQuickJumper: true,
-        }}
-        rowSelection={{
-          type: "checkbox",
-          ...rowSelection,
-        }}
-        size="small"
-        className="w-full mt-5"
-        columns={columns}
-        dataSource={filteredData}
-        loading={Loading}
-      />
-    </div>
+    </ConfigProvider>
   );
 };
 
