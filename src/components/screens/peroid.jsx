@@ -11,7 +11,7 @@ import {
   Button,
   Drawer,
   Space,
-  ConfigProvider
+  ConfigProvider,
 } from "antd";
 import {
   SearchOutlined,
@@ -21,7 +21,7 @@ import {
 import { getCurrentDate, addNewTrace } from "../../utils/helper";
 // import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
-const TablePeriod = ({darkmode}) => {
+const TablePeriod = ({ darkmode }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -68,7 +68,7 @@ const TablePeriod = ({darkmode}) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${authToken}`, // Include the auth token in the headers
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
           },
           body: JSON.stringify(ClientData),
         }
@@ -82,13 +82,13 @@ const TablePeriod = ({darkmode}) => {
             PeriodeSalaire: "",
           });
           const id_staff = JSON.parse(localStorage.getItem("data"));
-            const res = await addNewTrace(
-              id_staff[0].id_admin,
-              "Ajout",
-              getCurrentDate(),
-              `${JSON.stringify(ClientData)}`,
-              "période"
-            );
+          const res = await addNewTrace(
+            id_staff[0].id_admin,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "période"
+          );
           onCloseR();
         } else {
           message.warning("Deja un Période créer avec cette attribut");
@@ -131,7 +131,7 @@ const TablePeriod = ({darkmode}) => {
           "https://JyssrMmas.pythonanywhere.com/api/periode/",
           {
             headers: {
-              "Authorization": `Bearer ${authToken}`, // Include the auth token in the headers
+              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
             },
           }
         );
@@ -337,11 +337,10 @@ const TablePeriod = ({darkmode}) => {
       <ConfigProvider
         theme={{
           token: {
-            colorPrimary: darkmode ? '#00b96b' : '#1677ff',
-            colorBgBase: darkmode ? '#141414' : '#fff',
-            colorTextBase: darkmode ? '#fff' : '#000',
-            colorBorder: darkmode ? '#fff' : '#d9d9d9', // Set border to white in dark mode
-
+            colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+            colorBgBase: darkmode ? "#141414" : "#fff",
+            colorTextBase: darkmode ? "#fff" : "#000",
+            colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
           },
         }}
       >
@@ -377,19 +376,16 @@ const TablePeriod = ({darkmode}) => {
           {/* add new client  */}
           <div>
             <div className="flex items-center space-x-3">
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "Administration" ||
-                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") && (
-                  ""
-                )}
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
-              >
-                Ajoute Priod
-              </Button>
+              {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "Administration" && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajoute Priod
+                </Button>
+              )}
             </div>
             <Drawer
               title="Saisir une période"

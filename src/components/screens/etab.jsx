@@ -221,7 +221,7 @@ const TableEtablissement = ({ darkmode }) => {
         },
       }}
     >
-      <div style={{ marginTop: 20 }} className="mt-40">
+      <div>
         <Table
           loading={loading}
           size="large"
@@ -237,68 +237,157 @@ const TableEtablissement = ({ darkmode }) => {
           title={selectedRecord?.nom_etablissement}
         >
           {selectedRecord && !editMode && (
-            <div>
-              <p>Adresse: {selectedRecord.adresse_etablissement}</p>
-              <p>Téléphone: {selectedRecord.teletablissement}</p>
-              <p>Email: {selectedRecord.mailetablissement}</p>
-              <p>Description: {selectedRecord.description}</p>
-              <p>
-                Site web:{" "}
+            <div className="notification-detail border border-blue-300 rounded-lg p-4 bg-white shadow-md mb-3">
+              <div className="detail-item mb-3">
+                <strong>Adresse :</strong>{" "}
+                <span>{selectedRecord.adresse_etablissement}</span>
+              </div>
+
+              <div className="detail-item mb-3">
+                <strong>Téléphone :</strong>{" "}
+                <span>{selectedRecord.teletablissement}</span>
+              </div>
+
+              <div className="detail-item mb-3">
+                <strong>Email :</strong>{" "}
+                <span>{selectedRecord.mailetablissement}</span>
+              </div>
+
+              <div className="detail-item mb-3">
+                <strong>Description :</strong>{" "}
+                <p>{selectedRecord.description}</p>
+              </div>
+
+              <div className="detail-item mb-3">
+                <strong>Site web :</strong>
                 <a
+                  className="text-blue-500 hover:underline"
                   href={selectedRecord.sitewebetablissement}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {selectedRecord.sitewebetablissement}
                 </a>
-              </p>
-              <p>
-                Facebook:{" "}
+              </div>
+
+              <div className="detail-item mb-3">
+                <strong>Facebook :</strong>
                 <a
+                  className="text-blue-500 hover:underline"
                   href={selectedRecord.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {selectedRecord.facebook}
                 </a>
-              </p>
-              <p>
-                Instagram:{" "}
+              </div>
+
+              <div className="detail-item mb-3">
+                <strong>Instagram :</strong>
                 <a
+                  className="text-blue-500 hover:underline"
                   href={selectedRecord.instagrame}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {selectedRecord.instagrame}
                 </a>
-              </p>
-              <p>WhatsApp: {selectedRecord.watsapp}</p>
-              <p>Nombre de clients: {selectedRecord.nb_clients}</p>
-              <p>
+              </div>
+
+              <div className="detail-item mb-3">
+                <strong>WhatsApp :</strong>{" "}
+                <span>{selectedRecord.watsapp}</span>
+              </div>
+
+              <div className="detail-item mb-4">
+                <strong>Nombre de clients :</strong>{" "}
+                <span>{selectedRecord.nb_clients}</span>
+              </div>
+
+              <div className="detail-item mb-4 flex justify-end">
                 <img
-                  className="w-full h-80 mt-4"
                   src={`https://JyssrMMAS.pythonanywhere.com/media/${selectedRecord.image}`}
-                  alt="Etablissement"
-                  style={{ width: "100%", height: "auto" }}
+                  alt="Établissement"
+                  className="w-48 h-48 object-cover rounded-lg" // Taille de l'image ajustée
                 />
-              </p>
-              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-                <Button
-                  className="mt-5"
-                  type="primary"
-                  icon={<EditOutlined />}
-                  onClick={handleEdit}
-                  disabled={
-                    !JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                      "Administration" ||
-                    JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                      "secretaire"
-                  }
-                >
-                  Modifier
-                </Button>
+              </div>
+
+              {!JSON.parse(localStorage.getItem("data"))[0].id_coach && (
+                <div className="flex justify-center">
+                  <Button
+                    className="mt-5 bg-blue-500 text-white hover:bg-blue-600 transition"
+                    type="primary"
+                    icon={<EditOutlined />}
+                    onClick={handleEdit}
+                  >
+                    Modifier
+                  </Button>
+                </div>
               )}
             </div>
+
+            // <div>
+            //   <p>Adresse: {selectedRecord.adresse_etablissement}</p>
+            //   <p>Téléphone: {selectedRecord.teletablissement}</p>
+            //   <p>Email: {selectedRecord.mailetablissement}</p>
+            //   <p>Description: {selectedRecord.description}</p>
+            //   <p>
+            //     Site web:{" "}
+            //     <a
+            //       href={selectedRecord.sitewebetablissement}
+            //       target="_blank"
+            //       rel="noopener noreferrer"
+            //     >
+            //       {selectedRecord.sitewebetablissement}
+            //     </a>
+            //   </p>
+            //   <p>
+            //     Facebook:{" "}
+            //     <a
+            //       href={selectedRecord.facebook}
+            //       target="_blank"
+            //       rel="noopener noreferrer"
+            //     >
+            //       {selectedRecord.facebook}
+            //     </a>
+            //   </p>
+            //   <p>
+            //     Instagram:{" "}
+            //     <a
+            //       href={selectedRecord.instagrame}
+            //       target="_blank"
+            //       rel="noopener noreferrer"
+            //     >
+            //       {selectedRecord.instagrame}
+            //     </a>
+            //   </p>
+            //   <p>WhatsApp: {selectedRecord.watsapp}</p>
+            //   <p>Nombre de clients: {selectedRecord.nb_clients}</p>
+            //   <p>
+            //     <img
+            //       className="w-full h-80 mt-4"
+            //       src={`https://JyssrMMAS.pythonanywhere.com/media/${selectedRecord.image}`}
+            //       alt="Etablissement"
+            //       style={{ width: "100%", height: "auto" }}
+            //     />
+            //   </p>
+            //   {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+            //     <Button
+            //       className="mt-5"
+            //       type="primary"
+            //       icon={<EditOutlined />}
+            //       onClick={handleEdit}
+            //       disabled={
+            //         !JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+            //           "Administration" ||
+            //         JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+            //           "secretaire"
+            //       }
+            //     >
+            //       Modifier
+            //     </Button>
+            //   )}
+            // </div>
           )}
           {selectedRecord && editMode && (
             <Form

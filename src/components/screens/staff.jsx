@@ -35,6 +35,7 @@ import {
   validateEmail,
   validateMoroccanPhoneNumber,
 } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 // import UploadImage from "../../../utils/uploadImages";
 
 const TableStaff = ({ darkmode }) => {
@@ -129,7 +130,7 @@ const TableStaff = ({ darkmode }) => {
 
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/saveImage/",
+        Endpoint()+"/api/saveImage/",
         {
           method: "POST",
           body: formData, // Corrected: Pass formData directly as the body
@@ -233,7 +234,7 @@ const TableStaff = ({ darkmode }) => {
     // Send the data to the server
     try {
       const response = await fetch(
-        "https://JyssrMmas.pythonanywhere.com/api/staff/",
+        Endpoint()+"/api/staff/",
         {
           method: "POST",
           headers: {
@@ -347,7 +348,7 @@ const TableStaff = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/staff/",
+          Endpoint()+"/api/staff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -506,7 +507,7 @@ const TableStaff = ({ darkmode }) => {
         formData.append("path", "staff/");
 
         const imageResponse = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/saveImage/",
+          Endpoint()+"/api/saveImage/",
           {
             method: "POST",
             body: formData,
@@ -791,14 +792,16 @@ const TableStaff = ({ darkmode }) => {
               </Select>
             </div>
             <div className="flex items-center space-x-6">
-              {true && selectedRowKeys.length === 1 ? (
-                <EditOutlined
-                  className="cursor-pointer"
-                  onClick={handleEditClick}
-                />
-              ) : (
-                ""
-              )}
+              {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "Administration" &&
+                (true && selectedRowKeys.length === 1 ? (
+                  <EditOutlined
+                    className="cursor-pointer"
+                    onClick={handleEditClick}
+                  />
+                ) : (
+                  ""
+                ))}
               {/* {selectedRowKeys.length >= 1 ? (
               <Popconfirm
                 title="Supprimer le personnel"
@@ -818,18 +821,16 @@ const TableStaff = ({ darkmode }) => {
           {/* add new client  */}
           <div>
             <div className="flex items-center space-x-3">
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "Administration" ||
-                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                  "secretaire") &&
-                ""}
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
-              >
-                Ajoute Satff
-              </Button>
+              {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "Administration" && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajoute Satff
+                </Button>
+              )}
             </div>
             <Drawer
               title="Saisir un nouveau membre du personnel"
@@ -1277,8 +1278,12 @@ const TableStaff = ({ darkmode }) => {
                               label: "Prof",
                             },
                             {
-                              value: "staff",
-                              label: "staff",
+                              value: "Secrétaire",
+                              label: "Secrétaire",
+                            },
+                            {
+                              value: "Administration",
+                              label: "Administration",
                             },
                             // {
                             //   value: "autres",

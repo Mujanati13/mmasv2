@@ -11,7 +11,7 @@ import {
   Button,
   Drawer,
   Space,
-  ConfigProvider
+  ConfigProvider,
 } from "antd";
 import {
   SearchOutlined,
@@ -25,6 +25,7 @@ import moment from "moment";
 import { handlePrintContractStaff } from "../../utils/printable/contraStaff";
 // import { handlePrintContractStaff } from "../../../utils/printable/contraStaff";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableContractStaff = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -69,13 +70,13 @@ const TableContractStaff = ({ darkmode }) => {
   const getDetailData = (contract) => {
     const orderMap = {
       "Full Name": 1,
-      "Image": 2,
+      Image: 2,
       "Contract Type": 3,
       "Start Date": 4,
       "End Date": 5,
-      "Salary": 6,
+      Salary: 6,
       "Employee ID": 7,
-      "Contract ID": 8
+      "Contract ID": 8,
     };
 
     const detailData = [
@@ -84,7 +85,7 @@ const TableContractStaff = ({ darkmode }) => {
       { field: "Type de contrat", value: contract.type_contrat },
       { field: "Date de début", value: contract.date_debut },
       { field: "Date de fin", value: contract.date_fin || "Indéterminée" },
-      { field: "Salaire", value: `${contract.salaire} MAD` }
+      { field: "Salaire", value: `${contract.salaire} MAD` },
     ];
 
     return detailData
@@ -92,7 +93,7 @@ const TableContractStaff = ({ darkmode }) => {
       .map((item, index) => ({
         key: index,
         field: item.field,
-        value: item.value
+        value: item.value,
       }));
   };
 
@@ -114,7 +115,7 @@ const TableContractStaff = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/staff/",
+          Endpoint()+"/api/staff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -135,7 +136,7 @@ const TableContractStaff = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/contratstaff/",
+          Endpoint()+"/api/contratstaff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -158,10 +159,7 @@ const TableContractStaff = ({ darkmode }) => {
       const Client = contarctClient.find(
         (client) => client.id_employe === ContractData.id_employe
       );
-        handlePrintContractStaff(
-          Client,
-          ContractData
-        );
+      handlePrintContractStaff(Client, ContractData);
     });
   };
 
@@ -177,7 +175,7 @@ const TableContractStaff = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/staff/"
+          Endpoint()+"/api/staff/"
         );
         const jsonData = await response.json();
         // Create options for the staff Select
@@ -218,7 +216,7 @@ const TableContractStaff = ({ darkmode }) => {
       // ClientData.date_fin = null;
 
       const response = await fetch(
-        "https://JyssrMmas.pythonanywhere.com/api/contratstaff/",
+        Endpoint()+"/api/contratstaff/",
         {
           method: "POST",
           headers: {
@@ -243,13 +241,13 @@ const TableContractStaff = ({ darkmode }) => {
             image: "",
           });
           const id_staff = JSON.parse(localStorage.getItem("data"));
-            const res = await addNewTrace(
-              id_staff[0].id_admin,
-              "Ajout",
-              getCurrentDate(),
-              `${JSON.stringify(ClientData)}`,
-              "contart staff"
-            );
+          const res = await addNewTrace(
+            id_staff[0].id_admin,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "contart staff"
+          );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -294,10 +292,10 @@ const TableContractStaff = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/contratstaff/",
+          Endpoint()+"/api/contratstaff/",
           {
             headers: {
-              "Authorization": `Bearer ${authToken}`, // Include the auth token in the headers
+              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
             },
           }
         );
@@ -319,7 +317,7 @@ const TableContractStaff = ({ darkmode }) => {
           { key: "salaire", title: "Salaire" },
           { key: "date_debut", title: "Date de début" },
           { key: "date_fin", title: "Date de fin" },
-          { key: "action", title: "Action" }
+          { key: "action", title: "Action" },
         ];
 
         const generatedColumns = desiredKeys.map(({ key, title }) => ({
@@ -470,13 +468,13 @@ const TableContractStaff = ({ darkmode }) => {
             throw new Error(`Failed to delete contart staff with key ${key}`);
           }
           const id_staff = JSON.parse(localStorage.getItem("data"));
-            const res = await addNewTrace(
-              id_staff[0].id_admin,
-              "Supprimer",
-              getCurrentDate(),
-              `${JSON.stringify(clientToDelete)}`,
-              "contart staff"
-            );
+          const res = await addNewTrace(
+            id_staff[0].id_admin,
+            "Supprimer",
+            getCurrentDate(),
+            `${JSON.stringify(clientToDelete)}`,
+            "contart staff"
+          );
         });
 
         await Promise.all(promises);
@@ -510,11 +508,10 @@ const TableContractStaff = ({ darkmode }) => {
       <ConfigProvider
         theme={{
           token: {
-            colorPrimary: darkmode ? '#00b96b' : '#1677ff',
-            colorBgBase: darkmode ? '#141414' : '#fff',
-            colorTextBase: darkmode ? '#fff' : '#000',
-            colorBorder: darkmode ? '#fff' : '#d9d9d9', // Set border to white in dark mode
-
+            colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+            colorBgBase: darkmode ? "#141414" : "#fff",
+            colorTextBase: darkmode ? "#fff" : "#000",
+            colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
           },
         }}
       >
@@ -561,8 +558,7 @@ const TableContractStaff = ({ darkmode }) => {
               ) : (
                 ""
               )} */}
-              {(true) &&
-                selectedRowKeys.length == 1 ? (
+              {true && selectedRowKeys.length == 1 ? (
                 <PrinterOutlined onClick={handlePrint} disabled={true} />
               ) : (
                 ""
@@ -572,19 +568,18 @@ const TableContractStaff = ({ darkmode }) => {
           {/* add new client  */}
           <div>
             <div className="flex items-center space-x-3">
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "Administration" ||
-                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "secretaire") && (
+              {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "Administration" &&
+                (true? (
+                  <Button
+                    onClick={showDrawerR}
+                    icon={<UserAddOutlined />}
+                  >
+                    Ajoute Contrat Staff
+                  </Button>
+                ) : (
                   ""
-                )}
-              <Button
-                // type="primary"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
-              >
-                Ajoute Contrat Staff
-              </Button>
+                ))}
             </div>
             <Drawer
               title="Saisir un nouveau Contrat Staff"
@@ -625,7 +620,9 @@ const TableContractStaff = ({ darkmode }) => {
                           filterSort={(optionA, optionB) =>
                             (optionA?.label ?? "")
                               .toLowerCase()
-                              .localeCompare((optionB?.label ?? "").toLowerCase())
+                              .localeCompare(
+                                (optionB?.label ?? "").toLowerCase()
+                              )
                           }
                           options={staffOptions}
                         />{" "}
@@ -653,7 +650,10 @@ const TableContractStaff = ({ darkmode }) => {
                               ClientData.date_fin = "";
                               ClientData.date_debut = "";
                             }
-                            setClientData({ ...ClientData, type_contrat: value });
+                            setClientData({
+                              ...ClientData,
+                              type_contrat: value,
+                            });
                           }}
                           filterOption={(input, option) =>
                             (option?.label ?? "").startsWith(input)
@@ -661,7 +661,9 @@ const TableContractStaff = ({ darkmode }) => {
                           filterSort={(optionA, optionB) =>
                             (optionA?.label ?? "")
                               .toLowerCase()
-                              .localeCompare((optionB?.label ?? "").toLowerCase())
+                              .localeCompare(
+                                (optionB?.label ?? "").toLowerCase()
+                              )
                           }
                           options={[
                             { value: "CDD", label: "CDD" },
@@ -739,7 +741,7 @@ const TableContractStaff = ({ darkmode }) => {
             showQuickJumper: true,
           }}
           size="small"
-          className={`w-full mt-5 ${darkmode ? 'ant-table-dark' : ''}`}
+          className={`w-full mt-5 ${darkmode ? "ant-table-dark" : ""}`}
           columns={columns}
           dataSource={filteredData}
           rowSelection={rowSelection}
@@ -772,7 +774,6 @@ const TableContractStaff = ({ darkmode }) => {
         </Modal>
       </ConfigProvider>
     </div>
-
   );
 };
 

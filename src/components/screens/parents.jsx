@@ -22,6 +22,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableParent = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -96,7 +97,7 @@ const TableParent = ({ darkmode }) => {
 
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/saveImage/",
+        Endpoint()+"/api/saveImage/",
         {
           method: "POST",
           body: formData, // Corrected: Pass formData directly as the body
@@ -136,7 +137,7 @@ const TableParent = ({ darkmode }) => {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/Parentt/",
+        Endpoint()+"/api/Parentt/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -162,7 +163,7 @@ const TableParent = ({ darkmode }) => {
   const fetchStudents = async () => {
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/etudiants/",
+        Endpoint()+"/api/etudiants/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -179,7 +180,7 @@ const TableParent = ({ darkmode }) => {
   const fetchCities = async () => {
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/villes/",
+        Endpoint()+"/api/villes/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -229,7 +230,7 @@ const TableParent = ({ darkmode }) => {
       form.setFieldsValue(parentToEdit);
       console.log("====================================");
       console.log(
-        "https://jyssrmmas.pythonanywhere.com/media/" + parentToEdit.image
+        Endpoint()+"/media/" + parentToEdit.image
       );
       console.log("====================================");
       // Set the fileList with the existing image if it exists
@@ -240,7 +241,7 @@ const TableParent = ({ darkmode }) => {
             name: "image.png",
             status: "done",
             url:
-              "https://jyssrmmas.pythonanywhere.com/media/" +
+              Endpoint()+"/media/" +
               parentToEdit.image,
           },
         ]);
@@ -363,7 +364,7 @@ const TableParent = ({ darkmode }) => {
       };
 
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/Parentt/",
+        Endpoint()+"/api/Parentt/",
         {
           method: "POST",
           headers: {
@@ -536,19 +537,31 @@ const TableParent = ({ darkmode }) => {
               />
             </div>
             <div className="flex items-center space-x-6">
-              <Button
-                onClick={handleEditClick}
-                icon={<EditOutlined />}
-                disabled={selectedRowKeys.length !== 1}
-              >
-                Modifier
-              </Button>
+              {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "Administration" &&
+                (true ? (
+                  <Button
+                    onClick={handleEditClick}
+                    icon={<EditOutlined />}
+                    disabled={selectedRowKeys.length !== 1}
+                  >
+                    Modifier
+                  </Button>
+                ) : (
+                  ""
+                ))}
             </div>
           </div>
           <div>
-            <Button onClick={showDrawerR} icon={<UserAddOutlined />}>
-              Ajouter un parent
-            </Button>
+            {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" &&
+              (true ? (
+                <Button onClick={showDrawerR} icon={<UserAddOutlined />}>
+                  Ajouter un parent
+                </Button>
+              ) : (
+                ""
+              ))}
           </div>
         </div>
         <Table

@@ -13,7 +13,7 @@ import {
   Space,
   Tooltip,
   Divider,
-  ConfigProvider
+  ConfigProvider,
 } from "antd";
 import {
   SearchOutlined,
@@ -26,7 +26,7 @@ import {
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
-const TableAbonnement = ({darkmode}) => {
+const TableAbonnement = ({ darkmode }) => {
   const [data1, setData1] = useState([]);
   const [data, setData] = useState([]);
   const [filteredData1, setFilteredData1] = useState([]);
@@ -81,14 +81,34 @@ const TableAbonnement = ({darkmode}) => {
         visible={visible}
         onCancel={onClose}
         footer={null}
-        title="Abonnement Details"
+        title=" Details Abonnement"
       >
-        <div>
-          <p>Type abonnement: {abonnement?.type_abonnement}</p>
-          <p>Tarif: {abonnement?.tarif}</p>
-          <p>Catégorie contrat: {abonnement?.namecat_conrat}</p>
-          <p>Durée (mois): {abonnement?.duree_mois}</p>
-          {/* Add more abonnement details as needed */}
+        <div className="notification-detail border border-blue-300 rounded-lg p-4 bg-white shadow-md mb-3">
+          <div className="subscription-detail mb-3">
+            <strong className="text-blue-600">Type d'abonnement :</strong>
+            <span className="text-gray-800 ml-2">
+              {abonnement?.type_abonnement}
+            </span>
+          </div>
+
+          <div className="subscription-detail mb-3">
+            <strong className="text-blue-600">Tarif :</strong>
+            <span className="text-gray-800 ml-2">{abonnement?.tarif}</span>
+          </div>
+
+          <div className="subscription-detail mb-3">
+            <strong className="text-blue-600">Catégorie contrat :</strong>
+            <span className="text-gray-800 ml-2">
+              {abonnement?.namecat_conrat}
+            </span>
+          </div>
+
+          <div className="subscription-detail mb-3">
+            <strong className="text-blue-600">Durée :</strong>
+            <span className="text-gray-800 ml-2">
+              {abonnement?.duree_mois} mois
+            </span>
+          </div>
         </div>
       </Modal>
     );
@@ -102,10 +122,20 @@ const TableAbonnement = ({darkmode}) => {
         footer={null}
         title="Catégorie Details"
       >
-        <div>
-          <p>Type contrat: {categorie?.type_contrat}</p>
-          <p>Durée (mois): {categorie?.duree_mois}</p>
-          {/* Add more categorie details as needed */}
+        <div className="notification-detail border border-blue-300 rounded-lg p-4 bg-white shadow-md mb-3">
+          <div className="contract-detail mb-3">
+            <strong className="text-blue-600">Type de contrat :</strong>
+            <span className="text-gray-800 ml-2">
+              {categorie?.type_contrat}
+            </span>
+          </div>
+
+          <div className="contract-detail mb-3">
+            <strong className="text-blue-600">Durée :</strong>
+            <span className="text-gray-800 ml-2">
+              {categorie?.duree_mois} mois
+            </span>
+          </div>
         </div>
       </Modal>
     );
@@ -179,7 +209,16 @@ const TableAbonnement = ({darkmode}) => {
               namecat_conrat: "",
               duree_mois: null,
             });
-          
+
+            const id_staff = JSON.parse(localStorage.getItem("data"));
+            const res = await addNewTrace(
+              22,
+              "Ajout",
+              getCurrentDate(),
+              `${JSON.stringify(ClientData)}`,
+              "abonnements"
+            );
+
             onCloseR();
           } else {
             message.warning(res.msg);
@@ -199,7 +238,7 @@ const TableAbonnement = ({darkmode}) => {
   };
 
   const addCtegeries = async () => {
-    if (CategoireData.duree_mois >= 12) {
+    if (CategoireData.duree_mois > 12) {
       message.warning(
         "La durée doit être saisie comme étant de 12 mois ou moins"
       );
@@ -486,7 +525,7 @@ const TableAbonnement = ({darkmode}) => {
         if (updatedClient == "Upadated Successfully!!") {
           const id_staff = JSON.parse(localStorage.getItem("data"));
           const res = await addNewTrace(
-            id_staff[0].id_employe,
+            22,
             "Modification",
             getCurrentDate(),
             `${JSON.stringify(changedFields)}`,
@@ -612,7 +651,14 @@ const TableAbonnement = ({darkmode}) => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
-          
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            22,
+            "Supprimer",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "abonnements"
+          );
         });
 
         await Promise.all(promises);
@@ -659,6 +705,14 @@ const TableAbonnement = ({darkmode}) => {
           if (!response.ok) {
             throw new Error(`Failed to delete categorie with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            22,
+            "Suppression",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "abonnements"
+          );
         });
 
         await Promise.all(promises);
@@ -719,264 +773,265 @@ const TableAbonnement = ({darkmode}) => {
 
   return (
     <ConfigProvider
-    theme={{
+      theme={{
         token: {
-            colorPrimary: darkmode ? '#00b96b' : '#1677ff',
-            colorBgBase: darkmode ? '#141414' : '#fff',
-            colorTextBase: darkmode ? '#fff' : '#000',
-            colorBorder: darkmode ? '#fff' : '#d9d9d9', // Set border to white in dark mode
-
+          colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+          colorBgBase: darkmode ? "#141414" : "#fff",
+          colorTextBase: darkmode ? "#fff" : "#000",
+          colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
         },
-    }}
->
-    <div className="w-full p-2">
-      <AbonnementDetailsModal
-        visible={showAbonnementModal}
-        onClose={() => {
-          setShowAbonnementModal(false);
-          setSelectedAbonnement(null);
-        }}
-        abonnement={selectedAbonnement}
-      />
+      }}
+    >
+      <div className="w-full p-2">
+        <AbonnementDetailsModal
+          visible={showAbonnementModal}
+          onClose={() => {
+            setShowAbonnementModal(false);
+            setSelectedAbonnement(null);
+          }}
+          abonnement={selectedAbonnement}
+        />
 
-      <CategorieDetailsModal
-        visible={showCategorieModal}
-        onClose={() => {
-          setShowCategorieModal(false);
-          setSelectedCategorie(null);
-        }}
-        categorie={selectedCategorie}
-      />
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center space-x-7">
-          <div className="w-52">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="recherche abonnements"
-              value={searchText}
-              onChange={handleSearch}
-            />
-          </div>
-          <div className="flex items-center space-x-6">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length === 1 ? (
-              <EditOutlined
-                className="cursor-pointer"
-                onClick={handleEditClick}
+        <CategorieDetailsModal
+          visible={showCategorieModal}
+          onClose={() => {
+            setShowCategorieModal(false);
+            setSelectedCategorie(null);
+          }}
+          categorie={selectedCategorie}
+        />
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center space-x-7">
+            <div className="w-52">
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder="recherche abonnements"
+                value={searchText}
+                onChange={handleSearch}
               />
-            ) : (
-              ""
-            )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length >= 1 ? (
-              <Popconfirm
-                title="Supprimer l'abonnement"
-                description="Êtes-vous sûr de supprimer cet abonnement"
-                onConfirm={confirm}
-                onCancel={cancel}
-                okText="Yes"
-                cancelText="No"
-              >
-                <DeleteOutlined className="cursor-pointer" />{" "}
-              </Popconfirm>
-            ) : (
-              ""
-            )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
-            selectedRowKeys.length === 1 ? (
-              <div className="flex items-center space-x-4">
-                <EyeOutlined
-                  style={{ cursor: "pointer" }}
-                  onClick={() => {
-                    setSelectedAbonnement(
-                      data.find((item) => item.key === selectedRowKeys[0])
-                    );
-                    setShowAbonnementModal(true);
-                  }}
+            </div>
+            <div className="flex items-center space-x-6">
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+              selectedRowKeys.length === 1 ? (
+                <EditOutlined
+                  className="cursor-pointer"
+                  onClick={handleEditClick}
                 />
-                {/* ... */}
-              </div>
-            ) : (
-              ""
-            )}
+              ) : (
+                ""
+              )}
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+              selectedRowKeys.length >= 1 ? (
+                <Popconfirm
+                  title="Supprimer l'abonnement"
+                  description="Êtes-vous sûr de supprimer cet abonnement"
+                  onConfirm={confirm}
+                  onCancel={cancel}
+                  okText="Yes"
+                  cancelText="No"
+                >
+                  <DeleteOutlined className="cursor-pointer" />{" "}
+                </Popconfirm>
+              ) : (
+                ""
+              )}
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach &&
+              selectedRowKeys.length === 1 ? (
+                <div className="flex items-center space-x-4">
+                  <EyeOutlined
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      setSelectedAbonnement(
+                        data.find((item) => item.key === selectedRowKeys[0])
+                      );
+                      setShowAbonnementModal(true);
+                    }}
+                  />
+                  {/* ... */}
+                </div>
+              ) : (
+                ""
+              )}
+            </div>
           </div>
-        </div>
-        {/* add new client  */}
-        <div>
-          <div className="flex items-center space-x-3">
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-              <Button
-                type="default"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
-              >
-                Ajout abonnement
-              </Button>
-            )}
-            {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-              <Button
-                type="default"
-                onClick={showDrawerC}
-                icon={<BorderOuterOutlined />}
-              >
-                Type d'abonnement
-              </Button>
-            )}
-          </div>
-          <Drawer
-            title="Saisir un nouveau abonnement"
-            width={720}
-            onClose={onCloseR}
-            closeIcon={false}
-            open={open1}
-            bodyStyle={{
-              paddingBottom: 80,
-            }}
-          >
-            <div>
-              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                <div className="">
-                  <div className="grid grid-cols-2 gap-4 mt-5">
-                  <div>
-                      <div>*offre</div>
-                      <Input
-                        value={ClientData.type_abonnement}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            type_abonnement: value.target.value,
-                          })
-                        }
-                        placeholder="Discipline "
-                      ></Input>
-                    </div>
-                    <div>
-                    <div>*Niveau age</div>
-                      <Input
-                        value={ClientData.Niveau_age}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            Niveau_age: value.target.value,
-                          })
-                        }
-                        placeholder="Niveau age "
-                      ></Input>
-                    </div>
-                  
-                    <div>
-                      <label htmlFor="Année" className="block font-medium">
-                        *Categorie contrat
-                      </label>
-                      <Select
-                        id="categorie"
-                        showSearch
-                        placeholder="categorie"
-                        value={ClientData.namecat_conrat}
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, option) => {
-                          const data = contarctValue.filter(
-                            (val) => val.id_cat_cont == value
-                          );
-                          ClientData.duree_mois = data[0].duree_mois;
-                          setClientData({
-                            ...ClientData,
-                            id_cat_cont: value,
-                            namecat_conrat: option.label,
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "").startsWith(input)
-                        }
-                        filterSort={(optionA, optionB) =>
-                          (optionA?.label ?? "")
-                            .toLowerCase()
-                            .localeCompare((optionB?.label ?? "").toLowerCase())
-                        }
-                        options={categories}
-                      />
-                    </div>
-                    <div>
-                      <div>*Systéme</div>
-                      <Input
-                        value={ClientData.Systeme}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            Systeme: value.target.value,
-                          })
-                        }
-                        placeholder="Systéme "
-                      ></Input>
-                    </div>
-                    <div>
-                    <div>Description</div>
-                      <Input
-                        value={ClientData.description}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            description: value.target.value,
-                          })
-                        }
-                        placeholder="Description "
-                      ></Input>
-                    </div>
-                    <div>
-                      <div>*Tarif</div>
-                      <Input
-                        value={ClientData.tarif}
-                        onChange={(value) =>
-                          setClientData({
-                            ...ClientData,
-                            tarif: value.target.value,
-                          })
-                        }
-                        placeholder="Tarif en DH"
-                      ></Input>
+          {/* add new client  */}
+          <div>
+            <div className="flex items-center space-x-3">
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajout abonnement
+                </Button>
+              )}
+              {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
+                <Button
+                  type="default"
+                  onClick={showDrawerC}
+                  icon={<BorderOuterOutlined />}
+                >
+                  Type d'abonnement
+                </Button>
+              )}
+            </div>
+            <Drawer
+              title="Saisir un nouveau abonnement"
+              width={720}
+              onClose={onCloseR}
+              closeIcon={false}
+              open={open1}
+              bodyStyle={{
+                paddingBottom: 80,
+              }}
+            >
+              <div>
+                <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+                  <div className="">
+                    <div className="grid grid-cols-2 gap-4 mt-5">
+                      <div>
+                        <div>*offre</div>
+                        <Input
+                          value={ClientData.type_abonnement}
+                          onChange={(value) =>
+                            setClientData({
+                              ...ClientData,
+                              type_abonnement: value.target.value,
+                            })
+                          }
+                          placeholder="offre "
+                        ></Input>
+                      </div>
+                      <div>
+                        <div>*Niveau age</div>
+                        <Input
+                          value={ClientData.Niveau_age}
+                          onChange={(value) =>
+                            setClientData({
+                              ...ClientData,
+                              Niveau_age: value.target.value,
+                            })
+                          }
+                          placeholder="Niveau age "
+                        ></Input>
+                      </div>
+
+                      <div>
+                        <label htmlFor="Année" className="block font-medium">
+                          *Categorie contrat
+                        </label>
+                        <Select
+                          id="categorie"
+                          showSearch
+                          placeholder="categorie"
+                          value={ClientData.namecat_conrat}
+                          className="w-full"
+                          optionFilterProp="children"
+                          onChange={(value, option) => {
+                            const data = contarctValue.filter(
+                              (val) => val.id_cat_cont == value
+                            );
+                            ClientData.duree_mois = data[0].duree_mois;
+                            setClientData({
+                              ...ClientData,
+                              id_cat_cont: value,
+                              namecat_conrat: option.label,
+                            });
+                          }}
+                          filterOption={(input, option) =>
+                            (option?.label ?? "").startsWith(input)
+                          }
+                          filterSort={(optionA, optionB) =>
+                            (optionA?.label ?? "")
+                              .toLowerCase()
+                              .localeCompare(
+                                (optionB?.label ?? "").toLowerCase()
+                              )
+                          }
+                          options={categories}
+                        />
+                      </div>
+                      <div>
+                        <div>*Systéme</div>
+                        <Input
+                          value={ClientData.Systeme}
+                          onChange={(value) =>
+                            setClientData({
+                              ...ClientData,
+                              Systeme: value.target.value,
+                            })
+                          }
+                          placeholder="Systéme "
+                        ></Input>
+                      </div>
+                      <div>
+                        <div>Description</div>
+                        <Input
+                          value={ClientData.description}
+                          onChange={(value) =>
+                            setClientData({
+                              ...ClientData,
+                              description: value.target.value,
+                            })
+                          }
+                          placeholder="Description "
+                        ></Input>
+                      </div>
+                      <div>
+                        <div>*Tarif</div>
+                        <Input
+                          value={ClientData.tarif}
+                          onChange={(value) =>
+                            setClientData({
+                              ...ClientData,
+                              tarif: value.target.value,
+                            })
+                          }
+                          placeholder="Tarif en DH"
+                        ></Input>
+                      </div>
                     </div>
                   </div>
+                  <Space className="mt-10">
+                    <Button danger onClick={onCloseR}>
+                      Annuler
+                    </Button>
+                    <Button onClick={handleRoomSubmit} type="default">
+                      Enregistrer
+                    </Button>
+                  </Space>
                 </div>
-                <Space className="mt-10">
-                  <Button danger onClick={onCloseR}>
-                    Annuler
-                  </Button>
-                  <Button onClick={handleRoomSubmit} type="default">
-                    Enregistrer
-                  </Button>
-                </Space>
               </div>
-            </div>
-          </Drawer>
-          <Drawer
-            title="Saisir un nouveau type d'abonnement"
-            width={720}
-            onClose={onCloseC}
-            closeIcon={false}
-            open={open2}
-            bodyStyle={{
-              paddingBottom: 80,
-            }}
-          >
-            <div>
-              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-                <div className="">
-                  <div className="flex items-center space-x-5">
-                    <div>
-                      <Input
-                        value={CategoireData.type_contrat}
-                        onChange={(value) =>
-                          setCategoireData({
-                            ...CategoireData,
-                            type_contrat: value.target.value,
-                          })
-                        }
-                        placeholder="Type abonnement "
-                      ></Input>
-                    </div>
-                    <div>
-                      {/* <Input
+            </Drawer>
+            <Drawer
+              title="Saisir un nouveau type d'abonnement"
+              width={720}
+              onClose={onCloseC}
+              closeIcon={false}
+              open={open2}
+              bodyStyle={{
+                paddingBottom: 80,
+              }}
+            >
+              <div>
+                <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+                  <div className="">
+                    <div className="flex items-center space-x-5">
+                      <div>
+                        <Input
+                          value={CategoireData.type_contrat}
+                          onChange={(value) =>
+                            setCategoireData({
+                              ...CategoireData,
+                              type_contrat: value.target.value,
+                            })
+                          }
+                          placeholder="Type abonnement "
+                        ></Input>
+                      </div>
+                      <div>
+                        {/* <Input
                         value={CategoireData.duree_mois}
                         type="number"
                         count={{
@@ -991,216 +1046,225 @@ const TableAbonnement = ({darkmode}) => {
                           })
                         }
                       /> */}
-                      <Input
-                        value={CategoireData.duree_mois}
-                        type="number"
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value <= 12) {
-                            setCategoireData({
-                              ...CategoireData,
-                              duree_mois: value,
-                            });
-                          } else {
-                            message.warning(
-                              "La durée ne peut pas dépasser 12 mois"
-                            );
-                          }
-                        }}
-                        placeholder="Durée mois"
-                      />
+                        <Input
+                          value={CategoireData.duree_mois}
+                          type="number"
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value <= 12) {
+                              setCategoireData({
+                                ...CategoireData,
+                                duree_mois: value,
+                              });
+                            } else {
+                              message.warning(
+                                "La durée ne peut pas dépasser 12 mois"
+                              );
+                            }
+                          }}
+                          placeholder="Durée mois"
+                        />
+                      </div>
+                      <Tooltip title="Ajoute un nouveau abonnement">
+                        <Button
+                          icon={<PlusOutlined />}
+                          className="cursor-pointer"
+                          onClick={addCtegeries}
+                        >
+                          Ajoute
+                        </Button>
+                      </Tooltip>
                     </div>
-                    <Tooltip title="Ajoute un nouveau abonnement">
-                      <Button
-                        icon={<PlusOutlined />}
-                        className="cursor-pointer"
-                        onClick={addCtegeries}
-                      >Ajoute</Button>
-                    </Tooltip>
                   </div>
                 </div>
-              </div>
-              <Divider />
-              <div className="mt-5">
-                <div className="flex items-center space-x-6">
-                  <Input
-                    prefix={<SearchOutlined />}
-                    placeholder="recherche type"
-                    className="w-48"
-                    value={searchText1}
-                    onChange={handleSearch2}
-                  />
-                  {selectedRowKeys1.length === 1 ? (
-                    <EditOutlined
-                      className="cursor-pointer"
-                      onClick={handleEditClick1}
+                <Divider />
+                <div className="mt-5">
+                  <div className="flex items-center space-x-6">
+                    <Input
+                      prefix={<SearchOutlined />}
+                      placeholder="recherche type"
+                      className="w-48"
+                      value={searchText1}
+                      onChange={handleSearch2}
                     />
-                  ) : (
-                    ""
-                  )}
-                  {selectedRowKeys1.length >= 1 ? (
-                    <Popconfirm
-                      title="Supprimer le type d'abonnement"
-                      description="Êtes-vous sûr de supprimer ce type d'abonnement"
-                      onConfirm={confirm1}
-                      onCancel={cancel}
-                      okText="Yes"
-                      cancelText="No"
-                    >
-                      <DeleteOutlined className="cursor-pointer" />{" "}
-                    </Popconfirm>
-                  ) : (
-                    ""
-                  )}
-                  {selectedRowKeys1.length === 1 ? (
-                    <div className="flex items-center space-x-4">
-                      <EyeOutlined
-                        style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          setSelectedCategorie(
-                            data1.find(
-                              (item) => item.key === selectedRowKeys1[0]
-                            )
-                          );
-                          setShowCategorieModal(true);
-                        }}
+                    {selectedRowKeys1.length === 1 ? (
+                      <EditOutlined
+                        className="cursor-pointer"
+                        onClick={handleEditClick1}
                       />
-                      {/* ... */}
-                    </div>
-                  ) : (
-                    ""
-                  )}
+                    ) : (
+                      ""
+                    )}
+                    {selectedRowKeys1.length >= 1 ? (
+                      <Popconfirm
+                        title="Supprimer le type d'abonnement"
+                        description="Êtes-vous sûr de supprimer ce type d'abonnement"
+                        onConfirm={confirm1}
+                        onCancel={cancel}
+                        okText="Yes"
+                        cancelText="No"
+                      >
+                        <DeleteOutlined className="cursor-pointer" />{" "}
+                      </Popconfirm>
+                    ) : (
+                      ""
+                    )}
+                    {selectedRowKeys1.length === 1 ? (
+                      <div className="flex items-center space-x-4">
+                        <EyeOutlined
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setSelectedCategorie(
+                              data1.find(
+                                (item) => item.key === selectedRowKeys1[0]
+                              )
+                            );
+                            setShowCategorieModal(true);
+                          }}
+                        />
+                        {/* ... */}
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                  <Table
+                    loading={loading}
+                    pagination={{
+                      pageSize: 5,
+                      showQuickJumper: true,
+                    }}
+                    size="small"
+                    className="w-full mt-5"
+                    columns={columns1}
+                    dataSource={filteredData1}
+                    rowSelection={rowSelection2}
+                  />
                 </div>
-                <Table
-                  loading={loading}
-                  pagination={{
-                    pageSize: 5,
-                    showQuickJumper: true,
-                  }}
-                  size="small"
-                  className="w-full mt-5"
-                  columns={columns1}
-                  dataSource={filteredData1}
-                  rowSelection={rowSelection2}
-                />
               </div>
-            </div>
-          </Drawer>
+            </Drawer>
+          </div>
         </div>
-      </div>
-      <Table
-        loading={loading}
-        pagination={{
-          pageSize: 7,
-          showQuickJumper: true,
-        }}
-        size="small"
-        className="w-full mt-5"
-        columns={columns}
-        dataSource={filteredData}
-        rowSelection={rowSelection}
-      />
-      <Modal
-        title="Edit Abonnemetn"
-        visible={isModalVisible}
-        onOk={handleModalSubmit}
-        onCancel={handleModalCancel}
-        okButtonProps={{ disabled: !isFormChanged }}
-        okText="Soumettre"
-        cancelText="Annuler"
-      >
-        <div className="h-96 overflow-y-auto">
-          <Form form={form} onValuesChange={handleFormChange} layout="vertical">
-            <Form.Item name="type_abonnement" label="Type abonnement">
-              <Input rules={[{ required: true, message: "Nom salle" }]} />
-            </Form.Item>
-            <Form.Item name="tarif" label="Tarif">
-              <Input
-                type="number"
-                rules={[{ required: true, message: "tarif" }]}
-              />
-            </Form.Item>
-            <Form.Item
-              name="namecat_conrat"
-              label="Categorie"
-              rules={[
-                { required: true, message: "Categorie selection is required" },
-              ]}
+        <Table
+          loading={loading}
+          pagination={{
+            pageSize: 7,
+            showQuickJumper: true,
+          }}
+          size="small"
+          className="w-full mt-5"
+          columns={columns}
+          dataSource={filteredData}
+          rowSelection={rowSelection}
+        />
+        <Modal
+          title="Modifier Abonnement"
+          visible={isModalVisible}
+          onOk={handleModalSubmit}
+          onCancel={handleModalCancel}
+          okButtonProps={{ disabled: !isFormChanged }}
+          okText="Soumettre"
+          cancelText="Annuler"
+        >
+          <div className="h-96 overflow-y-auto">
+            <Form
+              form={form}
+              onValuesChange={handleFormChange}
+              layout="vertical"
             >
-              <Select
-                id="categorie"
-                showSearch
-                placeholder="categorie"
-                className="w-full"
-                optionFilterProp="children"
-                onChange={(value, option) => {
+              <Form.Item name="type_abonnement" label="Type abonnement">
+                <Input rules={[{ required: true, message: "Nom salle" }]} />
+              </Form.Item>
+              <Form.Item name="tarif" label="Tarif">
+                <Input
+                  type="number"
+                  rules={[{ required: true, message: "tarif" }]}
+                />
+              </Form.Item>
+              <Form.Item
+                name="namecat_conrat"
+                label="Categorie"
+                rules={[
                   {
-                    const data = contarctValue.filter(
-                      (val) => val.id_cat_cont == value
-                    );
-                    editingClient.duree_mois = data[0].duree_mois;
-                    setEditingClient({
-                      ...editingClient,
-                      id_cat_cont: value,
-                      namecat_conrat: option.label,
-                    });
+                    required: true,
+                    message: "Categorie selection is required",
+                  },
+                ]}
+              >
+                <Select
+                  id="categorie"
+                  showSearch
+                  placeholder="categorie"
+                  className="w-full"
+                  optionFilterProp="children"
+                  onChange={(value, option) => {
+                    {
+                      const data = contarctValue.filter(
+                        (val) => val.id_cat_cont == value
+                      );
+                      editingClient.duree_mois = data[0].duree_mois;
+                      setEditingClient({
+                        ...editingClient,
+                        id_cat_cont: value,
+                        namecat_conrat: option.label,
+                      });
+                    }
+                  }}
+                  filterOption={(input, option) =>
+                    (option?.label ?? "").startsWith(input)
                   }
-                }}
-                filterOption={(input, option) =>
-                  (option?.label ?? "").startsWith(input)
-                }
-                filterSort={(optionA, optionB) =>
-                  (optionA?.label ?? "")
-                    .toLowerCase()
-                    .localeCompare((optionB?.label ?? "").toLowerCase())
-                }
-                options={categories}
-              />
-            </Form.Item>
-          </Form>
-        </div>
-      </Modal>
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? "")
+                      .toLowerCase()
+                      .localeCompare((optionB?.label ?? "").toLowerCase())
+                  }
+                  options={categories}
+                />
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
 
-      <Modal
-        title="Modifier Catégorie"
-        visible={isModalVisible1}
-        onOk={handleModalSubmit1}
-        onCancel={handleModalCancel1}
-        footer={[
-          <Button key="back" onClick={handleModalCancel1}>
-            Annuler
-          </Button>,
-          <Button key="submit" type="primary" onClick={handleModalSubmit1}>
-            Valider
-          </Button>,
-        ]}
-      >
-        <div className="h-96 overflow-y-auto mt-10">
-          <Form form={form1} layout="vertical">
-            <Form.Item name="type_contrat" label="Type de contrat">
-              <Input
-                rules={[
-                  {
-                    required: true,
-                    message: "Veuillez entrer le type de contrat",
-                  },
-                ]}
-              />
-            </Form.Item>
-            <Form.Item name="duree_mois" label="Durée en mois">
-              <Input
-                rules={[
-                  {
-                    required: true,
-                    message: "Veuillez entrer la durée en mois",
-                  },
-                ]}
-              />
-            </Form.Item>
-          </Form>
-        </div>
-      </Modal>
-    </div>
+        <Modal
+          title="Modifier Catégorie"
+          visible={isModalVisible1}
+          onOk={handleModalSubmit1}
+          onCancel={handleModalCancel1}
+          footer={[
+            <Button key="back" onClick={handleModalCancel1}>
+              Annuler
+            </Button>,
+            <Button key="submit" type="primary" onClick={handleModalSubmit1}>
+              Valider
+            </Button>,
+          ]}
+        >
+          <div className="h-96 overflow-y-auto mt-10">
+            <Form form={form1} layout="vertical">
+              <Form.Item name="type_contrat" label="Type de contrat">
+                <Input
+                  rules={[
+                    {
+                      required: true,
+                      message: "Veuillez entrer le type de contrat",
+                    },
+                  ]}
+                />
+              </Form.Item>
+              <Form.Item name="duree_mois" label="Durée en mois">
+                <Input
+                  rules={[
+                    {
+                      required: true,
+                      message: "Veuillez entrer la durée en mois",
+                    },
+                  ]}
+                />
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
+      </div>
     </ConfigProvider>
   );
 };

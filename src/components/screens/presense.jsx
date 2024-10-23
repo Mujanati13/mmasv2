@@ -25,10 +25,12 @@ import {
   DatePicker,
   Table,
   Switch,
-  ConfigProvider,
 } from "antd";
 import "dayjs/locale/fr"; // Import French locale for Day.js
-import { formatDateToYearMonthDay, getCurrentDate } from "../../utils/helper";
+import {
+  formatDateToYearMonthDay,
+  getCurrentDate,
+} from "../../../utils/helper";
 const { RangePicker } = DatePicker;
 
 const fetchReservations = async () => {
@@ -44,7 +46,7 @@ const fetchReservations = async () => {
   }
 };
 
-export const TableReservationCoachs = ({ darkmode }) => {
+export const TableReservationCoachs = () => {
   const [events, setEvents] = useState([]);
   const [open1, setOpen1] = useState(false);
   const [clients, setClients] = useState([]);
@@ -67,23 +69,21 @@ export const TableReservationCoachs = ({ darkmode }) => {
     id_etd: null,
     id_seance: null,
     date_operation: getCurrentDate(),
+   
+ 
   });
 
   const updateLocalState = (clientId, isPresent, absenceReason = "") => {
-    setClientPresence((prev) => ({ ...prev, [clientId]: isPresent }));
-    setevent((prev) =>
-      prev.map((item) =>
+    setClientPresence(prev => ({ ...prev, [clientId]: isPresent }));
+    setevent(prev =>
+      prev.map(item =>
         item.key === clientId
-          ? {
-              ...item,
-              presence: isPresent,
-              absenceReason: isPresent ? "" : absenceReason,
-            }
+          ? { ...item, presence: isPresent, absenceReason: isPresent ? "" : absenceReason }
           : item
       )
     );
   };
-
+  
   const handlePresenceChange = async (checked, clientId) => {
     if (!checked) {
       setSelectedAbsentClient(clientId);
@@ -124,7 +124,7 @@ export const TableReservationCoachs = ({ darkmode }) => {
             cours: SeancInfos.title,
             heure_debut: SeancInfos.datestart,
             heure_fin: SeancInfos.dateend,
-            coach: SeancInfos.coach,
+            coach:SeancInfos.coach,
             date_presence: formatDateToYearMonthDay(SeancInfos.start),
             status: 1,
             presence: isPresent,
@@ -199,10 +199,10 @@ export const TableReservationCoachs = ({ darkmode }) => {
   const transformReservations = (reservations) => {
     return reservations.map((reservation) => {
       // Extract date and time components
-      const dateParts = reservation.date_reservation.split("T")[0];
+      const dateParts = reservation.date_reservation.split('T')[0];
       const startDateTime = new Date(`${dateParts}T${reservation.heur_debut}`);
       const endDateTime = new Date(`${dateParts}T${reservation.heure_fin}`);
-
+  
       return {
         id: reservation.id_reservation,
         id_seance: reservation.id_seance,
@@ -214,7 +214,7 @@ export const TableReservationCoachs = ({ darkmode }) => {
         coach: reservation.coach,
         allDay: false,
         resource: reservation.salle,
-        day: reservation.day_name,
+        day: reservation.day_name
       };
     });
   };
@@ -227,7 +227,8 @@ export const TableReservationCoachs = ({ darkmode }) => {
 
   const isReservationFormValid = () => {
     return (
-      ReservationData.heur_debut !== "" && ReservationData.heure_fin !== ""
+      ReservationData.heur_debut !== "" &&
+      ReservationData.heure_fin !== ""
     );
   };
 
@@ -282,6 +283,8 @@ export const TableReservationCoachs = ({ darkmode }) => {
       id_client: null,
       id_seance: null,
       date_operation: getCurrentDate(),
+  
+    
     });
   };
 
@@ -339,9 +342,7 @@ export const TableReservationCoachs = ({ darkmode }) => {
   useEffect(() => {
     const dataSource = selectedEventIdSeance.map((obj) => {
       const presenceInfo =
-        (presenceData &&
-          presenceData.find((p) => p.id_etd === obj.id_etudiant)) ||
-        {};
+      presenceData && presenceData.find((p) => p.id_etd === obj.id_etudiant) || {};  
       console.log(presenceInfo);
       return {
         key: obj.id_etudiant,
@@ -374,82 +375,126 @@ export const TableReservationCoachs = ({ darkmode }) => {
   };
 
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: darkmode ? "#00b96b" : "#1677ff",
-          colorBgBase: darkmode ? "#141414" : "#fff",
-          colorTextBase: darkmode ? "#fff" : "#000",
-          colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
-        },
-      }}
-    >
-      <div className="w-full p-2">
-        <Modal
-          title="Motif d'absence"
-          visible={isAbsenceModalVisible}
-          onOk={handleAbsenceReasonSubmit}
-          onCancel={() => {
-            setIsAbsenceModalVisible(false);
-            setAbsenceReason("");
-            setSelectedAbsentClient(null);
+    <div className="w-full p-2">
+      <Modal
+        title="Motif d'absence"
+        visible={isAbsenceModalVisible}
+        onOk={handleAbsenceReasonSubmit}
+        onCancel={() => {
+          setIsAbsenceModalVisible(false);
+          setAbsenceReason("");
+          setSelectedAbsentClient(null);
+        }}
+      >
+        <Input.TextArea
+          rows={4}
+          value={absenceReason}
+          onChange={(e) => setAbsenceReason(e.target.value)}
+          placeholder="Veuillez saisir le motif d'absence"
+        />
+      </Modal>
+      <div className="flex items-center justify-between mt-3">
+        <div className=" w-52">
+          <Input prefix={<SearchOutlined />} placeholder="Search Reservation" />
+        </div>
+      </div>
+      <div className="mt-5">
+        <Calendar
+          localizer={localizer}
+          onDoubleClickEvent={(e) => {
+            setIsModalVisible(true);
+            fetchClientParSeance(e);
+            SetSeancInfos(e);
           }}
-        >
-          <Input.TextArea
-            rows={4}
-            value={absenceReason}
-            onChange={(e) => setAbsenceReason(e.target.value)}
-            placeholder="Veuillez saisir le motif d'absence"
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 400 }}
+          views={["month", "week"]}
+          messages={{
+            date: "Date",
+            time: "Heure",
+            event: "Événement",
+            allDay: "Toute la journée",
+            week: "Semaine",
+            work_week: "Semaine de travail",
+            day: "Jour",
+            month: "Mois",
+            previous: "Précédent",
+            next: "Suivant",
+            yesterday: "Hier",
+            tomorrow: "Demain",
+            today: "Aujourd'hui",
+            agenda: "Agenda",
+            noEventsInRange: "Aucun événement dans cette période.",
+            showMore: (total) => `+ ${total} de plus`,
+          }}
+        />
+      </div>
+      <Modal
+        title={"List des clients"}
+        visible={isModalVisible2}
+        onOk={handleModalCancel2}
+        onCancel={handleModalCancel2}
+      >
+        <div className="h-96 overflow-y-auto mt-10">
+          <Table
+            columns={[
+              {
+                title: "Nom",
+                dataIndex: "fullName",
+                key: "fullName",
+              },
+              {
+                title: "Mail",
+                dataIndex: "mail",
+                key: "mail",
+              },
+            ]}
+            dataSource={event}
+            pagination={false}
+            bordered
+            // style={{ height: "400px", overflowY: "auto" }}
+            size="small"
           />
-        </Modal>
-        <div className="flex items-center justify-between mt-3">
-          <div className=" w-52">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="Search Reservation"
-            />
+        </div>
+      </Modal>
+
+      <Modal
+        title={"Informations sur la séance"}
+        visible={isModalVisible}
+        onOk={handleModalCancel}
+        onCancel={handleModalCancel}
+        footer={[]}
+      >
+        <div className="h-96 overflow-y-auto mt-10">
+          <div>
+            <span className="font-medium">Cour</span>:{" "}
+            {SeancInfos.title && SeancInfos.title}
           </div>
-        </div>
-        <div className="mt-5">
-          <Calendar
-            localizer={localizer}
-            onDoubleClickEvent={(e) => {
-              setIsModalVisible(true);
-              fetchClientParSeance(e);
-              SetSeancInfos(e);
-            }}
-            events={events}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ height: 400 }}
-            views={["month", "week"]}
-            messages={{
-              date: "Date",
-              time: "Heure",
-              event: "Événement",
-              allDay: "Toute la journée",
-              week: "Semaine",
-              work_week: "Semaine de travail",
-              day: "Jour",
-              month: "Mois",
-              previous: "Précédent",
-              next: "Suivant",
-              yesterday: "Hier",
-              tomorrow: "Demain",
-              today: "Aujourd'hui",
-              agenda: "Agenda",
-              noEventsInRange: "Aucun événement dans cette période.",
-              showMore: (total) => `+ ${total} de plus`,
-            }}
-          />
-        </div>
-        <Modal
-          title={"List des clients"}
-          visible={isModalVisible2}
-          onOk={handleModalCancel2}
-          onCancel={handleModalCancel2}
-        >
+          <div>
+            <span className="font-medium">Coach</span>: {SeancInfos.coach}
+          </div>
+          <div>
+            <span className="font-medium">Heur debut</span>:{" "}
+            {SeancInfos.datestart}
+          </div>
+          <div>
+            <span className="font-medium">Heur de fine</span>:{" "}
+            {SeancInfos.dateend}
+          </div>
+          <div>
+            <span className="font-medium">Salle</span>:{" "}
+            {SeancInfos.resource && SeancInfos.resource}
+          </div>
+          <div>
+            <span className="font-medium">Jour</span>:{" "}
+            {SeancInfos.day && SeancInfos.day}
+          </div>
+
           <div className="h-96 overflow-y-auto mt-10">
+            <div>List des clients</div>
+
             <Table
               columns={[
                 {
@@ -462,99 +507,39 @@ export const TableReservationCoachs = ({ darkmode }) => {
                   dataIndex: "mail",
                   key: "mail",
                 },
+                {
+                  title: "Présence",
+                  key: "presence",
+                  render: (_, record) => (
+                    <div>
+                      <Switch
+                        checked={clientPresence[record.key] || record.presence}
+                        onChange={(checked) =>
+                          handlePresenceChange(checked, record.key)
+                        }
+                      />
+                    </div>
+                  ),
+                },
+                {
+                  title: "Motif d'absence",
+                  dataIndex: "absenceReason",
+                  key: "absenceReason",
+                  render: (text, record) =>
+                    !clientPresence[record.key] && !record.presence
+                      ? text
+                      : "-",
+                },
               ]}
               dataSource={event}
               pagination={false}
               bordered
-              // style={{ height: "400px", overflowY: "auto" }}
               size="small"
             />
           </div>
-        </Modal>
-
-        <Modal
-          title={"Informations sur la séance"}
-          visible={isModalVisible}
-          onOk={handleModalCancel}
-          onCancel={handleModalCancel}
-          footer={[]}
-        >
-          <div className="h-96 overflow-y-auto mt-10">
-            <div>
-              <span className="font-medium">Cour</span>:{" "}
-              {SeancInfos.title && SeancInfos.title}
-            </div>
-            <div>
-              <span className="font-medium">Coach</span>: {SeancInfos.coach}
-            </div>
-            <div>
-              <span className="font-medium">Heur debut</span>:{" "}
-              {SeancInfos.datestart}
-            </div>
-            <div>
-              <span className="font-medium">Heur de fine</span>:{" "}
-              {SeancInfos.dateend}
-            </div>
-            <div>
-              <span className="font-medium">Salle</span>:{" "}
-              {SeancInfos.resource && SeancInfos.resource}
-            </div>
-            <div>
-              <span className="font-medium">Jour</span>:{" "}
-              {SeancInfos.day && SeancInfos.day}
-            </div>
-
-            <div className="h-96 overflow-y-auto mt-10">
-              <div>List des clients</div>
-
-              <Table
-                columns={[
-                  {
-                    title: "Nom",
-                    dataIndex: "fullName",
-                    key: "fullName",
-                  },
-                  {
-                    title: "Mail",
-                    dataIndex: "mail",
-                    key: "mail",
-                  },
-                  {
-                    title: "Présence",
-                    key: "presence",
-                    render: (_, record) => (
-                      <div>
-                        <Switch
-                          checked={
-                            clientPresence[record.key] || record.presence
-                          }
-                          onChange={(checked) =>
-                            handlePresenceChange(checked, record.key)
-                          }
-                        />
-                      </div>
-                    ),
-                  },
-                  {
-                    title: "Motif d'absence",
-                    dataIndex: "absenceReason",
-                    key: "absenceReason",
-                    render: (text, record) =>
-                      !clientPresence[record.key] && !record.presence
-                        ? text
-                        : "-",
-                  },
-                ]}
-                dataSource={event}
-                pagination={false}
-                bordered
-                size="small"
-              />
-            </div>
-          </div>
-        </Modal>
-      </div>
-    </ConfigProvider>
+        </div>
+      </Modal>
+    </div>
   );
 };
 
