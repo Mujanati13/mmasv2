@@ -30,7 +30,7 @@ import "dayjs/locale/fr"; // Import French locale for Day.js
 import {
   formatDateToYearMonthDay,
   getCurrentDate,
-} from "../../../utils/helper";
+} from "../../utils/helper";
 const { RangePicker } = DatePicker;
 
 const fetchReservations = async () => {
