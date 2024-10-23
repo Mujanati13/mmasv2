@@ -26,6 +26,7 @@ import Typography from "@mui/material/Typography";
 import { handlePrintPayment } from "../../utils/printable/payment";
 // import { handlePrintPayment } from "../../../utils/printable/payment";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
 const TablePayemnt = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -78,7 +79,7 @@ const TablePayemnt = ({ darkmode }) => {
   const fetchClients = async () => {
     try {
       const response = await fetch(
-        "https://JyssrMmas.pythonanywhere.com/api/Parentt/",
+        Endpoint()+"/api/Parentt/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -95,7 +96,7 @@ const TablePayemnt = ({ darkmode }) => {
   const fetchAbonnements = async () => {
     try {
       const response = await fetch(
-        "https://JyssrMmas.pythonanywhere.com/api/abonnement/",
+        Endpoint()+"/api/abonnement/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -110,28 +111,25 @@ const TablePayemnt = ({ darkmode }) => {
   };
 
   const handlePrint = () => {
-    console.log('====================================');
+    console.log("====================================");
     console.log();
-    console.log('====================================');
+    console.log("====================================");
     selectedRowKeys.map(async (key) => {
       const ContractData = data.find((client) => client.key === key);
-      console.log('====================================');
+      console.log("====================================");
       console.log(ContractData);
-      console.log('====================================');
+      console.log("====================================");
       const Client = contractFilter.filter(
         (client) => client.id_contratStaff === ContractData.id_contrat
       );
-      console.log('====================================');
+      console.log("====================================");
       console.log(Client.id_employe);
-      console.log('====================================');
+      console.log("====================================");
       const salaire = contarctClient.filter(
         (client) => client.id_employe === Client.id_employe
       );
       console.log(salaire);
-      handlePrintPayment(
-        ContractData,
-        Client,
-      );
+      handlePrintPayment(ContractData, Client);
     });
   };
 
@@ -166,7 +164,7 @@ const TablePayemnt = ({ darkmode }) => {
 
     try {
       const response = await fetch(
-        "https://JyssrMmas.pythonanywhere.com/api/salaire/ ",
+        Endpoint()+"/api/salaire/ ",
         {
           method: "POST",
           headers: {
@@ -183,13 +181,13 @@ const TablePayemnt = ({ darkmode }) => {
           setAdd(Math.random() * 1000);
           onCloseR();
           const id_staff = JSON.parse(localStorage.getItem("data"));
-            const res = await addNewTrace(
-              id_staff[0].id_admin,
-              "Ajout",
-              getCurrentDate(),
-              `${JSON.stringify(updatedPaymentData)}`,
-              "paiement"
-            );
+          const res = await addNewTrace(
+            id_staff[0].id_admin,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(updatedPaymentData)}`,
+            "paiement"
+          );
         } else if (
           res.errors.non_field_errors[0] ==
           "The fields periode, id_contrat must make a unique set."
@@ -235,7 +233,7 @@ const TablePayemnt = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/staff/",
+          Endpoint()+"/api/staff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -263,7 +261,7 @@ const TablePayemnt = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/contratstaff/",
+          Endpoint()+"/api/contratstaff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -291,7 +289,7 @@ const TablePayemnt = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/periode/",
+          Endpoint()+"/api/periode/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -523,7 +521,7 @@ const TablePayemnt = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/salaire/",
+          Endpoint()+"/api/salaire/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -600,24 +598,24 @@ const TablePayemnt = ({ darkmode }) => {
   useEffect(() => {
     if (data.length > 0) {
       let newFilteredData = data;
-      
-      Object.keys(filteredInfo).forEach(key => {
+
+      Object.keys(filteredInfo).forEach((key) => {
         const filterValues = filteredInfo[key];
         if (filterValues && filterValues.length > 0) {
-          newFilteredData = newFilteredData.filter(item => 
+          newFilteredData = newFilteredData.filter((item) =>
             filterValues.includes(item[key])
           );
         }
       });
-      
+
       // Apply sorting if sorterInfo is available
       if (sorterInfo.column) {
         newFilteredData.sort((a, b) => {
           const result = a[sorterInfo.field] > b[sorterInfo.field] ? 1 : -1;
-          return sorterInfo.order === 'descend' ? -result : result;
+          return sorterInfo.order === "descend" ? -result : result;
         });
       }
-      
+
       setFilteredData(newFilteredData);
     }
   }, [filteredInfo, sorterInfo, data]);
@@ -627,7 +625,7 @@ const TablePayemnt = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/staff/",
+          Endpoint()+"/api/staff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -839,18 +837,19 @@ const TablePayemnt = ({ darkmode }) => {
           <div>
             <>
               <div className="flex items-center space-x-3">
-                {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                  "prof" ||
-                  JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                    "secretaire") &&
-                  ""}
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<FileAddOutlined />}
-                >
-                  Ajouter Paiement
-                </Button>
+                {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                  "Administration" &&
+                  (true ? (
+                    <Button
+                      type="default"
+                      onClick={showDrawerR}
+                      icon={<FileAddOutlined />}
+                    >
+                      Ajouter Paiement
+                    </Button>
+                  ) : (
+                    ""
+                  ))}
               </div>
               <Drawer
                 title="Saisir un nouveau Paiement"

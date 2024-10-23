@@ -85,12 +85,25 @@ const TableNotification = ({ darkmode }) => {
         footer={null}
         title="Notification Details"
       >
-        <div>
-          <p>Sujet: {notification?.sujet}</p>
-          <p>Contenu: {notification?.contenu}</p>
-          <p>Cible: {notification?.cible}</p>
-          <p>Date d'envoi: {notification?.date_envoye}</p>
-          {/* Add more notification details as needed */}
+        <div className="notification-card border rounded-lg shadow-lg p-6 bg-gradient-to-r from-blue-100 to-blue-50 mb-4">
+          <div className="notification-detail border border-blue-300 rounded-lg p-4 bg-white shadow-md mb-3">
+            <div className="flex items-center mb-2">
+              <strong className="text-blue-600">Sujet :</strong>
+              <span className="text-gray-800 ml-2">{notification?.sujet}</span>
+            </div>
+            <div className="flex items-center mb-2">
+              <strong className="text-blue-600">Contenu :</strong>
+              <span className="text-gray-800 ml-2">
+                {notification?.contenu}
+              </span>
+            </div>
+            <div className="flex items-center mb-2">
+              <strong className="text-blue-600">Date d'envoi :</strong>
+              <span className="text-gray-800 ml-2">
+                {notification?.date_envoye}
+              </span>
+            </div>
+          </div>
         </div>
       </Modal>
     );
@@ -254,6 +267,7 @@ const TableNotification = ({ darkmode }) => {
           message.success("Notification ajoutée avec succès");
           setChangedFields([]);
           setAdd(Math.random() * 1000);
+
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -265,7 +279,7 @@ const TableNotification = ({ darkmode }) => {
       }
     } catch (error) {
       console.log(error);
-      message.error("An error occurred:", error);
+      message.warning("An error occurred:", error);
     }
   };
 
@@ -547,7 +561,7 @@ const TableNotification = ({ darkmode }) => {
         setFilteredData(processedData);
 
         // Generate columns based on the desired keys
-        const desiredKeys = ["sujet", "contenu", "cible", "date_envoye"];
+        const desiredKeys = ["sujet", "contenu", "date_envoye"];
         const generatedColumns = desiredKeys.map((key) => ({
           title: capitalizeFirstLetter(key.replace(/_/g, " ")),
           dataIndex: key,
@@ -700,43 +714,76 @@ const TableNotification = ({ darkmode }) => {
               />
             </div>
             <div className="flex items-center space-x-6">
-              {selectedRowKeys.length === 1 ? "" : ""}
-
-              <Popconfirm
-                title="Supprimer le notification"
-                description="Êtes-vous sûr de supprimer ce notification ?"
-                onConfirm={confirm}
-                onCancel={cancel}
-                okText="Yes"
-                cancelText="No"
-              >
-                <DeleteOutlined className="cursor-pointer" />{" "}
-              </Popconfirm>
-
-              <EyeOutlined
-                style={{ cursor: "pointer" }}
-                onClick={() => {
-                  setSelectedNotification(
-                    data.find((item) => item.key === selectedRowKeys[0])
-                  );
-                  setIsModalVisible(true);
-                }}
-              />
-
-              <Tooltip title="dupliquer cette notification">
-                <img
-                  className="cursor-pointer"
-                  width="20"
-                  height="20"
-                  src="https://img.icons8.com/material-rounded/48/duplicate.png"
-                  alt="duplicate"
+              {/* {selectedRowKeys.length === 1 ? "" : ""} */}
+              {/* {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire")&&
+              selectedRowKeys.length >= 1 ? ( */}
+              {selectedRowKeys.length === 1 ? (
+                <Popconfirm
+                  title="Supprimer la notification"
+                  description="Êtes-vous sûr de supprimer  notification ?"
+                  onConfirm={confirm}
+                  onCancel={cancel}
+                  okText="Yes"
+                  cancelText="No"
+                >
+                  <DeleteOutlined className="cursor-pointer" />{" "}
+                </Popconfirm>
+              ) : (
+                ""
+              )}
+              {/* ) : (
+            ""
+          )} */}
+              {/* {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire")&&
+              selectedRowKeys.length >= 1 ? ( */}
+              {selectedRowKeys.length === 1 ? (
+                <EyeOutlined
+                  style={{ cursor: "pointer" }}
                   onClick={() => {
-                    // Prefill the "Add New Notification" form with the selected notification data
-                    setPaymentData(selectedNotification);
-                    showDrawerR();
+                    setSelectedNotification(
+                      data.find((item) => item.key === selectedRowKeys[0])
+                    );
+                    setIsModalVisible(true);
                   }}
                 />
-              </Tooltip>
+              ) : (
+                ""
+              )}
+              {/* // ) : (
+            //   ""
+            // )} */}
+              {/* {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire")&&
+              selectedRowKeys.length >= 1 ? ( */}
+              {selectedRowKeys.length === 1 ? (
+                <Tooltip title="dupliquer cette notification">
+                  <img
+                    className="cursor-pointer"
+                    width="20"
+                    height="20"
+                    src="https://img.icons8.com/material-rounded/48/duplicate.png"
+                    alt="duplicate"
+                    onClick={() => {
+                      // Prefill the "Add New Notification" form with the selected notification data
+                      setPaymentData(selectedNotification);
+                      showDrawerR();
+                    }}
+                  />
+                </Tooltip>
+              ) : (
+                ""
+              )}
+              {/* ) : (
+              ""
+            )} */}
             </div>
           </div>
           {/* add contract */}

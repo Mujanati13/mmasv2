@@ -26,7 +26,7 @@ import {
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
-const TableClasse = ({darkmode}) => {
+const TableClasse = ({ darkmode }) => {
   const [data1, setData1] = useState([]);
   const [data, setData] = useState([]);
   const [filteredData1, setFilteredData1] = useState([]);
@@ -68,7 +68,15 @@ const TableClasse = ({darkmode}) => {
   const [CategoireData, setCategoireData] = useState({
     niveau: "",
   });
-
+  // Handle search input change
+  const handleSearch1 = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchText(value);
+    const filtered = data.filter((item) =>
+      item.niveau.toLowerCase().includes(value)
+    );
+    setFilteredData(filtered);
+  };
   const AbonnementDetailsModal = ({ visible, onClose, abonnement }) => {
     return (
       <Modal
@@ -159,14 +167,21 @@ const TableClasse = ({darkmode}) => {
         if (response.ok) {
           const res = await response.json();
           if (res.msg == "Added Successfully!!e") {
-            message.success("abonnement ajouté avec succès");
+            message.success("classe ajouté avec succès");
             setAdd(Math.random() * 1000);
             setClientData({
               niveau: null,
               groupe: null,
               id_niveau: null,
             });
-
+            const id_staff = JSON.parse(localStorage.getItem("data"));
+            const res = await addNewTrace(
+              22,
+              "ajout",
+              getCurrentDate(),
+              `${JSON.stringify(ClientData)}`,
+              "Classe"
+            );
             onCloseR();
           } else {
             message.warning(res.msg);
@@ -384,7 +399,7 @@ const TableClasse = ({darkmode}) => {
     const value = e.target.value.toLowerCase();
     setSearchText(value);
     const filtered = data.filter((item) =>
-      item.type_abonnement.toLowerCase().includes(value)
+      item.groupe.toLowerCase().includes(value)
     );
     setFilteredData(filtered);
   };
@@ -393,7 +408,7 @@ const TableClasse = ({darkmode}) => {
     const value = e.target.value.toLowerCase();
     setSearchText1(value);
     const filtered = data1.filter((item) =>
-      item.type_contrat.toLowerCase().startsWith(value)
+      item.niveau.toLowerCase().startsWith(value)
     );
     setFilteredData1(filtered);
   };
@@ -449,7 +464,7 @@ const TableClasse = ({darkmode}) => {
             ...values,
             id_classe: editingClient.id_classe,
             niveau: editingClient.niveau,
-            groupe: editingClient.groupe,
+            //groupe: editingClient.groupe,
             id_niveau: editingClient.id_niveau,
           }),
         }
@@ -578,6 +593,14 @@ const TableClasse = ({darkmode}) => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            22,
+            "Supprimer",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "Classe"
+          );
         });
 
         await Promise.all(promises);
@@ -635,7 +658,7 @@ const TableClasse = ({darkmode}) => {
         setFilteredData1(updatedData);
         setSelectedRowKeys1([]);
         message.success(
-          `${selectedRowKeys1.length} Type d'bonnement(s) supprimé(s) avec succès`
+          `${selectedRowKeys1.length} Niveau supprimé(s) avec succès`
         );
       } catch (error) {
         console.error("Error deleting clients:", error);

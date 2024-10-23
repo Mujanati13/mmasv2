@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import moment from "moment";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableStudent = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -103,7 +104,7 @@ const TableStudent = ({ darkmode }) => {
 
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/saveImage/",
+        Endpoint()+"/api/saveImage/",
         {
           method: "POST",
           body: formData, // Corrected: Pass formData directly as the body
@@ -159,7 +160,7 @@ const TableStudent = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/etudiants/",
+          Endpoint()+"/api/etudiants/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -236,7 +237,7 @@ const TableStudent = ({ darkmode }) => {
   const fetchParents = async () => {
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/Parentt/",
+        Endpoint()+"/api/Parentt/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -253,7 +254,7 @@ const TableStudent = ({ darkmode }) => {
   const fetchCities = async () => {
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/villes/",
+        Endpoint()+"/api/villes/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -270,7 +271,7 @@ const TableStudent = ({ darkmode }) => {
   const fetchClasses = async () => {
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/classe/",
+        Endpoint()+"/api/classe/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -307,7 +308,7 @@ const TableStudent = ({ darkmode }) => {
       studentToEdit.password = null;
       setEditingStudent(studentToEdit);
       setImageUrl(
-        "https://jyssrmmas.pythonanywhere.com/media/" + studentToEdit.image
+        Endpoint()+"/media/" + studentToEdit.image
       );
       form.setFieldsValue({
         ...studentToEdit,
@@ -335,9 +336,9 @@ const TableStudent = ({ darkmode }) => {
       );
 
       if (true) {
-        console.log('====================================');
+        console.log("====================================");
         console.log(imagePath);
-        console.log('====================================');
+        console.log("====================================");
         const imagePaths = await handleUploadImage();
         values.image = imagePath;
       }
@@ -464,7 +465,7 @@ const TableStudent = ({ darkmode }) => {
       };
 
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/etudiants/",
+        Endpoint()+"/api/etudiants/",
         {
           method: "POST",
           headers: {
@@ -509,7 +510,7 @@ const TableStudent = ({ darkmode }) => {
 
   //   try {
   //     const response = await fetch(
-  //       "https://jyssrmmas.pythonanywhere.com/api/saveImage/",
+  //       Endpoint()+"/api/saveImage/",
   //       {
   //         method: "POST",
   //         body: formData,
@@ -552,19 +553,31 @@ const TableStudent = ({ darkmode }) => {
               />
             </div>
             <div className="flex items-center space-x-6">
-              <Button
-                onClick={handleEditClick}
-                icon={<EditOutlined />}
-                disabled={selectedRowKeys.length !== 1}
-              >
-                Modifier
-              </Button>
+              {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "Administration" &&
+                (true ? (
+                  <Button
+                    onClick={handleEditClick}
+                    icon={<EditOutlined />}
+                    disabled={selectedRowKeys.length !== 1}
+                  >
+                    Modifier
+                  </Button>
+                ) : (
+                  ""
+                ))}
             </div>
           </div>
           <div>
-            <Button onClick={showDrawerR} icon={<UserAddOutlined />}>
-              Ajouter un étudiant
-            </Button>
+            {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" &&
+              (true ? (
+                <Button onClick={showDrawerR} icon={<UserAddOutlined />}>
+                  Ajouter un étudiant
+                </Button>
+              ) : (
+                ""
+              ))}
           </div>
         </div>
         <Table
@@ -654,14 +667,12 @@ const TableStudent = ({ darkmode }) => {
                 beforeUpload={() => false}
               >
                 {imageUrl && fileList.length == 0 ? (
-                  <img src={imageUrl} alt="avatar" style={{ width: '100%' }} />
-                ) : (
-                  fileList.length >= 1 ? null : (
-                    <div>
-                      <PlusOutlined />
-                      <div style={{ marginTop: 8 }}>Upload</div>
-                    </div>
-                  )
+                  <img src={imageUrl} alt="avatar" style={{ width: "100%" }} />
+                ) : fileList.length >= 1 ? null : (
+                  <div>
+                    <PlusOutlined />
+                    <div style={{ marginTop: 8 }}>Upload</div>
+                  </div>
                 )}
               </Upload>
             </Form.Item>

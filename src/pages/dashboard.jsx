@@ -10,10 +10,8 @@ import {
   HomeOutlined,
   CreditCardOutlined,
   CalendarOutlined,
-  ScheduleOutlined,
-  SolutionOutlined,
-  ReadOutlined,
   TeamOutlined,
+  ReadOutlined,
   UsergroupAddOutlined,
   ApartmentOutlined,
   FileTextOutlined,
@@ -60,9 +58,10 @@ const { Title } = Typography;
 
 const Dashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [selectedMenu, setSelectedMenu] = useState("interface_dashboard");
-  const [openKeys, setOpenKeys] = useState(["gestionEtablissement"]);
+  const [openKeys, setOpenKeys] = useState(["gestionPlanification"]);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [userRole, setUserRole] = useState("");
+  const [selectedMenu, setSelectedMenu] = useState("interface_etablissement");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -72,6 +71,13 @@ const Dashboard = () => {
         navigate("/");
       }
     };
+    const userData = JSON.parse(localStorage.getItem('data'));
+    if (userData && userData[0] && userData[0].fonction) {
+      setUserRole(userData[0].fonction);
+      if(userData[0].fonction == "Prof"){
+        setSelectedMenu("interface_presence")
+      }
+    }
     handleLogout();
   }, [navigate]);
 
@@ -79,111 +85,174 @@ const Dashboard = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const menuItems = [
-    {
-      key: "gestionEtablissement",
-      icon: <HomeOutlined />,
-      label: "Gestion Etablissement",
-      children: [
-        {
-          key: "interface_etablissement",
-          icon: <HomeOutlined />,
-          label: "Etablissement",
-        },
-        {
-          key: "interface_dashboard",
-          icon: <DashboardOutlined />,
-          label: "Dashboard",
-        },
-        {
-          key: "interface_notification",
-          icon: <NotificationOutlined />,
-          label: "Notification",
-        },
-        {
-          key: "interface_transaction",
-          icon: <TransactionOutlined />,
-          label: "Transaction",
-        },
-        { key: "interface_salle", icon: <HomeOutlined />, label: "Salle" },
-        {
-          key: "interface_abonnement",
-          icon: <CreditCardOutlined />,
-          label: "Abonnement",
-        },
-      ],
-    },
-    {
-      key: "gestionPlanification",
-      icon: <CalendarOutlined />,
-      label: "Gestion Planification",
-      children: [
-        {
-          key: "interface_reservation",
-          icon: <ScheduleOutlined />,
-          label: "Reservation",
-        },
-        {
-          key: "interface_seance",
-          icon: <SolutionOutlined />,
-          label: "Seance",
-        },
-        {
-          key: "interface_presence",
-          icon: <TeamOutlined />,
-          label: "Présence",
-        },
-        { key: "interface_cours", icon: <ReadOutlined />, label: "Cours" },
-        { key: "interface_classes", icon: <BookOutlined />, label: "Classes" },
-      ],
-    },
-    {
-      key: "gestionEtudiants",
-      icon: <UsergroupAddOutlined />,
-      label: "Gestion des Etudiants",
-      children: [
-        {
-          key: "interface_Etudiants",
-          icon: <UserOutlined />,
-          label: "Etudiants",
-        },
-        { key: "interface_Parents", icon: <TeamOutlined />, label: "Parents" },
-        {
-          key: "interface_Affiliation",
-          icon: <ApartmentOutlined />,
-          label: "affiliation",
-        },
-        {
-          key: "contrat_Etudiant",
-          icon: <FileTextOutlined />,
-          label: "Contrat Etudiant",
-        },
-      ],
-    },
-    {
-      key: "gestionPersonnel",
+  // Gestion Etablissement menu - only for admin
+  const gestionEtablissementMenu = {
+    key: "gestionEtablissement",
+    icon: <HomeOutlined />,
+    label: "Gestion Etablissement",
+    children: [
+      {
+        key: "interface_etablissement",
+        icon: <HomeOutlined />,
+        label: "Etablissement",
+      },
+      {
+        key: "interface_dashboard",
+        icon: <DashboardOutlined />,
+        label: "Dashboard",
+      },
+      {
+        key: "interface_notification",
+        icon: <NotificationOutlined />,
+        label: "Notification",
+      },
+      {
+        key: "interface_transaction",
+        icon: <TransactionOutlined />,
+        label: "Transaction",
+      },
+      { 
+        key: "interface_salle", 
+        icon: <HomeOutlined />, 
+        label: "Salle" 
+      },
+      {
+        key: "interface_abonnement",
+        icon: <CreditCardOutlined />,
+        label: "Abonnement",
+      },
+    ],
+  };
+
+  // Modified menu items for professors
+  const professorPlanificationMenu = {
+    key: "gestionPlanification",
+    icon: <CalendarOutlined />,
+    label: "Gestion Planification",
+    children: [
+      {
+        key: "interface_planning",
+        icon: <CalendarOutlined />,
+        label: "Planning",
+      },
+      {
+        key: "interface_presence",
+        icon: <TeamOutlined />,
+        label: "Présence",
+      },
+      { 
+        key: "interface_cours", 
+        icon: <ReadOutlined />, 
+        label: "Cours" 
+      },
+      { 
+        key: "interface_classes", 
+        icon: <BookOutlined />, 
+        label: "Classes" 
+      },
+    ],
+  };
+
+  // Full planification menu for admin
+  const adminPlanificationMenu = {
+    key: "gestionPlanification",
+    icon: <CalendarOutlined />,
+    label: "Gestion Planification",
+    children: [
+      {
+        key: "interface_reservation",
+        icon: <CalendarOutlined />,
+        label: "Planing",
+      },
+      // {
+      //   key: "interface_seance",
+      //   icon: <CalendarOutlined />,
+      //   label: "Seance",
+      // },
+      {
+        key: "interface_presence",
+        icon: <TeamOutlined />,
+        label: "Présence",
+      },
+      { 
+        key: "interface_cours", 
+        icon: <ReadOutlined />, 
+        label: "Cours" 
+      },
+      { 
+        key: "interface_classes", 
+        icon: <BookOutlined />, 
+        label: "Classes" 
+      },
+    ],
+  };
+
+  const studentManagementMenu = {
+    key: "gestionEtudiants",
+    icon: <UsergroupAddOutlined />,
+    label: "Gestion des Etudiants",
+    children: [
+      {
+        key: "interface_Etudiants",
+        icon: <UserOutlined />,
+        label: "Etudiants",
+      },
+      { 
+        key: "interface_Parents", 
+        icon: <TeamOutlined />, 
+        label: "Parents" 
+      },
+      {
+        key: "interface_Affiliation",
+        icon: <ApartmentOutlined />,
+        label: "affiliation",
+      },
+      {
+        key: "contrat_Etudiant",
+        icon: <FileTextOutlined />,
+        label: "Contrat Etudiant",
+      },
+    ],
+  };
+
+  const personnelMenuItem = {
+    key: "gestionPersonnel",
+    icon: <TeamOutlined />,
+    label: "Gestion du Personnel",
+    children: [
+      { 
+        key: "interface_Staff", 
+        icon: <UserOutlined />, 
+        label: "Staff" 
+      },
+      {
+        key: "interface_Periode",
+        icon: <FieldTimeOutlined />,
+        label: "Période",
+      },
+      {
+        key: "interface_Payement",
+        icon: <DollarOutlined />,
+        label: "Payement",
+      },
+      {
+        key: "Contrat_Salarier",
+        icon: <FileProtectOutlined />,
+        label: "Contrat salarier",
+      },
+    ],
+  };
+
+  // Determine menu items based on user role
+  const menuItems = userRole === "Administration" || "Secrétaire"
+    ? [gestionEtablissementMenu, adminPlanificationMenu, studentManagementMenu, personnelMenuItem]
+    : userRole === "Prof"
+    ? [  {
+      key: "interface_presence",
       icon: <TeamOutlined />,
-      label: "Gestion du Personnel",
-      children: [
-        { key: "interface_Staff", icon: <UserOutlined />, label: "Staff" },
-        {
-          key: "interface_Periode",
-          icon: <FieldTimeOutlined />,
-          label: "Période",
-        },
-        {
-          key: "interface_Payement",
-          icon: <DollarOutlined />,
-          label: "Payement",
-        },
-        {
-          key: "Contrat_Salarier",
-          icon: <FileProtectOutlined />,
-          label: "Contrat salarier",
-        },
-      ],
-    },
-  ];
+      label: "Présence",
+    },]
+    : [adminPlanificationMenu, studentManagementMenu];
 
   const onOpenChange = (keys) => {
     const latestOpenKey = keys.find((key) => openKeys.indexOf(key) === -1);
@@ -212,13 +281,8 @@ const Dashboard = () => {
       case "interface_abonnement":
         return <TableAbonnement darkmode={isDarkMode} />;
       case "interface_reservation":
+      case "interface_planning":
         return <TableReservation darkmode={isDarkMode} />;
-      case "interface_seance":
-        return (
-          <Card title="Sessions" bordered={false}>
-            <p>Manage your sessions and classes here.</p>
-          </Card>
-        );
       case "interface_presence":
         return <TableReservationCoachs darkmode={isDarkMode} />;
       case "interface_cours":
@@ -257,7 +321,6 @@ const Dashboard = () => {
 
   const toggleDarkMode = (checked) => {
     setIsDarkMode(checked);
-    // Apply dark mode to the entire app
     document.body.classList.toggle("dark-mode", checked);
   };
 
@@ -298,7 +361,7 @@ const Dashboard = () => {
           mode="inline"
           openKeys={openKeys}
           onOpenChange={onOpenChange}
-          defaultSelectedKeys={["dashboard"]}
+          defaultSelectedKeys={["interface_planning"]}
           className="mt-5"
           items={menuItems}
           onSelect={({ key }) => setSelectedMenu(key)}
@@ -342,7 +405,7 @@ const Dashboard = () => {
           />
           <div
             style={{ color: isDarkMode ? "white" : "black" }}
-            className="text-lg"
+            className="text-base font-medium"
           >
             {toCapitalize(selectedMenu.split("_")[0]) +
               " " +
@@ -374,10 +437,8 @@ const Dashboard = () => {
         <Content
           className={isDarkMode ? "bg-slate-800" : ""}
           style={{
-            // margin: '64px 16px 16px',
             padding: "64px 16px 16px 26px",
             minHeight: 280,
-            // background: isDarkMode ? "#000C17" : "white",
             overflow: "initial",
           }}
         >

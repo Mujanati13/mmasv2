@@ -18,6 +18,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
 const TablePeriod = () => {
   const [data, setData] = useState([]);
@@ -61,7 +62,7 @@ const TablePeriod = () => {
       }
       ClientData.PeriodeSalaire = attribut.years + " " + attribut.month;
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/periode/",
+        Endpoint()+"/api/periode/",
         {
           method: "POST",
           headers: {
@@ -126,7 +127,7 @@ const TablePeriod = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/periode/",
+          Endpoint()+"/api/periode/",
           {
             // headers: {
             //   "Authorization": `Bearer ${authToken}`, // Include the auth token in the headers
@@ -348,13 +349,19 @@ const TablePeriod = () => {
         </div>
         <div>
           <div className="flex items-center space-x-3">
-            <Button
-              type="default"
-              onClick={showDrawerR}
-              icon={<UserAddOutlined />}
-            >
-              Ajoute Priod
-            </Button>
+            {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" &&
+              (true  ? (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajoute Priod
+                </Button>
+              ) : (
+                ""
+              ))}
           </div>
 
           <Drawer
