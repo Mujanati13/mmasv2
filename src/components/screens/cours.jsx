@@ -21,8 +21,8 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
-// import { handlePrintContractStaff } from "../../../utils/printable/contraStaff";
-// import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { handlePrintContractStaff } from "../../utils/printable/contraStaff";
+import { addNewTrace, getCurrentDate } from "../../utils/helper";
 
 const TableCours = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -47,10 +47,10 @@ const TableCours = ({ darkmode }) => {
 
   // State for room related data
   const [ClientData, setClientData] = useState({
-    nom_cour: "testcours",
-    description: "description",
-    Programme: "programme du cours",
-    id_niveau: 41,
+    nom_cour: "",
+    description: "",
+    Programme: "",
+    id_niveau: 39,
     image: "cours/avatar.jpg",
     code_couleur: "Color(0xff42a5f5)",
     is_published: "true",
@@ -62,14 +62,11 @@ const TableCours = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/staff/",
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-            },
-          }
-        );
+        const response = await fetch("http://51.38.99.75:2001/api/staff/", {
+          headers: {
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          },
+        });
         const jsonData = await response.json();
         setcontarctClient(jsonData.data);
       } catch (error) {
@@ -84,7 +81,7 @@ const TableCours = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/contratstaff/",
+          "http://51.38.99.75:2001/api/contratstaff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -123,32 +120,27 @@ const TableCours = ({ darkmode }) => {
     try {
       // Check if the form is valid before submitting
 
-      const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/cours/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-          },
-          body: JSON.stringify(ClientData),
-        }
-      );
+      const response = await fetch("http://51.38.99.75:2001/api/cours/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+        },
+        body: JSON.stringify(ClientData),
+      });
       if (response.ok) {
         const res = await response.json();
         if (res == "Added Successfully!!") {
           message.success("Cour ajoutée avec succès");
           setAdd(Math.random() * 1000);
-          setClientData({
-            nom_cour: "",
-            description: "",
-            Programme: "",
-            id_niveau: "",
-            image: "",
-            code_couleur: " ",
-            is_published: "true",
-          });
-
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            22,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "cours"
+          );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -174,7 +166,7 @@ const TableCours = ({ darkmode }) => {
       nom_cour: "",
       description: "",
       programme: "",
-      id_niveau: "",
+      id_niveau: 39,
       image: "cours/avatar.jpg",
     });
   };
@@ -195,14 +187,11 @@ const TableCours = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/cours/",
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-            },
-          }
-        );
+        const response = await fetch("http://51.38.99.75:2001/api/cours/", {
+          headers: {
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          },
+        });
         const jsonData = await response.json();
 
         // Ensure each row has a unique key
@@ -293,17 +282,14 @@ const TableCours = ({ darkmode }) => {
       const values = await form.validateFields();
       const { PeriodeSalaire } = values;
       console.log(editingClient);
-      const response = await fetch(
-        `https://JyssrMMAS.pythonanywhere.com/api/cours/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({ ...values, id_cour: editingClient.id_cour }),
-        }
-      );
+      const response = await fetch(`http://51.38.99.75:2001/api/cours/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ ...values, id_cour: editingClient.id_cour }),
+      });
 
       if (response.ok) {
         const updatedClient = await response.json();
@@ -344,7 +330,7 @@ const TableCours = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMMAS.pythonanywhere.com/api/cours/${clientToDelete.id_cour}`,
+            `http://51.38.99.75:2001/api/cours/${clientToDelete.id_cour}`,
             {
               method: "DELETE",
               headers: {
@@ -358,6 +344,14 @@ const TableCours = ({ darkmode }) => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          const res = await addNewTrace(
+            22,
+            "Suppression",
+            getCurrentDate(),
+            `${JSON.stringify(ClientData)}`,
+            "cours"
+          );
         });
 
         await Promise.all(promises);
@@ -369,7 +363,7 @@ const TableCours = ({ darkmode }) => {
         setFilteredData(updatedData);
         setSelectedRowKeys([]);
         message.success(
-          `${selectedRowKeys.length} client(s) supprimé(s) avec succès`
+          `${selectedRowKeys.length} cours supprimé(s) avec succès`
         );
       } catch (error) {
         console.error("Error deleting clients:", error);
@@ -454,12 +448,6 @@ const TableCours = ({ darkmode }) => {
                 dataIndex: "Programme",
                 key: "Programme",
               },
-              {
-                title: "Niveau",
-                dataIndex: "Niveau",
-                key: "Niveau",
-              },
-              // Add other details columns as needed
             ]}
             dataSource={selectedCourse ? [selectedCourse] : []}
             pagination={false}
@@ -481,22 +469,34 @@ const TableCours = ({ darkmode }) => {
                 className="cursor-pointer"
                 onClick={handleEditClick}
               /> */}
-
+              {/* {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+            selectedRowKeys.length === 1 ? ( */}
               <Popconfirm
                 title="Supprimer le cours"
                 description="Êtes-vous sûr de supprimer ce cours"
                 onConfirm={confirm}
                 onCancel={cancel}
-                okText="Yes"
-                cancelText="No"
+                okText="oui"
+                cancelText="Non"
               >
                 <DeleteOutlined className="cursor-pointer" />{" "}
               </Popconfirm>
+              {/* ) : (
+              ""
+            )} */}
             </div>
           </div>
           {/* add new client  */}
           <div>
             <div className="flex items-center space-x-3">
+              {/* {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") &&
+            selectedRowKeys.length === 1 ? ( */}
               <Button
                 type="default"
                 onClick={showDrawerR}
@@ -504,6 +504,9 @@ const TableCours = ({ darkmode }) => {
               >
                 Ajoute Cours
               </Button>
+              {/* ) : (
+          ""
+        )} */}
             </div>
             <Drawer
               title="Saisir un nouveau Cours"
@@ -625,7 +628,7 @@ const TableCours = ({ darkmode }) => {
           rowSelection={rowSelection}
         />
         <Modal
-          title="Edit Cours"
+          title="Modifier Cours"
           visible={isModalVisible}
           onOk={handleModalSubmit}
           onCancel={handleModalCancel}

@@ -75,14 +75,11 @@ const TableSalle = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/category/",
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-            },
-          }
-        );
+        const response = await fetch("http://51.38.99.75:2001/api/category/", {
+          headers: {
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          },
+        });
         const jsonData = await response.json();
         const options = jsonData.data.map((cat) => {
           return { label: cat.nom_category, value: cat.id_category };
@@ -100,7 +97,7 @@ const TableSalle = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/contratstaff/",
+          "http://51.38.99.75:2001/api/contratstaff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -133,17 +130,14 @@ const TableSalle = ({ darkmode }) => {
       //     return;
       //   }
 
-      const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/salles/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-          },
-          body: JSON.stringify(ClientData),
-        }
-      );
+      const response = await fetch("http://51.38.99.75:2001/api/salles/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+        },
+        body: JSON.stringify(ClientData),
+      });
       if (response.ok) {
         const res = await response.json();
         if (res.msg == "Added Successfully!!") {
@@ -183,17 +177,14 @@ const TableSalle = ({ darkmode }) => {
 
   const addCtegeries = async () => {
     try {
-      const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/category/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-          },
-          body: JSON.stringify(CategoireData),
-        }
-      );
+      const response = await fetch("http://51.38.99.75:2001/api/category/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+        },
+        body: JSON.stringify(CategoireData),
+      });
       if (response.ok) {
         const res = await response.json();
         if (res == "Added Successfully!!") {
@@ -259,14 +250,11 @@ const TableSalle = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/salles/",
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-            },
-          }
-        );
+        const response = await fetch("http://51.38.99.75:2001/api/salles/", {
+          headers: {
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          },
+        });
         const jsonData = await response.json();
 
         // Ensure each row has a unique key
@@ -326,14 +314,11 @@ const TableSalle = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/category/ ",
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-            },
-          }
-        );
+        const response = await fetch("http://51.38.99.75:2001/api/category/ ", {
+          headers: {
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          },
+        });
         const jsonData = await response.json();
 
         // Ensure each row has a unique key
@@ -435,23 +420,20 @@ const TableSalle = ({ darkmode }) => {
       const values = await form.validateFields();
       const { PeriodeSalaire } = values;
       console.log(values);
-      const response = await fetch(
-        `https://JyssrMMAS.pythonanywhere.com/api/salles/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({
-            ...values,
-            id_salle: editingClient.id_salle,
-            id_category: editingClient.id_category,
-            id_etablissement: editingClient.id_etablissement,
-            category: editingClient.category,
-          }),
-        }
-      );
+      const response = await fetch(`http://51.38.99.75:2001/api/salles/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          ...values,
+          id_salle: editingClient.id_salle,
+          id_category: editingClient.id_category,
+          id_etablissement: editingClient.id_etablissement,
+          category: editingClient.category,
+        }),
+      });
 
       if (response.ok) {
         const updatedClient = await response.json();
@@ -506,20 +488,17 @@ const TableSalle = ({ darkmode }) => {
     try {
       const values = await form1.validateFields();
       console.log(values);
-      const response = await fetch(
-        `https://JyssrMMAS.pythonanywhere.com/api/category/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({
-            ...values,
-            id_category: editingClient.id_category,
-          }),
-        }
-      );
+      const response = await fetch(`http://51.38.99.75:2001/api/category/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          ...values,
+          id_category: editingClient.id_category,
+        }),
+      });
 
       if (response.ok) {
         const updatedClient = await response.json();
@@ -565,7 +544,7 @@ const TableSalle = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMMAS.pythonanywhere.com/api/salles/${clientToDelete.id_salle}`,
+            `http://51.38.99.75:2001/api/salles/${clientToDelete.id_salle}`,
             {
               method: "DELETE",
               headers: {
@@ -618,7 +597,7 @@ const TableSalle = ({ darkmode }) => {
           const clientToDelete = data1.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMMAS.pythonanywhere.com/api/category/${clientToDelete.id_category}`,
+            `http://51.38.99.75:2001/api/category/${clientToDelete.id_category}`,
             {
               method: "DELETE",
               headers: {
@@ -775,30 +754,30 @@ const TableSalle = ({ darkmode }) => {
           {/* add new client  */}
           <div>
             <div className="flex items-center space-x-3">
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "Administration" ||
-                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                  "secretaire") && (
-                <Button
-                  type="default"
-                  onClick={showDrawerR}
-                  icon={<UserAddOutlined />}
-                >
-                  Ajout salle
-                </Button>
-              )}
-              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                "Administration" ||
-                JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-                  "secretaire") && (
-                <Button
-                  type="default"
-                  onClick={showDrawerC}
-                  icon={<BorderOuterOutlined />}
-                >
-                  Ajout categorie
-                </Button>
-              )}
+              {/* {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") && ( */}
+              <Button
+                type="default"
+                onClick={showDrawerR}
+                icon={<UserAddOutlined />}
+              >
+                Ajout salle
+              </Button>
+              {/* )} */}
+              {/* {(JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+              "Administration" ||
+              JSON.parse(localStorage.getItem(`data`))[0].fonction ==
+                "secretaire") && ( */}
+              <Button
+                type="default"
+                onClick={showDrawerC}
+                icon={<BorderOuterOutlined />}
+              >
+                Ajout categorie
+              </Button>
+              {/* )} */}
             </div>
             <Drawer
               title="Saisir un nouveau salle"
@@ -993,7 +972,7 @@ const TableSalle = ({ darkmode }) => {
           rowSelection={rowSelection}
         />
         <Modal
-          title="Edit Salle"
+          title="Modifier Salle"
           visible={isModalVisible}
           onOk={handleModalSubmit}
           onCancel={handleModalCancel}
@@ -1010,12 +989,12 @@ const TableSalle = ({ darkmode }) => {
               <Form.Item name="nom_salle" label="Nom salle">
                 <Input rules={[{ required: true, message: "Nom salle" }]} />
               </Form.Item>
-              <Form.Item name="capacity" label="capacity">
+              <Form.Item name="capacity" label="capacité">
                 <Input rules={[{ required: true, message: "capacity" }]} />
               </Form.Item>
               <Form.Item
                 name="category"
-                label="Category"
+                label="Categorie"
                 rules={[
                   { required: true, message: "Gene selection is required" },
                 ]}

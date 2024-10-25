@@ -30,7 +30,7 @@ import StepContent from "@mui/material/StepContent";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import moment from "moment";
-// import { handlePrintPayment } from "../../../utils/printable/payment";
+import { handlePrintPayment } from "../../utils/printable/payment";
 import {
   addNewTrace,
   getCurrentDate,
@@ -83,7 +83,7 @@ const TableNotification = ({ darkmode }) => {
         visible={visible}
         onCancel={onClose}
         footer={null}
-        title="Notification Details"
+        title=" Details Notification"
       >
         <div className="notification-card border rounded-lg shadow-lg p-6 bg-gradient-to-r from-blue-100 to-blue-50 mb-4">
           <div className="notification-detail border border-blue-300 rounded-lg p-4 bg-white shadow-md mb-3">
@@ -123,14 +123,11 @@ const TableNotification = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/Parentt/",
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-            },
-          }
-        );
+        const response = await fetch("http://51.38.99.75:2001/api/Parentt/", {
+          headers: {
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          },
+        });
         const jsonData = await response.json();
 
         // Ensure each row has a unique key
@@ -168,9 +165,7 @@ const TableNotification = ({ darkmode }) => {
 
   const fetchClients = async () => {
     try {
-      const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/Parentt/"
-      );
+      const response = await fetch("http://51.38.99.75:2001/api/Parentt/");
       const data = await response.json();
       setClients(data.data);
     } catch (error) {
@@ -180,9 +175,7 @@ const TableNotification = ({ darkmode }) => {
 
   const fetchAbonnements = async () => {
     try {
-      const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/abonnement/"
-      );
+      const response = await fetch("http://51.38.99.75:2001/api/abonnement/");
       const data = await response.json();
       setAbonnements(data.data);
     } catch (error) {
@@ -209,7 +202,7 @@ const TableNotification = ({ darkmode }) => {
     const authToken = localStorage.getItem("jwtToken");
     try {
       const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/notifications/",
+        "http://51.38.99.75:2001/api/notifications/",
         {
           method: "POST",
           headers: {
@@ -244,7 +237,7 @@ const TableNotification = ({ darkmode }) => {
             };
 
             const pushResponse = await fetch(
-              "https://JyssrMMAS.pythonanywhere.com/api/send/notification/",
+              "http://51.38.99.75:2001/api/send/notification/",
               {
                 method: "POST",
                 headers: {
@@ -306,9 +299,7 @@ const TableNotification = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/contrat"
-        );
+        const response = await fetch("http://51.38.99.75:2001/api/contrat");
         const jsonData = await response.json();
         setContartClient(jsonData.data);
       } catch (error) {
@@ -544,7 +535,7 @@ const TableNotification = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/notifications/",
+          "http://51.38.99.75:2001/api/notifications/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -592,14 +583,11 @@ const TableNotification = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/staff/",
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
-            },
-          }
-        );
+        const response = await fetch("http://51.38.99.75:2001/api/staff/", {
+          headers: {
+            Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          },
+        });
         const jsonData = await response.json();
         setcontarctClient(jsonData.data);
       } catch (error) {
@@ -645,7 +633,7 @@ const TableNotification = ({ darkmode }) => {
           const ContractData = data.find((client) => client.key === key);
           console.log(ContractData);
           const response = await fetch(
-            `https://JyssrMMAS.pythonanywhere.com/api/notifications/${ContractData.id_notif}`,
+            `http://51.38.99.75:2001/api/notifications/${ContractData.id_notif}`,
             {
               method: "DELETE",
               headers: {
