@@ -486,7 +486,7 @@ const TableStaff = ({ darkmode }) => {
           uid: "-1",
           name: "image.png",
           status: "done",
-          url: `https://JyssrMmas.pythonanywhere.com/media/${clientToEdit.image}`,
+          url: Endpoint()+`/media/${clientToEdit.image}`,
         },
       ]);
       setIsModalVisible(true);
@@ -530,7 +530,7 @@ const TableStaff = ({ darkmode }) => {
       // ... (rest of the submit logic remains the same)
 
       const response = await fetch(
-        `https://JyssrMmas.pythonanywhere.com/api/staff/`,
+        Endpoint()+`/api/staff/`,
         {
           method: "PUT",
           headers: {
@@ -573,7 +573,7 @@ const TableStaff = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMmas.pythonanywhere.com/api/staff/${clientToDelete.id_employe}`,
+            Endpoint()+`/api/staff/${clientToDelete.id_employe}`,
             {
               method: "DELETE",
               headers: {

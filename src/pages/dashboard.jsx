@@ -254,22 +254,22 @@ const Dashboard = () => {
 
   // Determine menu items based on user role
   const menuItems =
-  (userRole === "Administration" || userRole === "Secrétaire")
-  ? [
-      gestionEtablissementMenu,
-      adminPlanificationMenu,
-      studentManagementMenu,
-      personnelMenuItem,
-    ]
-  : userRole === "Prof"
-  ? [
-      {
-        key: "interface_presence",
-        icon: <TeamOutlined />,
-        label: "Présence",
-      },
-    ]
-  : [adminPlanificationMenu, studentManagementMenu];
+    (userRole === "Administration" || userRole === "Secrétaire")
+      ? [
+        gestionEtablissementMenu,
+        adminPlanificationMenu,
+        studentManagementMenu,
+        personnelMenuItem,
+      ]
+      : userRole === "Prof"
+        ? [
+          {
+            key: "interface_presence",
+            icon: <TeamOutlined />,
+            label: "Présence",
+          },
+        ]
+        : [adminPlanificationMenu, studentManagementMenu];
 
   const onOpenChange = (keys) => {
     const latestOpenKey = keys.find((key) => openKeys.indexOf(key) === -1);
@@ -366,12 +366,14 @@ const Dashboard = () => {
         {collapsed ? (
           ""
         ) : (
-          <img
-            style={{ margin: "14px 20px" }}
-            width={140}
-            src="./src/assets/logo.png"
-            alt="Logo"
-          />
+          <div className="bg-white rounded-md">
+            <img
+              style={{ margin: "14px 20px" }}
+              width={140}
+              src="./src/assets/logo.png"
+              alt="Logo"
+            />
+          </div>
         )}
         <Menu
           theme={isDarkMode ? "dark" : "light"}

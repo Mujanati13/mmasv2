@@ -1,121 +1,196 @@
-import React, { useEffect, useState } from "react";
-import { Column } from "@ant-design/plots";
-import { ConfigProvider } from "antd";
+import React, { useEffect, useState } from 'react';
+import { Column } from '@ant-design/plots';
+import { Spin, ConfigProvider, theme } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+import { Endpoint } from '../../utils/endpoint';
 
 const TypeContract = ({ darkmode }) => {
   const [data, setData] = useState([]);
-  const authToken = localStorage.getItem("jwtToken");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+        const authToken = localStorage.getItem("jwtToken");
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/clients/contracts/type/",
+          Endpoint() + "/api/clients/contracts/type/",
           {
             headers: {
               Authorization: authToken,
             },
           }
         );
-
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-
         const result = await response.json();
-        // Combine labels and data, filter out zero values
         const combinedData = result.labels
           .map((label, index) => ({
             type: label,
             value: result.data[index],
           }))
           .filter((item) => item.value > 0);
-
         setData(combinedData);
       } catch (error) {
         console.error("Failed to fetch data:", error);
+        setError('Failed to fetch data. Please try again later.');
+      } finally {
+        setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
   const config = {
     data,
-    xField: "type",
-    yField: "value",
+    xField: 'type',
+    yField: 'value',
     label: {
-      position: "middle",
+      position: 'middle',
       style: {
-        fill: "#FFFFFF",
-        opacity: 0.6,
+        fill: darkmode ? '#e5e7eb' : '#333333',
+        opacity: 0.8,
       },
+      color: ['white', '#white'],
     },
     xAxis: {
       label: {
         autoHide: true,
         autoRotate: false,
+        style: {
+          fill: darkmode ? '#e5e7eb' : '#333333',
+        },
+        color: ['white', '#white'],
+
+      },
+      line: {
+        style: {
+          stroke: darkmode ? '#4B5563' : '#D1D5DB',
+        },
+        color: ['white', '#white'],
+
+      },
+      grid: {
+        line: {
+          style: {
+            stroke: darkmode ? '#374151' : '#E5E7EB',
+            lineDash: [4, 4],
+          },
+        },
+      },
+    },
+    yAxis: {
+      label: {
+        style: {
+          fill: darkmode ? '#e5e7eb' : '#333333',
+        },
+        color: ['white', '#white'],
+      },
+      line: {
+        style: {
+          stroke: darkmode ? '#4B5563' : '#D1D5DB',
+        },
+        color: ['white', '#white'],
+      },
+      grid: {
+        line: {
+          style: {
+            stroke: darkmode ? '#374151' : '#E5E7EB',
+            lineDash: [4, 4],
+          },
+        },
       },
     },
     meta: {
       type: {
-        alias: "Contract Type",
+        alias: 'Contract Type',
       },
       value: {
-        alias: "Number of Contracts",
+        alias: 'Number of Contracts',
       },
     },
+    color: darkmode ? '#60A5FA' : '#1890ff',
     tooltip: {
+      domStyles: {
+        'g2-tooltip': {
+          backgroundColor: darkmode ? '#374151' : '#fff',
+          color: darkmode ? '#e5e7eb' : '#333333',
+          boxShadow: darkmode ? '0 2px 8px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.15)',
+        },
+      },
       customContent: (title, items) => {
         return (
-          <>
-            <h5 style={{ marginTop: 16 }}>{title}</h5>
-            <ul style={{ paddingLeft: 0 }}>
-              {items?.map((item, index) => {
+          <div className={darkmode ? 'text-green-200' : 'text-green-900'}>
+            <h5 className="mt-4 mb-2">{title}</h5>
+            <ul className="p-0 m-0 list-none">
+              {items?.map((item) => {
                 const { name, value, color } = item;
                 return (
                   <li
                     key={item.name}
-                    style={{
-                      marginBottom: 4,
-                      display: "flex",
-                      alignItems: "center",
-                    }}
+                    className="mb-1 flex items-center"
                   >
                     <span
-                      style={{
-                        display: "inline-block",
-                        marginRight: 8,
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        backgroundColor: color,
-                      }}
+                      className="inline-block mr-2 w-2 h-2 rounded-full"
+                      style={{ backgroundColor: color }}
                     />
                     {name}: {value} contracts
                   </li>
                 );
               })}
             </ul>
-          </>
+          </div>
         );
       },
     },
+    theme: darkmode ? {
+      backgroundColor: '#1F2937',
+    } : undefined,
   };
+
+  if (isLoading) {
+    return (
+      <div className={`w-full h-80 ${darkmode ? 'bg-green-800' : 'bg-white'} 
+        flex items-center justify-center transition-colors duration-200`}>
+        <Spin indicator={
+          <LoadingOutlined style={{ fontSize: 24, color: darkmode ? '#60A5FA' : '#1890ff' }} spin />
+        } />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`w-full h-80 ${darkmode ? 'bg-green-800 text-red-400' : 'bg-white text-red-600'} 
+        flex items-center justify-center p-4 text-center transition-colors duration-200`}>
+        {error}
+      </div>
+    );
+  }
 
   return (
     <ConfigProvider
       theme={{
-        token: {
-          colorPrimary: darkmode ? "#00b96b" : "#1677ff",
-          colorBgBase: darkmode ? "#141414" : "#fff",
-          colorTextBase: darkmode ? "#fff" : "#000",
-          colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
-        },
+        // 1. Use dark algorithm
+        algorithm: theme.darkAlgorithm,
+
+        // 2. Combine dark algorithm and compact algorithm
+        algorithm: [theme.darkAlgorithm, theme.compactAlgorithm],
       }}
     >
-      <div style={{ height: "300px", width: "90%" }}>
-        <Column {...config} />
+      <div className={`w-full h-80 transition-colors duration-200 rounded-lg shadow-sm
+      ${darkmode ? 'bg-green-600 border border-green-600' : 'bg-white'}
+      pt-5 pb-5`}
+      >
+        <h2 className={`font-medium text-center mb-5 transition-colors duration-200
+        ${darkmode ? 'text-white' : 'text-green-900'}`}>
+          Types de Contrat
+        </h2>
+        <div className="w-full h-60">
+          <Column {...config} />
+        </div>
       </div>
     </ConfigProvider>
   );

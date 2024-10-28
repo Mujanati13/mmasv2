@@ -214,22 +214,14 @@ const TableEtablissement = ({darkmode}) => {
         },
       }}
     >
-      <Table
-        loading={loading}
-        size="large"
-        className="w-full"
-        columns={columns}
-        dataSource={data}
-        rowKey="id_etablissement" // Use id_etablissement as rowKey to avoid key warnings
-      />
-      <Modal
+       <Modal
         visible={visibleModal}
         onCancel={handleModalCancel}
         footer={null}
         title={selectedRecord?.nom_etablissement}
       >
         {selectedRecord && !editMode && (
-       <div className="notification-detail border border-blue-300 rounded-lg p-4 bg-white shadow-md mb-3">
+       <div className="notification-detail border border-blue-300 rounded-lg shadow-md mb-3 p-2">
        
        
        <div className="detail-item mb-3">
@@ -298,72 +290,6 @@ const TableEtablissement = ({darkmode}) => {
        </div>
        )}
      </div>
-     
-      
-      
-        
-          // <div>
-          //   <p>Adresse: {selectedRecord.adresse_etablissement}</p>
-          //   <p>Téléphone: {selectedRecord.teletablissement}</p>
-          //   <p>Email: {selectedRecord.mailetablissement}</p>
-          //   <p>Description: {selectedRecord.description}</p>
-          //   <p>
-          //     Site web:{" "}
-          //     <a
-          //       href={selectedRecord.sitewebetablissement}
-          //       target="_blank"
-          //       rel="noopener noreferrer"
-          //     >
-          //       {selectedRecord.sitewebetablissement}
-          //     </a>
-          //   </p>
-          //   <p>
-          //     Facebook:{" "}
-          //     <a
-          //       href={selectedRecord.facebook}
-          //       target="_blank"
-          //       rel="noopener noreferrer"
-          //     >
-          //       {selectedRecord.facebook}
-          //     </a>
-          //   </p>
-          //   <p>
-          //     Instagram:{" "}
-          //     <a
-          //       href={selectedRecord.instagrame}
-          //       target="_blank"
-          //       rel="noopener noreferrer"
-          //     >
-          //       {selectedRecord.instagrame}
-          //     </a>
-          //   </p>
-          //   <p>WhatsApp: {selectedRecord.watsapp}</p>
-          //   <p>Nombre de clients: {selectedRecord.nb_clients}</p>
-          //   <p>
-          //     <img
-          //       className="w-full h-80 mt-4"
-          //       src={`https://JyssrMMAS.pythonanywhere.com/media/${selectedRecord.image}`}
-          //       alt="Etablissement"
-          //       style={{ width: "100%", height: "auto" }}
-          //     />
-          //   </p>
-          //   {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-          //     <Button
-          //       className="mt-5"
-          //       type="primary"
-          //       icon={<EditOutlined />}
-          //       onClick={handleEdit}
-          //       disabled={
-          //         !JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-          //           "Administration" ||
-          //         JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-          //           "secretaire"
-          //       }
-          //     >
-          //       Modifier
-          //     </Button>
-          //   )}
-          // </div>
         )}
         {selectedRecord && editMode && (
           <Form
@@ -424,6 +350,15 @@ const TableEtablissement = ({darkmode}) => {
           </Form>
         )}
       </Modal>
+      <Table
+        loading={loading}
+        size="large"
+        className="w-full"
+        columns={columns}
+        dataSource={data}
+        rowKey="id_etablissement" // Use id_etablissement as rowKey to avoid key warnings
+      />
+     
       </ConfigProvider>
     </div>
   );

@@ -1,17 +1,42 @@
 import React, { useEffect, useState } from "react";
 import { Button, message, Tag } from "antd";
 import { UsergroupAddOutlined } from "@ant-design/icons";
+import { Endpoint } from "../../utils/endpoint";
 
-function Client() {
+function Client({ darkmode }) {
   const [clientData, setClientData] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Theme styles configuration
+  const themeStyles = {
+    container: `w-[20%] h-60 rounded-md ${
+      darkmode ? 'bg-gray-800 border-gray-700' : 'bg-white border-red-100'
+    }`,
+    innerContainer: `w-full h-60 border rounded-md p-3 ${
+      darkmode ? 'bg-gray-800 border-gray-700' : 'bg-white border-red-100'
+    }`,
+    iconContainer: `h-10 w-10 rounded-full flex justify-center items-center ${
+      darkmode ? 'bg-green-900/30' : 'bg-green-200'
+    }`,
+    icon: `text-lg ${darkmode ? 'text-green-300' : 'text-green-700'}`,
+    title: `text-sm font-medium ${darkmode ? 'text-gray-200' : 'text-gray-800'}`,
+    text: `font-medium opacity-70 text-sm ${darkmode ? 'text-gray-300' : 'text-gray-600'}`,
+    tag: (type) => {
+      const colors = {
+        default: darkmode ? 'blue' : 'default',
+        active: darkmode ? 'green' : 'success',
+        inactive: darkmode ? 'red' : 'error'
+      };
+      return colors[type] || colors.default;
+    }
+  };
 
   useEffect(() => {
     const fetchClientData = async () => {
       setLoading(true);
 
       try {
-        const response = await fetch("https://jyssrmmas.pythonanywhere.com/api/clients/status/");
+        const response = await fetch(Endpoint()+"/api/clients/status/");
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -27,24 +52,43 @@ function Client() {
     fetchClientData();
   }, []);
 
+  const StatItem = ({ label, value, tagType = 'default' }) => (
+    <div className={`${themeStyles.text} mt-2 flex items-center gap-2`}>
+      <Tag color={themeStyles.tag(tagType)}>{label}</Tag>
+      <span>{value}</span>
+    </div>
+  );
+
   return (
-    <div className="w-[20%] h-60 bg-white shadow-sm rounded-md">
-      <div className="w-full h-60 bg-white border border-red-100 bottom-1 rounded-md p-3">
+    <div className={themeStyles.container}>
+      <div className={themeStyles.innerContainer}>
         <div className="flex items-center space-x-2">
-          <div className="h-10 w-10 rounded-full bg-green-200 flex justify-center ">
-            <UsergroupAddOutlined className="text-lg" />
+          <div className={themeStyles.iconContainer}>
+            <UsergroupAddOutlined className={themeStyles.icon} />
           </div>
-          <div className="text-sm font-medium">Etudiants</div>
+          <div className={themeStyles.title}>Etudiants</div>
         </div>
+        
         <div className="p-2 flex flex-col justify-center w-full">
           {loading ? (
-            <div className="font-medium opacity-70 text-sm mt-5">Loading...</div>
+            <div className={`${themeStyles.text} mt-5`}>Loading...</div>
           ) : (
             clientData && (
               <>
-                <div className="font-medium opacity-70 text-sm mt-5"><Tag>Etudiants</Tag>: {clientData?.total_client}</div>
-                <div className="font-medium opacity-70 text-sm mt-2"><Tag>Actifs</Tag>: {clientData?.active_count}</div>
-                <div className="font-medium opacity-70 text-sm mt-2"><Tag>Inactifs</Tag>: {clientData?.inactive_count}</div>
+                <StatItem 
+                  label="Etudiants" 
+                  value={clientData?.total_client} 
+                />
+                <StatItem 
+                  label="Actifs" 
+                  value={clientData?.active_count} 
+                  tagType="active"
+                />
+                <StatItem 
+                  label="Inactifs" 
+                  value={clientData?.inactive_count} 
+                  tagType="inactive"
+                />
               </>
             )
           )}
