@@ -47,6 +47,7 @@ import {
   AppointmentTooltip,
 } from "@devexpress/dx-react-scheduler-material-ui";
 import dayjs from "dayjs";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableReservation = ({darkmode}) => {
   const [data2, setData2] = useState([]);
@@ -182,7 +183,7 @@ const TableReservation = ({darkmode}) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/Etudiant_by_resevation_id?id_seance="+selectedSeance.id,
+          Endpoint()+"/api/Etudiant_by_resevation_id?id_seance="+selectedSeance.id,
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -215,7 +216,7 @@ const TableReservation = ({darkmode}) => {
 
     try {
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/Conditio_reserv/",
+        Endpoint()+"/api/Conditio_reserv/",
         {
           method: "POST",
           headers: {
@@ -327,7 +328,7 @@ const TableReservation = ({darkmode}) => {
     ) {
       try {
         const response = await fetch(
-          `https://jyssrmmas.pythonanywhere.com/api/sallesdispo/?jour=${ClientData.jour}&heur_debut=${ClientData.heure_debut}&heur_fin=${ClientData.heure_fin}`,
+          `${Endpoint()}/api/sallesdispo/?jour=${ClientData.jour}&heur_debut=${ClientData.heure_debut}&heur_fin=${ClientData.heure_fin}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -364,7 +365,7 @@ const TableReservation = ({darkmode}) => {
     if (true) {
       try {
         const response = await fetch(
-          `https://jyssrmmas.pythonanywhere.com/api/sallesdispo/?jour=${jour}&heur_debut=${heure_debut}&heur_fin=${heure_fin}`,
+          Endpoint()+`/api/sallesdispo/?jour=${jour}&heur_debut=${heure_debut}&heur_fin=${heure_fin}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -417,7 +418,7 @@ const TableReservation = ({darkmode}) => {
       ClientData.type_seance = "Aide aux devoirs"
       console.log("====================================");
       const response = await fetch(
-        "https://jyssrmmas.pythonanywhere.com/api/seance/",
+        Endpoint()+"/api/seance/",
         {
           method: "POST",
           headers: {
@@ -508,7 +509,7 @@ const TableReservation = ({darkmode}) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/seance/",
+          Endpoint()+"/api/seance/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -583,7 +584,7 @@ const TableReservation = ({darkmode}) => {
 
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/seance/",
+          Endpoint()+"/api/seance/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -699,7 +700,7 @@ const TableReservation = ({darkmode}) => {
         return;
       }
       const response = await fetch(
-        `https://jyssrmmas.pythonanywhere.com/api/seance/`,
+        Endpoint()+`/api/seance/`,
         {
           method: "PUT",
           headers: {
@@ -788,7 +789,7 @@ const TableReservation = ({darkmode}) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://jyssrmmas.pythonanywhere.com/api/seance/${clientToDelete.id_seance}`,
+            Endpoint()+`/api/seance/${clientToDelete.id_seance}`,
             {
               method: "DELETE",
               headers: {
@@ -835,7 +836,7 @@ const TableReservation = ({darkmode}) => {
     if (editingClient != undefined) {
       try {
         const response = await fetch(
-          `https://jyssrmmas.pythonanywhere.com/api/seance/${editingClient.id_seance}`,
+          Endpoint()+`/api/seance/${editingClient.id_seance}`,
           {
             method: "DELETE",
             headers: {
@@ -895,7 +896,7 @@ const TableReservation = ({darkmode}) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/staff_by_type?type=prof",
+          Endpoint()+"/api/staff_by_type?type=prof",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -923,7 +924,7 @@ const TableReservation = ({darkmode}) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/cours/",
+          Endpoint()+"/api/cours/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -952,7 +953,7 @@ const TableReservation = ({darkmode}) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/salles/",
+          Endpoint()+"/api/salles/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers

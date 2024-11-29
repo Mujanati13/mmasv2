@@ -160,7 +160,7 @@ const TableAffiliation = ({ darkmode }) => {
       const values = await form.validateFields();
       values.id_affiliation = editingAffiliation.id_affiliation;
       const response = await fetch(
-        `https://jyssrmmas.pythonanywhere.com/api/affiliation//`,
+        `${Endpoint()}/api/affiliation//`,
         {
           method: "PUT",
           headers: {
@@ -193,7 +193,7 @@ const TableAffiliation = ({ darkmode }) => {
   const handleDelete = async (id) => {
     try {
       const response = await fetch(
-        `https://jyssrmmas.pythonanywhere.com/api/affiliation/${id}/`,
+        `${Endpoint()}/api/affiliation/${id}/`,
         {
           method: "DELETE",
           headers: {
@@ -279,7 +279,7 @@ const TableAffiliation = ({ darkmode }) => {
     try {
       for (const key of selectedRowKeys) {
         await fetch(
-          `https://jyssrmmas.pythonanywhere.com/api/affiliation/${key}/`,
+          `${Endpoint()}/api/affiliation/${key}/`,
           {
             method: "DELETE",
             headers: {

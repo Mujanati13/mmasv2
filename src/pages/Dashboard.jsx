@@ -71,15 +71,22 @@ const Dashboard = () => {
         navigate("/");
       }
     };
-    const userData = JSON.parse(localStorage.getItem('data'));
-    if (userData && userData[0] && userData[0].fonction) {
-      setUserRole(userData[0].fonction);
-      if(userData[0].fonction == "Prof"){
-        setSelectedMenu("interface_presence")
-      }
-    }
+
     handleLogout();
   }, [navigate]);
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("data"));
+    console.log('====================================');
+    console.log(userData[0].fonction);
+    console.log('====================================');
+    if (true) {
+      setUserRole(userData[0].fonction);
+      if (userData[0].fonction == "Prof") {
+        setSelectedMenu("interface_presence");
+      }
+    }
+  });
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -111,10 +118,10 @@ const Dashboard = () => {
         icon: <TransactionOutlined />,
         label: "Transaction",
       },
-      { 
-        key: "interface_salle", 
-        icon: <HomeOutlined />, 
-        label: "Salle" 
+      {
+        key: "interface_salle",
+        icon: <HomeOutlined />,
+        label: "Salle",
       },
       {
         key: "interface_abonnement",
@@ -140,15 +147,15 @@ const Dashboard = () => {
         icon: <TeamOutlined />,
         label: "Présence",
       },
-      { 
-        key: "interface_cours", 
-        icon: <ReadOutlined />, 
-        label: "Cours" 
+      {
+        key: "interface_cours",
+        icon: <ReadOutlined />,
+        label: "Cours",
       },
-      { 
-        key: "interface_classes", 
-        icon: <BookOutlined />, 
-        label: "Classes" 
+      {
+        key: "interface_classes",
+        icon: <BookOutlined />,
+        label: "Classes",
       },
     ],
   };
@@ -174,15 +181,15 @@ const Dashboard = () => {
         icon: <TeamOutlined />,
         label: "Présence",
       },
-      { 
-        key: "interface_cours", 
-        icon: <ReadOutlined />, 
-        label: "Cours" 
+      {
+        key: "interface_cours",
+        icon: <ReadOutlined />,
+        label: "Cours",
       },
-      { 
-        key: "interface_classes", 
-        icon: <BookOutlined />, 
-        label: "Classes" 
+      {
+        key: "interface_classes",
+        icon: <BookOutlined />,
+        label: "Classes",
       },
     ],
   };
@@ -197,10 +204,10 @@ const Dashboard = () => {
         icon: <UserOutlined />,
         label: "Etudiants",
       },
-      { 
-        key: "interface_Parents", 
-        icon: <TeamOutlined />, 
-        label: "Parents" 
+      {
+        key: "interface_Parents",
+        icon: <TeamOutlined />,
+        label: "Parents",
       },
       {
         key: "interface_Affiliation",
@@ -220,10 +227,10 @@ const Dashboard = () => {
     icon: <TeamOutlined />,
     label: "Gestion du Personnel",
     children: [
-      { 
-        key: "interface_Staff", 
-        icon: <UserOutlined />, 
-        label: "Staff" 
+      {
+        key: "interface_Staff",
+        icon: <UserOutlined />,
+        label: "Staff",
       },
       {
         key: "interface_Periode",
@@ -243,16 +250,26 @@ const Dashboard = () => {
     ],
   };
 
+  console.log();
+
   // Determine menu items based on user role
-  const menuItems = userRole === "Administration" || "Secrétaire"
-    ? [gestionEtablissementMenu, adminPlanificationMenu, studentManagementMenu, personnelMenuItem]
-    : userRole === "Prof"
-    ? [  {
-      key: "interface_presence",
-      icon: <TeamOutlined />,
-      label: "Présence",
-    },]
-    : [adminPlanificationMenu, studentManagementMenu];
+  const menuItems =
+    (userRole === "Administration" || userRole === "Secrétaire")
+      ? [
+        gestionEtablissementMenu,
+        adminPlanificationMenu,
+        studentManagementMenu,
+        personnelMenuItem,
+      ]
+      : userRole === "Prof"
+        ? [
+          {
+            key: "interface_presence",
+            icon: <TeamOutlined />,
+            label: "Présence",
+          },
+        ]
+        : [adminPlanificationMenu, studentManagementMenu];
 
   const onOpenChange = (keys) => {
     const latestOpenKey = keys.find((key) => openKeys.indexOf(key) === -1);
@@ -349,12 +366,14 @@ const Dashboard = () => {
         {collapsed ? (
           ""
         ) : (
-          <img
-            style={{ margin: "14px 20px" }}
-            width={140}
-            src="./src/assets/logo.png"
-            alt="Logo"
-          />
+          <div className="bg-white rounded-md">
+            <img
+              style={{ margin: "14px 20px" }}
+              width={140}
+              src="./src/assets/logo.png"
+              alt="Logo"
+            />
+          </div>
         )}
         <Menu
           theme={isDarkMode ? "dark" : "light"}

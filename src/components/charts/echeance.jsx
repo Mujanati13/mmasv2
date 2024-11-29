@@ -4,8 +4,9 @@ import {
   ExclamationCircleOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
+import { Endpoint } from "../../utils/endpoint";
 
-const ContratsType = () => {
+const ContratsType = ({ darkmode }) => {
   const [expiringContracts, setExpiringContracts] = useState({});
   const [soonExpiringContracts, setSoonExpiringContracts] = useState({});
   const [displayExpired, setDisplayExpired] = useState(true);
@@ -17,7 +18,7 @@ const ContratsType = () => {
     const fetchContractData = async () => {
       try {
         const response = await fetch(
-          "https://jyssrmmas.pythonanywhere.com/api/clients/contracts/expiring/",
+          Endpoint()+"/api/clients/contracts/expiring/",
           {
             headers: {
               Authorization: authToken,
@@ -56,8 +57,14 @@ const ContratsType = () => {
   };
 
   return (
-    <div className="w-full overflow-auto overflow-ellipsis h-80 bg-white shadow-sm rounded-md pl-4 pr-4 pb-4 pt-4 border border-red-50 bottom-1">
-      <div className="font-medium">Contrats à échéance</div>
+    <div className={`w-full overflow-auto overflow-ellipsis h-80 shadow-sm rounded-md pl-4 pr-4 pb-4 pt-4 border 
+      ${darkmode 
+        ? 'bg-gray-800 border-gray-700 text-gray-200' 
+        : 'bg-white border-red-50 text-gray-900'
+      } transition-colors duration-200`}>
+      <div className={`font-medium ${darkmode ? 'text-gray-200' : 'text-gray-900'}`}>
+        Contrats à échéance
+      </div>
       <div className="mt-4 flex justify-center">
         <Segmented
           default="Expirés"
@@ -74,6 +81,7 @@ const ContratsType = () => {
             },
           ]}
           onChange={handleToggleDisplay}
+          className={darkmode ? 'ant-segmented-dark' : ''}
         />
       </div>
       <div className="mt-7">
@@ -93,26 +101,30 @@ const ContratsType = () => {
                         alt="expired"
                       />
                       <div>
-                        <div className="text-sm">{clientName}</div>
-                        <span className="text-sm opacity-55">{`Contrat: ${contract.numcontrat}`}</span>
+                        <div className={`text-sm ${darkmode ? 'text-gray-200' : 'text-gray-900'}`}>
+                          {clientName}
+                        </div>
+                        <span className={`text-sm ${darkmode ? 'text-gray-400' : 'opacity-55'}`}>
+                          {`Contrat: ${contract.numcontrat}`}
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Tooltip title="Date de fin">
-                        <div>
+                        <div className={darkmode ? 'text-gray-300' : ''}>
                           <ClockCircleOutlined />
-                          {/* <span className="ml-1">{contract.date_fin}</span> */}
                         </div>
                       </Tooltip>
                       <Tooltip title="Expiré">
                         <ExclamationCircleOutlined
                           onClick={() => showModal(clientName)}
+                          className={darkmode ? 'text-gray-300' : ''}
                         />
                       </Tooltip>
                     </div>
                   </div>
                 ))}
-                <Divider />
+                <Divider className={darkmode ? 'border-gray-700' : ''} />
               </div>
             ))
           : Object.entries(soonExpiringContracts).map(
@@ -131,42 +143,45 @@ const ContratsType = () => {
                           alt="expired"
                         />
                         <div>
-                          <div className="text-sm">{clientName}</div>
-                          <span className="text-sm opacity-55">{`Contrat: ${contract.numcontrat}`}</span>
+                          <div className={`text-sm ${darkmode ? 'text-gray-200' : 'text-gray-900'}`}>
+                            {clientName}
+                          </div>
+                          <span className={`text-sm ${darkmode ? 'text-gray-400' : 'opacity-55'}`}>
+                            {`Contrat: ${contract.numcontrat}`}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Tooltip title="Date de fin">
-                          <div>
+                          <div className={darkmode ? 'text-gray-300' : ''}>
                             <ClockCircleOutlined />
-                            {/* <span className="ml-1">{contract.date_fin}</span> */}
                           </div>
                         </Tooltip>
                         <Tooltip title="Bientôt expiré">
-                          {" "}
                           <ExclamationCircleOutlined
                             onClick={() => showModal(clientName)}
+                            className={darkmode ? 'text-gray-300' : ''}
                           />
                         </Tooltip>
                       </div>
                     </div>
                   ))}
-                  <Divider />
+                  <Divider className={darkmode ? 'border-gray-700' : ''} />
                 </div>
               )
             )}
       </div>
       <Modal
         title={`Envoyer un message à ${selectedClient}`}
-        visible={visible}
+        open={visible}
         onOk={handleOk}
         onCancel={handleCancel}
+        className={darkmode ? 'ant-modal-dark' : ''}
       >
-        <p>Contenu du message...</p>
+        <p className={darkmode ? 'text-gray-200' : ''}>Contenu du message...</p>
       </Modal>
     </div>
   );
 };
 
-
-export default ContratsType
+export default ContratsType;

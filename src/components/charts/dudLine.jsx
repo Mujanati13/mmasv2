@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Line } from '@ant-design/plots';
 import { Card, DatePicker, Spin, Statistic } from 'antd';
 import moment from 'moment';
+import { Endpoint } from '../../utils/endpoint';
 
 const { RangePicker } = DatePicker;
 
@@ -23,7 +24,7 @@ const DailyActivityChart = () => {
     try {
       const [startDate, endDate] = dateRange;
       const response = await fetch(
-        `https://jyssrmmas.pythonanywhere.com/api/reservations/date/course`,
+        Endpoint()+`/api/reservations/date/course`,
         {
           headers: {
             Authorization: localStorage.getItem('jwtToken'),

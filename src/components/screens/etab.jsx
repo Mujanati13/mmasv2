@@ -1,22 +1,14 @@
 import React, { useState, useEffect } from "react";
-import {
-  Space,
-  Table,
-  Select,
-  Modal,
-  Form,
-  Input,
-  Button,
-  ConfigProvider,
-} from "antd";
+import { Space, Table, Select, Modal, Form, Input, Button, ConfigProvider } from "antd";
 import { EyeOutlined, EditOutlined } from "@ant-design/icons";
 import {
   addNewTrace,
   addNewTraceDetail,
   getCurrentDate,
 } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
-const TableEtablissement = ({ darkmode }) => {
+const TableEtablissement = ({darkmode}) => {
   const [data, setData] = useState([]);
   const [add, Setadd] = useState();
   const [loading, setLoading] = useState(false);
@@ -35,7 +27,7 @@ const TableEtablissement = ({ darkmode }) => {
       try {
         setLoading(true);
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/etablissements",
+          Endpoint()+"/api/etablissements",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -47,7 +39,7 @@ const TableEtablissement = ({ darkmode }) => {
 
         // Fetch villes data
         const villesResponse = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/villes/",
+          Endpoint()+"/api/villes/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -137,7 +129,7 @@ const TableEtablissement = ({ darkmode }) => {
     console.log("====================================");
     try {
       const response = await fetch(
-        `https://JyssrMMAS.pythonanywhere.com/api/etablissements/`,
+        `http://51.38.99.75:2001/api/etablissements/`,
         {
           method: "PUT",
           headers: {
@@ -211,7 +203,8 @@ const TableEtablissement = ({ darkmode }) => {
   };
 
   return (
-    <ConfigProvider
+    <div>
+        <ConfigProvider
       theme={{
         token: {
           colorPrimary: darkmode ? "#00b96b" : "#1677ff",
@@ -221,235 +214,153 @@ const TableEtablissement = ({ darkmode }) => {
         },
       }}
     >
-      <div>
-        <Table
-          loading={loading}
-          size="large"
-          className="w-full"
-          columns={columns}
-          dataSource={data}
-          rowKey="id_etablissement" // Use id_etablissement as rowKey to avoid key warnings
-        />
-        <Modal
-          visible={visibleModal}
-          onCancel={handleModalCancel}
-          footer={null}
-          title={selectedRecord?.nom_etablissement}
-        >
-          {selectedRecord && !editMode && (
-            <div className="notification-detail border border-blue-300 rounded-lg p-4 bg-white shadow-md mb-3">
-              <div className="detail-item mb-3">
-                <strong>Adresse :</strong>{" "}
-                <span>{selectedRecord.adresse_etablissement}</span>
-              </div>
-
-              <div className="detail-item mb-3">
-                <strong>Téléphone :</strong>{" "}
-                <span>{selectedRecord.teletablissement}</span>
-              </div>
-
-              <div className="detail-item mb-3">
-                <strong>Email :</strong>{" "}
-                <span>{selectedRecord.mailetablissement}</span>
-              </div>
-
-              <div className="detail-item mb-3">
-                <strong>Description :</strong>{" "}
-                <p>{selectedRecord.description}</p>
-              </div>
-
-              <div className="detail-item mb-3">
-                <strong>Site web :</strong>
-                <a
-                  className="text-blue-500 hover:underline"
-                  href={selectedRecord.sitewebetablissement}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {selectedRecord.sitewebetablissement}
-                </a>
-              </div>
-
-              <div className="detail-item mb-3">
-                <strong>Facebook :</strong>
-                <a
-                  className="text-blue-500 hover:underline"
-                  href={selectedRecord.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {selectedRecord.facebook}
-                </a>
-              </div>
-
-              <div className="detail-item mb-3">
-                <strong>Instagram :</strong>
-                <a
-                  className="text-blue-500 hover:underline"
-                  href={selectedRecord.instagrame}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {selectedRecord.instagrame}
-                </a>
-              </div>
-
-              <div className="detail-item mb-3">
-                <strong>WhatsApp :</strong>{" "}
-                <span>{selectedRecord.watsapp}</span>
-              </div>
-
-              <div className="detail-item mb-4">
-                <strong>Nombre de clients :</strong>{" "}
-                <span>{selectedRecord.nb_clients}</span>
-              </div>
-
-              <div className="detail-item mb-4 flex justify-end">
-                <img
-                  src={`https://JyssrMMAS.pythonanywhere.com/media/${selectedRecord.image}`}
-                  alt="Établissement"
-                  className="w-48 h-48 object-cover rounded-lg" // Taille de l'image ajustée
-                />
-              </div>
-
-              {!JSON.parse(localStorage.getItem("data"))[0].id_coach && (
-                <div className="flex justify-center">
-                  <Button
-                    className="mt-5 bg-blue-500 text-white hover:bg-blue-600 transition"
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={handleEdit}
-                  >
-                    Modifier
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            // <div>
-            //   <p>Adresse: {selectedRecord.adresse_etablissement}</p>
-            //   <p>Téléphone: {selectedRecord.teletablissement}</p>
-            //   <p>Email: {selectedRecord.mailetablissement}</p>
-            //   <p>Description: {selectedRecord.description}</p>
-            //   <p>
-            //     Site web:{" "}
-            //     <a
-            //       href={selectedRecord.sitewebetablissement}
-            //       target="_blank"
-            //       rel="noopener noreferrer"
-            //     >
-            //       {selectedRecord.sitewebetablissement}
-            //     </a>
-            //   </p>
-            //   <p>
-            //     Facebook:{" "}
-            //     <a
-            //       href={selectedRecord.facebook}
-            //       target="_blank"
-            //       rel="noopener noreferrer"
-            //     >
-            //       {selectedRecord.facebook}
-            //     </a>
-            //   </p>
-            //   <p>
-            //     Instagram:{" "}
-            //     <a
-            //       href={selectedRecord.instagrame}
-            //       target="_blank"
-            //       rel="noopener noreferrer"
-            //     >
-            //       {selectedRecord.instagrame}
-            //     </a>
-            //   </p>
-            //   <p>WhatsApp: {selectedRecord.watsapp}</p>
-            //   <p>Nombre de clients: {selectedRecord.nb_clients}</p>
-            //   <p>
-            //     <img
-            //       className="w-full h-80 mt-4"
-            //       src={`https://JyssrMMAS.pythonanywhere.com/media/${selectedRecord.image}`}
-            //       alt="Etablissement"
-            //       style={{ width: "100%", height: "auto" }}
-            //     />
-            //   </p>
-            //   {!JSON.parse(localStorage.getItem(`data`))[0].id_coach && (
-            //     <Button
-            //       className="mt-5"
-            //       type="primary"
-            //       icon={<EditOutlined />}
-            //       onClick={handleEdit}
-            //       disabled={
-            //         !JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-            //           "Administration" ||
-            //         JSON.parse(localStorage.getItem(`data`))[0].fonction ==
-            //           "secretaire"
-            //       }
-            //     >
-            //       Modifier
-            //     </Button>
-            //   )}
-            // </div>
-          )}
-          {selectedRecord && editMode && (
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleFormSubmit}
-              initialValues={selectedRecord}
-              onValuesChange={handleFormChange}
-            >
-              <Form.Item name="nom_etablissement" label="Nom Etablissement">
-                <Input />
-              </Form.Item>
-              <Form.Item name="adresse_etablissement" label="Adresse">
-                <Input />
-              </Form.Item>
-              <Form.Item name="ville" label="Ville">
-                <Select>
-                  {villes.map((ville) => (
-                    <Select.Option key={ville.id} value={ville.id.toString()}>
-                      {ville.nom_ville}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-              <Form.Item name="teletablissement" label="Téléphone">
-                <Input />
-              </Form.Item>
-              <Form.Item name="mailetablissement" label="Email">
-                <Input />
-              </Form.Item>
-              <Form.Item name="description" label="Description">
-                <Input />
-              </Form.Item>
-              <Form.Item name="sitewebetablissement" label="Site Web">
-                <Input />
-              </Form.Item>
-              <Form.Item name="facebook" label="Facebook">
-                <Input />
-              </Form.Item>
-              <Form.Item name="instagrame" label="Instagram">
-                <Input />
-              </Form.Item>
-              <Form.Item name="watsapp" label="WhatsApp">
-                <Input />
-              </Form.Item>
-              <Form.Item name="nb_clients" label="Nombre de Clients">
-                <Input disabled={true} />
-              </Form.Item>
-              <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  disabled={!isFormChanged}
-                >
-                  Sauvegarder
-                </Button>
-              </Form.Item>
-            </Form>
-          )}
-        </Modal>
-      </div>
-    </ConfigProvider>
+       <Modal
+        visible={visibleModal}
+        onCancel={handleModalCancel}
+        footer={null}
+        title={selectedRecord?.nom_etablissement}
+      >
+        {selectedRecord && !editMode && (
+       <div className="notification-detail border border-blue-300 rounded-lg shadow-md mb-3 p-2">
+       
+       
+       <div className="detail-item mb-3">
+         <strong>Adresse :</strong> <span>{selectedRecord.adresse_etablissement}</span>
+       </div>
+       
+       <div className="detail-item mb-3">
+         <strong>Téléphone :</strong> <span>{selectedRecord.teletablissement}</span>
+       </div>
+       
+       <div className="detail-item mb-3">
+         <strong>Email :</strong> <span>{selectedRecord.mailetablissement}</span>
+       </div>
+       
+       <div className="detail-item mb-3">
+         <strong>Description :</strong> <p>{selectedRecord.description}</p>
+       </div>
+     
+       <div className="detail-item mb-3">
+         <strong>Site web :</strong> 
+         <a className="text-blue-500 hover:underline" href={selectedRecord.sitewebetablissement} target="_blank" rel="noopener noreferrer">
+           {selectedRecord.sitewebetablissement}
+         </a>
+       </div>
+     
+       <div className="detail-item mb-3">
+         <strong>Facebook :</strong> 
+         <a className="text-blue-500 hover:underline" href={selectedRecord.facebook} target="_blank" rel="noopener noreferrer">
+           {selectedRecord.facebook}
+         </a>
+       </div>
+     
+       <div className="detail-item mb-3">
+         <strong>Instagram :</strong> 
+         <a className="text-blue-500 hover:underline" href={selectedRecord.instagrame} target="_blank" rel="noopener noreferrer">
+           {selectedRecord.instagrame}
+         </a>
+       </div>
+     
+       <div className="detail-item mb-3">
+         <strong>WhatsApp :</strong> <span>{selectedRecord.watsapp}</span>
+       </div>
+     
+       <div className="detail-item mb-4">
+         <strong>Nombre de clients :</strong> <span>{selectedRecord.nb_clients}</span>
+       </div>
+     
+       <div className="detail-item mb-4 flex justify-end">
+         <img
+           src={`http://51.38.99.75:2001/media/${selectedRecord.image}`}
+           alt="Établissement"
+           className="w-48 h-48 object-cover rounded-lg" // Taille de l'image ajustée
+         />
+       </div>
+     
+       {!JSON.parse(localStorage.getItem('data'))[0].id_coach && (
+         <div className="flex justify-center">
+         <Button
+           className="mt-5 bg-blue-500 text-white hover:bg-blue-600 transition"
+           type="primary"
+           icon={<EditOutlined />}
+           onClick={handleEdit}
+         >
+           Modifier
+         </Button>
+       </div>
+       )}
+     </div>
+        )}
+        {selectedRecord && editMode && (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleFormSubmit}
+            initialValues={selectedRecord}
+            onValuesChange={handleFormChange}
+          >
+            <Form.Item name="nom_etablissement" label="Nom Etablissement">
+              <Input />
+            </Form.Item>
+            <Form.Item name="adresse_etablissement" label="Adresse">
+              <Input />
+            </Form.Item>
+            <Form.Item name="ville" label="Ville">
+              <Select>
+                {villes.map((ville) => (
+                  <Select.Option key={ville.id} value={ville.id.toString()}>
+                    {ville.nom_ville}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="teletablissement" label="Téléphone">
+              <Input />
+            </Form.Item>
+            <Form.Item name="mailetablissement" label="Email">
+              <Input />
+            </Form.Item>
+            <Form.Item name="description" label="Description">
+              <Input />
+            </Form.Item>
+            <Form.Item name="sitewebetablissement" label="Site Web">
+              <Input />
+            </Form.Item>
+            <Form.Item name="facebook" label="Facebook">
+              <Input />
+            </Form.Item>
+            <Form.Item name="instagrame" label="Instagram">
+              <Input />
+            </Form.Item>
+            <Form.Item name="watsapp" label="WhatsApp">
+              <Input />
+            </Form.Item>
+            <Form.Item name="nb_clients" label="Nombre de Clients">
+              <Input disabled={true} />
+            </Form.Item>
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                disabled={!isFormChanged}
+              >
+                Sauvegarder
+              </Button>
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
+      <Table
+        loading={loading}
+        size="large"
+        className="w-full"
+        columns={columns}
+        dataSource={data}
+        rowKey="id_etablissement" // Use id_etablissement as rowKey to avoid key warnings
+      />
+     
+      </ConfigProvider>
+    </div>
   );
 };
 

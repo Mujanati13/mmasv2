@@ -25,6 +25,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableAbonnement = ({ darkmode }) => {
   const [data1, setData1] = useState([]);
@@ -146,7 +147,7 @@ const TableAbonnement = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/category_contrat/",
+          Endpoint()+"/api/category_contrat/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -184,7 +185,7 @@ const TableAbonnement = ({ darkmode }) => {
     if (isRoomFormValid()) {
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/abonnement/",
+          Endpoint()+"/api/abonnement/",
           {
             method: "POST",
             headers: {
@@ -245,7 +246,7 @@ const TableAbonnement = ({ darkmode }) => {
     }
     try {
       const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/category_contrat/",
+        Endpoint()+"/api/category_contrat/",
         {
           method: "POST",
           headers: {
@@ -316,7 +317,7 @@ const TableAbonnement = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/abonnement/",
+          Endpoint()+"/api/abonnement/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -395,7 +396,7 @@ const TableAbonnement = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/category_contrat/",
+          Endpoint()+"/api/category_contrat/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -502,23 +503,20 @@ const TableAbonnement = ({ darkmode }) => {
   const handleModalSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const response = await fetch(
-        `https://JyssrMMAS.pythonanywhere.com/api/abonnement/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({
-            ...values,
-            id_abn: editingClient.id_abn,
-            namecat_conrat: editingClient.namecat_conrat,
-            duree_mois: editingClient.duree_mois,
-            id_cat_cont: editingClient.id_cat_cont,
-          }),
-        }
-      );
+      const response = await fetch(`http://51.38.99.75:2001/api/abonnement/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          ...values,
+          id_abn: editingClient.id_abn,
+          namecat_conrat: editingClient.namecat_conrat,
+          duree_mois: editingClient.duree_mois,
+          id_cat_cont: editingClient.id_cat_cont,
+        }),
+      });
 
       if (response.ok) {
         const updatedClient = await response.json();
@@ -577,7 +575,7 @@ const TableAbonnement = ({ darkmode }) => {
       const values = await form1.validateFields();
       console.log(values);
       const response = await fetch(
-        `https://JyssrMMAS.pythonanywhere.com/api/category_contrat/`,
+        `http://51.38.99.75:2001/api/category_contrat/`,
         {
           method: "PUT",
           headers: {
@@ -637,7 +635,7 @@ const TableAbonnement = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMMAS.pythonanywhere.com/api/abonnement/${clientToDelete.id_abn}`,
+            `http://51.38.99.75:2001/api/abonnement/${clientToDelete.id_abn}`,
             {
               method: "DELETE",
               headers: {
@@ -691,7 +689,7 @@ const TableAbonnement = ({ darkmode }) => {
           const clientToDelete = data1.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMMAS.pythonanywhere.com/api/category_contrat/${clientToDelete.id_cat_cont}`,
+            `http://51.38.99.75:2001/api/category_contrat/${clientToDelete.id_cat_cont}`,
             {
               method: "DELETE",
               headers: {
@@ -1172,8 +1170,59 @@ const TableAbonnement = ({ darkmode }) => {
               onValuesChange={handleFormChange}
               layout="vertical"
             >
-              <Form.Item name="type_abonnement" label="Type abonnement">
-                <Input rules={[{ required: true, message: "Nom salle" }]} />
+              <Form.Item name="type_abonnement" label="offre">
+                <Input
+                  rules={[{ required: true, message: "type_abonnement" }]}
+                />
+              </Form.Item>
+              <Form.Item name="Niveau_age" label="Niveau_age">
+                <Input rules={[{ required: true, message: "Niveau_age" }]} />
+              </Form.Item>
+              <Form.Item name="Systeme" label="Systeme">
+                <Input rules={[{ required: true, message: "Systeme" }]} />
+              </Form.Item>
+              <Form.Item
+                name="namecat_conrat"
+                label="Categorie"
+                rules={[
+                  {
+                    required: true,
+                    message: "Categorie selection is required",
+                  },
+                ]}
+              >
+                <Select
+                  id="categorie"
+                  showSearch
+                  placeholder="categorie"
+                  className="w-full"
+                  optionFilterProp="children"
+                  onChange={(value, option) => {
+                    {
+                      const data = contarctValue.filter(
+                        (val) => val.id_cat_cont == value
+                      );
+                      editingClient.duree_mois = data[0].duree_mois;
+                      setEditingClient({
+                        ...editingClient,
+                        id_cat_cont: value,
+                        namecat_conrat: option.label,
+                      });
+                    }
+                  }}
+                  filterOption={(input, option) =>
+                    (option?.label ?? "").startsWith(input)
+                  }
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? "")
+                      .toLowerCase()
+                      .localeCompare((optionB?.label ?? "").toLowerCase())
+                  }
+                  options={categories}
+                />
+              </Form.Item>
+              <Form.Item name="description" label="description">
+                <Input rules={[{ required: true, message: "description" }]} />
               </Form.Item>
               <Form.Item name="tarif" label="Tarif">
                 <Input

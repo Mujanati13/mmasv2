@@ -268,7 +268,7 @@ const TableParent = ({ darkmode }) => {
       values.image = imagePath;
 
       const response = await fetch(
-        `https://jyssrmmas.pythonanywhere.com/api/Parentt//`,
+        `${Endpoint()}/api/Parentt//`,
         {
           method: "PUT",
           headers: {

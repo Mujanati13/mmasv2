@@ -15,7 +15,7 @@ import {
   Segmented,
   Checkbox,
   DatePicker,
-  ConfigProvider
+  ConfigProvider,
 } from "antd";
 import {
   SearchOutlined,
@@ -30,11 +30,11 @@ import {
   getCurrentDate,
 } from "../../utils/helper";
 import * as XLSX from "xlsx";
-// import { handlePrintContract } from "../../utils/printable/contract";
-// import { printFacteur } from "../../../utils/printable/facteur";
-// import { handlePrintPayment } from "../../../utils/printable/payment";
+import { handlePrintContract } from "../../utils/printable/contract";
+import { printFacteur } from "../../utils/printable/facteur";
+import { handlePrintPayment } from "../../utils/printable/payment";
 
-const TableTransication = ({darkmode}) => {
+const TableTransication = ({ darkmode }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -102,7 +102,7 @@ const TableTransication = ({darkmode}) => {
 
       if (exportFilters.abonnements) {
         const abonnementData = await fetchDataFromAPI(
-          "https://JyssrMMAS.pythonanywhere.com/api/transactions/"
+          "http://51.38.99.75:2001/api/transactions/"
         );
         allData = [...allData, ...abonnementData];
       }
@@ -160,90 +160,113 @@ const TableTransication = ({darkmode}) => {
       <Modal
         visible={visible}
         onCancel={onClose}
-        footer={
-          transactionType == "regular"
-            ? [
-                <Button
-                  onClick={handlePrint}
-                  icon={<PrinterOutlined />}
-                  type="primary"
-                >
-                  imprimer le facteur
-                </Button>,
-                <Button
-                  onClick={handlePrintRecu}
-                  type="primary"
-                  className="ml-10 pr-5"
-                >
-                  imprimer le reçu
-                </Button>,
-              ]
-            : []
+        footer={[
+          <Button
+            onClick={handlePrint}
+            icon={<PrinterOutlined />}
+            type="primary"
+          >
+            imprimer Transaction
+          </Button>,
+        ]}
+        title={
+          <div style={{ textAlign: "center" }}>
+            <h2 style={{ fontWeight: "bold", color: "#1890ff", margin: 0 }}>
+              Détails de{" "}
+              {isTransactionService
+                ? "la Transaction de Service"
+                : "la Transaction"}
+            </h2>
+          </div>
         }
-        title={`Détails de la ${
-          isTransactionService ? "Transaction de Service" : "Transaction"
-        }`}
         width={700}
       >
         <div></div>
-        <Descriptions className="mt-4" bordered column={1}>
+        <Descriptions
+          bordered
+          column={1}
+          style={{
+            backgroundColor: "#f9f9f9",
+            borderRadius: "8px",
+            padding: "16px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+          }}
+        >
           {transactionType == "depense" ? (
             <>
-              <Descriptions.Item className="mt-4" label="Date">
+              <Descriptions.Item label="Date" style={{ fontWeight: "bold" }}>
                 {formatDateToYearMonthDay(transaction.date)}
               </Descriptions.Item>
 
-              <Descriptions.Item label="Montant">
+              <Descriptions.Item label="Montant" style={{ fontWeight: "bold" }}>
                 {transaction.montant}
               </Descriptions.Item>
-              <Descriptions.Item label="Mode de règlement">
+              <Descriptions.Item
+                label="Mode de règlement"
+                style={{ fontWeight: "bold" }}
+              >
                 {transaction.mode_reglement}
               </Descriptions.Item>
-              <Descriptions.Item label="Description">
+              <Descriptions.Item
+                label="Description"
+                style={{ fontWeight: "bold" }}
+              >
                 {transaction.description}
-              </Descriptions.Item>
-              <Descriptions.Item label="Fournisseur">
-                <Tag color="green" className="text-normal">{transaction.fournisseur}</Tag>
               </Descriptions.Item>
             </>
           ) : transactionType == "service" ? (
             <>
-              <Descriptions.Item label="Date">
+              <Descriptions.Item label="Date" style={{ fontWeight: "bold" }}>
                 {formatDateToYearMonthDay(transaction.date)}
               </Descriptions.Item>
 
-              <Descriptions.Item label="Montant">
+              <Descriptions.Item label="Montant" style={{ fontWeight: "bold" }}>
                 {transaction.montant}
               </Descriptions.Item>
-              <Descriptions.Item label="Mode de règlement">
+              <Descriptions.Item
+                label="Mode de règlement"
+                style={{ fontWeight: "bold" }}
+              >
                 {transaction.mode_reglement}
               </Descriptions.Item>
-              <Descriptions.Item label="Description">
+              <Descriptions.Item
+                label="Description"
+                style={{ fontWeight: "bold" }}
+              >
                 {transaction.description}
               </Descriptions.Item>
-              <Descriptions.Item label="Réduction">
+              <Descriptions.Item
+                label="Réduction"
+                style={{ fontWeight: "bold" }}
+              >
                 {transaction.reduction}
               </Descriptions.Item>
             </>
           ) : (
             <>
-              <Descriptions.Item label="Date">
+              <Descriptions.Item label="Date" style={{ fontWeight: "bold" }}>
                 {formatDateToYearMonthDay(transaction.date)}
               </Descriptions.Item>
 
-              <Descriptions.Item label="Montant">
+              <Descriptions.Item label="Montant" style={{ fontWeight: "bold" }}>
                 {transaction.montant}
               </Descriptions.Item>
-              <Descriptions.Item label="Mode de règlement">
+              <Descriptions.Item
+                label="Mode de règlement"
+                style={{ fontWeight: "bold" }}
+              >
                 {transaction.Mode_reglement}
               </Descriptions.Item>
-              <Descriptions.Item label="Description">
+              <Descriptions.Item
+                label="Description"
+                style={{ fontWeight: "bold" }}
+              >
                 {transaction.description}
               </Descriptions.Item>
-              <Descriptions.Item label="Client">
+              <Descriptions.Item label="Client" style={{ fontWeight: "bold" }}>
                 {transaction.client}
               </Descriptions.Item>
-              <Descriptions.Item label="Admin">
+              <Descriptions.Item label="Admin" style={{ fontWeight: "bold" }}>
                 {transaction.admin}
               </Descriptions.Item>
             </>
@@ -255,14 +278,11 @@ const TableTransication = ({darkmode}) => {
 
   const fetchFournisseurs = async () => {
     try {
-      const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/fournisseur/",
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const response = await fetch("http://51.38.99.75:2001/api/fournisseur/", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
       const data = await response.json();
       setFournisseurs(data.data);
     } catch (error) {
@@ -277,7 +297,7 @@ const TableTransication = ({darkmode}) => {
   const fetchReservations = async () => {
     try {
       const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/reservationService/",
+        "http://51.38.99.75:2001/api/reservationService/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -320,8 +340,7 @@ const TableTransication = ({darkmode}) => {
     const fecthConn = async () => {
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/contrat/?client_id=" +
-            idClient,
+          "http://51.38.99.75:2001/api/contrat/?client_id=" + idClient,
           {
             method: "GET",
             headers: {
@@ -370,7 +389,7 @@ const TableTransication = ({darkmode}) => {
           //     "https://JyssrMMAS.pythonanywhere.com/api/transaction_depense/";
           //   break;
           default:
-            url = "https://JyssrMMAS.pythonanywhere.com/api/transactions/";
+            url = "http://51.38.99.75:2001/api/transactions/";
         }
 
         const response = await fetch(url, {
@@ -492,17 +511,14 @@ const TableTransication = ({darkmode}) => {
 
       // Add id_client to the values object
 
-      const response = await fetch(
-        `https://JyssrMMAS.pythonanywhere.com/api/coach/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify(values),
-        }
-      );
+      const response = await fetch(`http://51.38.99.75:2001/api/coach/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(values),
+      });
 
       if (response.ok) {
         const updatedClient = await response.json();
@@ -539,7 +555,7 @@ const TableTransication = ({darkmode}) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMMAS.pythonanywhere.com/api/periode/${clientToDelete.id_periode}`,
+            `http://51.38.99.75:2001/api/periode/${clientToDelete.id_periode}`,
             {
               method: "DELETE",
               headers: {
@@ -553,6 +569,18 @@ const TableTransication = ({darkmode}) => {
           if (!response.ok) {
             throw new Error(`Failed to delete client with key ${key}`);
           }
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          await addNewTrace(
+            22,
+            "Suppression",
+            getCurrentDate(),
+            `${JSON.stringify(transactionData)}`,
+            isTransactionService
+              ? "transaction_services"
+              : isTransactionDepense
+              ? "transaction_depenses"
+              : "transactions"
+          );
         });
 
         await Promise.all(promises);
@@ -601,7 +629,7 @@ const TableTransication = ({darkmode}) => {
         //   url = "https://JyssrMMAS.pythonanywhere.com/api/transaction_depense/";
         //   break;
         default:
-          url = "https://JyssrMMAS.pythonanywhere.com/api/transactions/";
+          url = "http://51.38.99.75:2001/api/transactions/";
       }
 
       const response = await fetch(url, {
@@ -678,7 +706,7 @@ const TableTransication = ({darkmode}) => {
   const fetchClients = async () => {
     try {
       const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/client_contrat/"
+        "http://51.38.99.75:2001/api/client_contrat/"
       );
       const data = await response.json();
       setContractClients(data.data);
@@ -699,9 +727,7 @@ const TableTransication = ({darkmode}) => {
 
   const fetchClients2 = async () => {
     try {
-      const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/etudiants/"
-      );
+      const response = await fetch("http://51.38.99.75:2001/api/etudiants/");
       const data = await response.json();
 
       setClients2(data.data);
@@ -712,9 +738,7 @@ const TableTransication = ({darkmode}) => {
 
   const fetchServices = async () => {
     try {
-      const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/service/"
-      );
+      const response = await fetch("http://51.38.99.75:2001/api/service/");
       const data = await response.json();
       console.log("services:" + data.data);
 
@@ -736,18 +760,14 @@ const TableTransication = ({darkmode}) => {
   };
 
   const handleAdd = async () => {
-    
     transactionData.mode_reglement = transactionData.Mode_reglement;
 
-    const idadmin = await JSON.parse(localStorage.getItem("data"))[0]
-      .id_admin;
+    const idadmin = await JSON.parse(localStorage.getItem("data"))[0].id_admin;
 
     try {
       let url;
-      
-     
-      url = "https://JyssrMMAS.pythonanywhere.com/api/transactions/";
-      
+
+      url = "http://51.38.99.75:2001/api/transactions/";
 
       const discountedAmount =
         transactionData.montant -
@@ -778,11 +798,21 @@ const TableTransication = ({darkmode}) => {
           res.msg == "Added Successfully!!e" ||
           res == "Added Successfully!!"
         ) {
-          message.success(
-            `ajoutée avec succès`
-          );
+          message.success(`ajoutée avec succès`);
           setAdd(Math.random() * 1000);
           resetTransactionData();
+          const id_staff = JSON.parse(localStorage.getItem("data"));
+          await addNewTrace(
+            22,
+            "Ajout",
+            getCurrentDate(),
+            `${JSON.stringify(transactionData)}`,
+            isTransactionService
+              ? "transaction_services"
+              : isTransactionDepense
+              ? "transaction_depenses"
+              : "transactions"
+          );
           onCloseR();
         } else {
           message.warning(res.msg);
@@ -865,7 +895,7 @@ const TableTransication = ({darkmode}) => {
     console.log(client);
 
     if (selectedTransactionDetails) {
-    //   printFacteur(client, selectedTransactionDetails);
+      printFacteur(client, selectedTransactionDetails);
     } else {
       message.warning("Please select a transaction to print");
     }
@@ -879,14 +909,14 @@ const TableTransication = ({darkmode}) => {
     console.log(selectedTransactionDetails);
 
     if (selectedTransactionDetails && client) {
-    //   handlePrintPayment(
-    //     client.Prenom_client,
-    //     client.nom,
-    //     client.cin,
-    //     client.cin,
-    //     "",
-    //     selectedTransactionDetails.montant
-    //   );
+      handlePrintPayment(
+        client.Prenom_client,
+        client.nom,
+        client.cin,
+        client.cin,
+        "",
+        selectedTransactionDetails.montant
+      );
     } else {
       message.warning("Please select a transaction to print");
     }
@@ -894,309 +924,313 @@ const TableTransication = ({darkmode}) => {
 
   return (
     <ConfigProvider
-    theme={{
+      theme={{
         token: {
-            colorPrimary: darkmode ? '#00b96b' : '#1677ff',
-            colorBgBase: darkmode ? '#141414' : '#fff',
-            colorTextBase: darkmode ? '#fff' : '#000',
-            colorBorder: darkmode ? '#fff' : '#d9d9d9', // Set border to white in dark mode
-
+          colorPrimary: darkmode ? "#00b96b" : "#1677ff",
+          colorBgBase: darkmode ? "#141414" : "#fff",
+          colorTextBase: darkmode ? "#fff" : "#000",
+          colorBorder: darkmode ? "#fff" : "#d9d9d9", // Set border to white in dark mode
         },
-    }}
->
-    <div className="w-full p-2">
-      <Modal
-        title="Export Transactions"
-        visible={isExportModalVisible}
-        onOk={handleExportModalOk}
-        onCancel={handleExportModalCancel}
-      >
-        <Form layout="vertical">
-         
-          <Form.Item label="Date Range">
-            <DatePicker.RangePicker
-              onChange={(dates) => {
-                setExportFilters({
-                  ...exportFilters,
-                  dateStart: dates ? dates[0].toDate() : null,
-                  dateEnd: dates ? dates[1].toDate() : null,
-                });
-              }}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+      }}
+    >
+      <div className="w-full p-2">
+        <Modal
+          title="Export Transactions"
+          visible={isExportModalVisible}
+          onOk={handleExportModalOk}
+          onCancel={handleExportModalCancel}
+        >
+          <Form layout="vertical">
+            <Form.Item label="Date Range">
+              <DatePicker.RangePicker
+                onChange={(dates) => {
+                  setExportFilters({
+                    ...exportFilters,
+                    dateStart: dates ? dates[0].toDate() : null,
+                    dateEnd: dates ? dates[1].toDate() : null,
+                  });
+                }}
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
 
-      <TransactionDetailsModal
-        visible={detailModalVisible}
-        onClose={() => setDetailModalVisible(false)}
-        transaction={selectedTransactionDetails}
-      />
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center space-x-7">
-          <div className="w-52">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder={`Search ${
-                isTransactionService ? "transaction service" : "transaction"
-              }`}
-              value={searchText}
-              onChange={handleSearch}
-            />
-          </div>
-          <div className="flex items-center space-x-6">
-         
-
-            <Button
-              type="default"
-              onClick={showExportModal}
-              icon={<ExportOutlined />}
-            >
-              Export
-            </Button>
-          </div>
-        </div>
-        <div>
-          <div className="flex items-center space-x-3">
-           
+        <TransactionDetailsModal
+          visible={detailModalVisible}
+          onClose={() => setDetailModalVisible(false)}
+          transaction={selectedTransactionDetails}
+        />
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center space-x-7">
+            <div className="w-52">
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder={`Search ${
+                  isTransactionService ? "transaction service" : "transaction"
+                }`}
+                value={searchText}
+                onChange={handleSearch}
+              />
+            </div>
+            <div className="flex items-center space-x-6">
               <Button
                 type="default"
-                onClick={showDrawerR}
-                icon={<UserAddOutlined />}
+                onClick={showExportModal}
+                icon={<ExportOutlined />}
               >
-                Ajouter{" "}
-                {isTransactionService ? "transaction service" : "transaction"}
+                Export
               </Button>
-        
+            </div>
           </div>
-          <Drawer
-            title={`Saisir une nouvelle `}
-            width={720}
-            onClose={onCloseR}
-            closeIcon={false}
-            open={open1}
-            bodyStyle={{
-              paddingBottom: 80,
-            }}
-          >
-            <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
-              <div className="grid grid-cols-2 gap-4 mt-5">
-                {transactionType === "regular" && (
-                  <>
-                    {/* Client Selection */}
-                    <div>
-                      <label htmlFor="client" className="block font-medium">
-                        *Client
-                      </label>
-                      <Select
-                        id="client"
-                        value={transactionData.client}
-                        showSearch
-                        placeholder="Client"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, option) => {
-                          setTransactionData({
-                            ...transactionData,
-                            client: option.label,
-                          });
-                          setIdClient(value);
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        options={clients.map((cli) => ({
-                          label: `${cli.client} ${cli.Prenom_client}`,
-                          value: cli.id_etd,
-                        }))}
-                      />
-                    </div>
-
-                    {/* Contract Selection */}
-                    <div>
-                      <label htmlFor="contrat" className="block font-medium">
-                        *Contrat
-                      </label>
-                      <Select
-                        id="contrat"
-                        disabled={ContractClient.length === 0}
-                        showSearch
-                        placeholder="Contrat"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value) => {
-                          const con = ContractClient.find(
-                            (f) => f.id_contrat === value
-                          );
-                          setTransactionData({
-                            ...transactionData,
-                            id_contrat: value,
-                            Reste: con ? con.reste : 0,
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        options={ContractClient.map((cli) => ({
-                          label: `${cli.abonnement}-${cli.cat_abn}`,
-                          value: cli.id_contrat,
-                        }))}
-                      />
-                    </div>
-
-                    {/* Previous Amount Input */}
-                    <div>
-                      <label
-                        htmlFor="restPrecedant"
-                        className="block font-medium"
-                      >
-                        Le Montant
-                      </label>
-                      <Input
-                        disabled={transactionData.Reste === 0}
-                        id="montant"
-                        value={transactionData.montant}
-                        onChange={(e) => {
-                          const newRestPre = e.target.value;
-                          if (parseFloat(newRestPre) > transactionData.Reste) {
-                            message.warning(
-                              "Le montant précédent dépasse le montant disponible."
-                            );
-                          } else {
+          <div>
+            <div className="flex items-center space-x-3">
+              {(JSON.parse(localStorage.getItem(`data`))[0].fonction ===
+                "Administration" ||
+                JSON.parse(localStorage.getItem(`data`))[0].fonction ===
+                  "secretaire") && (
+                <Button
+                  type="default"
+                  onClick={showDrawerR}
+                  icon={<UserAddOutlined />}
+                >
+                  Ajouter{" "}
+                  {isTransactionService ? "transaction service" : "transaction"}
+                </Button>
+              )}
+            </div>
+            <Drawer
+              title={`Saisir une nouvelle `}
+              width={720}
+              onClose={onCloseR}
+              closeIcon={false}
+              open={open1}
+              bodyStyle={{
+                paddingBottom: 80,
+              }}
+            >
+              <div className="p-3 md:pt-0 md:pl-0 md:pr-10">
+                <div className="grid grid-cols-2 gap-4 mt-5">
+                  {transactionType === "regular" && (
+                    <>
+                      {/* Client Selection */}
+                      <div>
+                        <label htmlFor="client" className="block font-medium">
+                          *Etudiant
+                        </label>
+                        <Select
+                          id="client"
+                          value={transactionData.client}
+                          showSearch
+                          placeholder="Client"
+                          className="w-full"
+                          optionFilterProp="children"
+                          onChange={(value, option) => {
                             setTransactionData({
                               ...transactionData,
-                              montant: newRestPre,
+                              client: option.label,
                             });
+                            setIdClient(value);
+                          }}
+                          filterOption={(input, option) =>
+                            (option?.label ?? "")
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
                           }
-                        }}
-                        placeholder="Le montant"
-                        type="number"
-                      />
-                    </div>
+                          options={clients.map((cli) => ({
+                            label: `${cli.client} ${cli.Prenom_client}`,
+                            value: cli.id_etd,
+                          }))}
+                        />
+                      </div>
 
-                    {/* Current Amount Display */}
-                    <div>
-                      <label htmlFor="restActuel" className="block font-medium">
-                        Le reste actuel
-                      </label>
-                      <Input
-                        id="restActuel"
-                        disabled={true}
-                        value={transactionData.Reste}
-                        readOnly
-                        placeholder="Le reste actuel"
-                        type="number"
-                      />
-                    </div>
+                      {/* Contract Selection */}
+                      <div>
+                        <label htmlFor="contrat" className="block font-medium">
+                          *Contrat
+                        </label>
+                        <Select
+                          id="contrat"
+                          disabled={ContractClient.length === 0}
+                          showSearch
+                          placeholder="Contrat"
+                          className="w-full"
+                          optionFilterProp="children"
+                          onChange={(value) => {
+                            const con = ContractClient.find(
+                              (f) => f.id_contrat === value
+                            );
+                            setTransactionData({
+                              ...transactionData,
+                              id_contrat: value,
+                              Reste: con ? con.reste : 0,
+                            });
+                          }}
+                          filterOption={(input, option) =>
+                            (option?.label ?? "")
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={ContractClient.map((cli) => ({
+                            label: `${cli.abonnement}-${cli.cat_abn}`,
+                            value: cli.id_contrat,
+                          }))}
+                        />
+                      </div>
 
-                    {/* Type Selection */}
-                    <div>
-                      <label htmlFor="type" className="block font-medium">
-                        *Type
-                      </label>
-                      <Select
-                        id="type"
-                        value={transactionData.Type ? "Entrée" : "Sortie"}
-                        showSearch
-                        placeholder="Type"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value) =>
-                          setTransactionData({
-                            ...transactionData,
-                            Type: value === "Entrée",
-                          })
-                        }
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        options={[
-                          { label: "Entrée", value: "Entrée" },
-                          { label: "Sortie", value: "Sortie" },
-                        ]}
-                      />
-                    </div>
-                  </>
-                )}
-                {transactionType === "service" && (
-                  <>
-                    <div>
-                      <label htmlFor="service" className="block font-medium">
-                        *Service
-                      </label>
-                      <Select
-                        id="service"
-                        showSearch
-                        placeholder="Service"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, options) => {
-                          const serviceTarif = findServiceTarif(value);
-                          console.log(serviceTarif + " hlll");
-                          setTransactionData({
-                            ...transactionData,
-                            id_service: value,
-                            montant: serviceTarif, // Set the montant to the service's tarif
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        options={services.map((service) => ({
-                          label: service.service,
-                          value: service.ID_service,
-                        }))}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="reservation"
-                        className="block font-medium"
-                      >
-                        Réservation
-                      </label>
-                      <Select
-                        id="reservation"
-                        showSearch
-                        placeholder="Sélectionnez une réservation"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value, option) => {
-                          setTransactionData({
-                            ...transactionData,
-                            id_reserv: value,
-                            id_service: option.service_id,
-                            id_client: option.client_id,
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          option.children
-                            .toLowerCase()
-                            .indexOf(input.toLowerCase()) >= 0
-                        }
-                      >
-                        {reservations.map((reservation) => (
-                          <Select.Option
-                            key={reservation.id_rsv_srvc}
-                            value={reservation.id_rsv_srvc}
-                            service_id={reservation.id_service}
-                            client_id={reservation.id_client}
-                          >
-                            {reservation.service} - {reservation.client} -{" "}
-                            {reservation.date_presence}
-                          </Select.Option>
-                        ))}
-                      </Select>
-                    </div>
-                    {/* <div>
+                      {/* Previous Amount Input */}
+                      <div>
+                        <label
+                          htmlFor="restPrecedant"
+                          className="block font-medium"
+                        >
+                          Le Montant
+                        </label>
+                        <Input
+                          disabled={transactionData.Reste === 0}
+                          id="montant"
+                          value={transactionData.montant}
+                          onChange={(e) => {
+                            const newRestPre = e.target.value;
+                            if (
+                              parseFloat(newRestPre) > transactionData.Reste
+                            ) {
+                              message.warning(
+                                "Le montant précédent dépasse le montant disponible."
+                              );
+                            } else {
+                              setTransactionData({
+                                ...transactionData,
+                                montant: newRestPre,
+                              });
+                            }
+                          }}
+                          placeholder="Le montant"
+                          type="number"
+                        />
+                      </div>
+
+                      {/* Current Amount Display */}
+                      <div>
+                        <label
+                          htmlFor="restActuel"
+                          className="block font-medium"
+                        >
+                          Le reste actuel
+                        </label>
+                        <Input
+                          id="restActuel"
+                          disabled={true}
+                          value={transactionData.Reste}
+                          readOnly
+                          placeholder="Le reste actuel"
+                          type="number"
+                        />
+                      </div>
+
+                      {/* Type Selection */}
+                      <div>
+                        <label htmlFor="type" className="block font-medium">
+                          *Type
+                        </label>
+                        <Select
+                          id="type"
+                          value={transactionData.Type ? "Entrée" : "Sortie"}
+                          showSearch
+                          placeholder="Type"
+                          className="w-full"
+                          optionFilterProp="children"
+                          onChange={(value) =>
+                            setTransactionData({
+                              ...transactionData,
+                              Type: value === "Entrée",
+                            })
+                          }
+                          filterOption={(input, option) =>
+                            (option?.label ?? "")
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={[
+                            { label: "Entrée", value: "Entrée" },
+                            { label: "Sortie", value: "Sortie" },
+                          ]}
+                        />
+                      </div>
+                    </>
+                  )}
+                  {transactionType === "service" && (
+                    <>
+                      <div>
+                        <label htmlFor="service" className="block font-medium">
+                          *Service
+                        </label>
+                        <Select
+                          id="service"
+                          showSearch
+                          placeholder="Service"
+                          className="w-full"
+                          optionFilterProp="children"
+                          onChange={(value, options) => {
+                            const serviceTarif = findServiceTarif(value);
+                            console.log(serviceTarif + " hlll");
+                            setTransactionData({
+                              ...transactionData,
+                              id_service: value,
+                              montant: serviceTarif, // Set the montant to the service's tarif
+                            });
+                          }}
+                          filterOption={(input, option) =>
+                            (option?.label ?? "")
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={services.map((service) => ({
+                            label: service.service,
+                            value: service.ID_service,
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="reservation"
+                          className="block font-medium"
+                        >
+                          Réservation
+                        </label>
+                        <Select
+                          id="reservation"
+                          showSearch
+                          placeholder="Sélectionnez une réservation"
+                          className="w-full"
+                          optionFilterProp="children"
+                          onChange={(value, option) => {
+                            setTransactionData({
+                              ...transactionData,
+                              id_reserv: value,
+                              id_service: option.service_id,
+                              id_client: option.client_id,
+                            });
+                          }}
+                          filterOption={(input, option) =>
+                            option.children
+                              .toLowerCase()
+                              .indexOf(input.toLowerCase()) >= 0
+                          }
+                        >
+                          {reservations.map((reservation) => (
+                            <Select.Option
+                              key={reservation.id_rsv_srvc}
+                              value={reservation.id_rsv_srvc}
+                              service_id={reservation.id_service}
+                              client_id={reservation.id_client}
+                            >
+                              {reservation.service} - {reservation.client} -{" "}
+                              {reservation.date_presence}
+                            </Select.Option>
+                          ))}
+                        </Select>
+                      </div>
+                      {/* <div>
                       <label htmlFor="contrat" className="block font-medium">
                         *Client
                       </label>
@@ -1224,93 +1258,96 @@ const TableTransication = ({darkmode}) => {
                         }))}
                       />
                     </div> */}
-                    <div>
-                      <label htmlFor="montant" className="block font-medium">
-                        Montant
-                      </label>
-                      <Input
-                        id="montant"
-                        disabled={true}
-                        value={transactionData.montant}
-                        onChange={(e) => {
-                          const newMontant = parseFloat(e.target.value);
-                          if (
-                            transactionType === "regular" &&
-                            newMontant > parseFloat(transactionData.Reste)
-                          ) {
-                            message.warning(
-                              "Le montant ne peut pas dépasser le reste à payer."
-                            );
-                            return;
+                      <div>
+                        <label htmlFor="montant" className="block font-medium">
+                          Montant
+                        </label>
+                        <Input
+                          id="montant"
+                          disabled={true}
+                          value={transactionData.montant}
+                          onChange={(e) => {
+                            const newMontant = parseFloat(e.target.value);
+                            if (
+                              transactionType === "regular" &&
+                              newMontant > parseFloat(transactionData.Reste)
+                            ) {
+                              message.warning(
+                                "Le montant ne peut pas dépasser le reste à payer."
+                              );
+                              return;
+                            }
+                            setTransactionData({
+                              ...transactionData,
+                              montant: e.target.value,
+                            });
+                          }}
+                          placeholder="Montant"
+                          type="number"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="reduction"
+                          className="block font-medium"
+                        >
+                          Réduction (%)
+                        </label>
+                        <Input
+                          id="reduction"
+                          value={transactionData.reduction}
+                          onChange={(e) => {
+                            const newReduction = parseFloat(e.target.value);
+                            if (
+                              isNaN(newReduction) ||
+                              newReduction < 0 ||
+                              newReduction > 100
+                            ) {
+                              message.error(
+                                "La réduction doit être un pourcentage entre 0 et 100."
+                              );
+                              return;
+                            }
+                            setTransactionData({
+                              ...transactionData,
+                              reduction: e.target.value,
+                            });
+                          }}
+                          placeholder="Réduction (%)"
+                          type="number"
+                          min="0"
+                          max="100"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="montantApresReduction"
+                          className="block font-medium"
+                        >
+                          Montant après réduction
+                        </label>
+                        <Input
+                          id="montantApresReduction"
+                          value={
+                            transactionData.montant -
+                            transactionData.montant *
+                              (parseFloat(transactionData.reduction) / 100)
                           }
-                          setTransactionData({
-                            ...transactionData,
-                            montant: e.target.value,
-                          });
-                        }}
-                        placeholder="Montant"
-                        type="number"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="reduction" className="block font-medium">
-                        Réduction (%)
-                      </label>
-                      <Input
-                        id="reduction"
-                        value={transactionData.reduction}
-                        onChange={(e) => {
-                          const newReduction = parseFloat(e.target.value);
-                          if (
-                            isNaN(newReduction) ||
-                            newReduction < 0 ||
-                            newReduction > 100
-                          ) {
-                            message.error(
-                              "La réduction doit être un pourcentage entre 0 et 100."
-                            );
-                            return;
-                          }
-                          setTransactionData({
-                            ...transactionData,
-                            reduction: e.target.value,
-                          });
-                        }}
-                        placeholder="Réduction (%)"
-                        type="number"
-                        min="0"
-                        max="100"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="montantApresReduction"
-                        className="block font-medium"
-                      >
-                        Montant après réduction
-                      </label>
-                      <Input
-                        id="montantApresReduction"
-                        value={
-                          transactionData.montant -
-                          transactionData.montant *
-                            (parseFloat(transactionData.reduction) / 100)
-                        }
-                        disabled={true}
-                        readOnly
-                        placeholder="Montant après réduction"
-                        type="number"
-                      />
-                    </div>
+                          disabled={true}
+                          readOnly
+                          placeholder="Montant après réduction"
+                          type="number"
+                        />
+                      </div>
 
-                    <div className="w-full">
-                      <label
-                        htmlFor="typeService"
-                        className="block font-medium"
-                      >
-                        *Type de Service
-                      </label>
-                      {/* <Input
+                      <div className="w-full">
+                        <label
+                          htmlFor="typeService"
+                          className="block font-medium"
+                        >
+                          *Type de Service
+                        </label>
+                        {/* <Input
                         id="typeService"
                         value={transactionData.type}
                         onChange={(e) =>
@@ -1321,199 +1358,202 @@ const TableTransication = ({darkmode}) => {
                         }
                         placeholder="Type de service"
                       /> */}
-                      {JSON.parse(localStorage.getItem(`data`))[0].fonction ===
-                      "Administration" ? (
+                        {JSON.parse(localStorage.getItem(`data`))[0]
+                          .fonction === "Administration" ? (
+                          <Select
+                            id="selectEntree"
+                            placeholder="Type de Transaction"
+                            value={transactionData.type}
+                            defaultValue={"Entrée"}
+                            className="w-full"
+                            onChange={(value, option) => {
+                              setTransactionData({
+                                ...transactionData,
+                                type: value,
+                              });
+                            }}
+                            style={{ width: 200, marginBottom: 10 }}
+                          >
+                            <Option value="Entrée">Entrée</Option>
+                          </Select>
+                        ) : (
+                          <Select
+                            id="selectEntree"
+                            placeholder="Type de service"
+                            value={transactionData.type}
+                            className="w-full"
+                            onChange={(value, option) => {
+                              setTransactionData({
+                                ...transactionData,
+                                type: value,
+                              });
+                            }}
+                            style={{ width: 200, marginBottom: 10 }}
+                          >
+                            <Option value="Entrée">Entrée</Option>
+                          </Select>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  {transactionType === "depense" && (
+                    <>
+                      <div>
+                        <label
+                          htmlFor="fournisseur"
+                          className="block font-medium"
+                        >
+                          *Fournisseur
+                        </label>
                         <Select
-                          id="selectEntree"
-                          placeholder="Type de Transaction"
-                          value={transactionData.type}
-                          defaultValue={"Entrée"}
+                          id="fournisseur"
+                          showSearch
+                          placeholder="Fournisseur"
                           className="w-full"
-                          onChange={(value, option) => {
+                          optionFilterProp="children"
+                          onChange={(value) => {
+                            setTransactionData({
+                              ...transactionData,
+                              id_fournisseur: value,
+                            });
+                          }}
+                          filterOption={(input, option) =>
+                            (option?.label ?? "")
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={fournisseurs.map((fournisseur) => ({
+                            label: fournisseur.societe,
+                            value: fournisseur.id_frs,
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="typeDepense"
+                          className="block font-medium"
+                        >
+                          *Type de Transaction
+                        </label>
+                        <Select
+                          id="typeDepense"
+                          value={transactionData.type}
+                          defaultValue={"Sortie"}
+                          onChange={(value) =>
                             setTransactionData({
                               ...transactionData,
                               type: value,
-                            });
-                          }}
-                          style={{ width: 200, marginBottom: 10 }}
-                        >
-                          <Option value="Entrée">Entrée</Option>
-                        </Select>
-                      ) : (
-                        <Select
-                          id="selectEntree"
-                          placeholder="Type de service"
-                          value={transactionData.type}
+                            })
+                          }
+                          placeholder="Type de dépense"
                           className="w-full"
-                          onChange={(value, option) => {
+                        >
+                          <Select.Option value="Sortie">Sortie</Select.Option>
+                        </Select>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="description"
+                          className="block font-medium"
+                        >
+                          Montant
+                        </label>
+                        <Input
+                          type="number"
+                          id="description"
+                          value={transactionData.montant}
+                          onChange={(e) => {
                             setTransactionData({
                               ...transactionData,
-                              type: value,
+                              montant: e.target.value,
                             });
                           }}
-                          style={{ width: 200, marginBottom: 10 }}
-                        >
-                          <Option value="Entrée">Entrée</Option>
-                        </Select>
-                      )}
-                    </div>
-                  </>
-                )}
-                {transactionType === "depense" && (
-                  <>
-                    <div>
-                      <label
-                        htmlFor="fournisseur"
-                        className="block font-medium"
-                      >
-                        *Fournisseur
-                      </label>
-                      <Select
-                        id="fournisseur"
-                        showSearch
-                        placeholder="Fournisseur"
-                        className="w-full"
-                        optionFilterProp="children"
-                        onChange={(value) => {
-                          setTransactionData({
-                            ...transactionData,
-                            id_fournisseur: value,
-                          });
-                        }}
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        options={fournisseurs.map((fournisseur) => ({
-                          label: fournisseur.societe,
-                          value: fournisseur.id_frs,
-                        }))}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="typeDepense"
-                        className="block font-medium"
-                      >
-                        *Type de Transaction
-                      </label>
-                      <Select
-                        id="typeDepense"
-                        value={transactionData.type}
-                        defaultValue={"Sortie"}
-                        onChange={(value) =>
-                          setTransactionData({
-                            ...transactionData,
-                            type: value,
-                          })
-                        }
-                        placeholder="Type de dépense"
-                        className="w-full"
-                      >
-                        <Select.Option value="Sortie">Sortie</Select.Option>
-                      </Select>
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="description"
-                        className="block font-medium"
-                      >
-                        Montant
-                      </label>
-                      <Input
-                        type="number"
-                        id="description"
-                        value={transactionData.montant}
-                        onChange={(e) => {
-                          setTransactionData({
-                            ...transactionData,
-                            montant: e.target.value,
-                          });
-                        }}
-                        placeholder="montant"
-                      />
-                    </div>
-                  </>
-                )}
-                {/* Common fields for all transaction types */}
+                          placeholder="montant"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {/* Common fields for all transaction types */}
 
-                <div>
-                  <label htmlFor="description" className="block font-medium">
-                    Description
-                  </label>
-                  <Input.TextArea
-                    id="description"
-                    value={transactionData.description}
-                    onChange={(e) => {
-                      setTransactionData({
-                        ...transactionData,
-                        description: e.target.value,
-                      });
-                    }}
-                    placeholder="Description"
-                  />
-                </div>
+                  <div>
+                    <label htmlFor="description" className="block font-medium">
+                      Description
+                    </label>
+                    <Input.TextArea
+                      id="description"
+                      value={transactionData.description}
+                      onChange={(e) => {
+                        setTransactionData({
+                          ...transactionData,
+                          description: e.target.value,
+                        });
+                      }}
+                      placeholder="Description"
+                    />
+                  </div>
 
-                <div>
-                  <label htmlFor="modeReglement" className="block font-medium">
-                    *Mode de Règlement
-                  </label>
-                  <Select
-                    id="modeReglement"
-                    value={transactionData.Mode_reglement}
-                    showSearch
-                    placeholder="Mode de règlement"
-                    className="w-full"
-                    optionFilterProp="children"
-                    onChange={(value) =>
-                      setTransactionData({
-                        ...transactionData,
-                        Mode_reglement: value,
-                      })
-                    }
-                    filterOption={(input, option) =>
-                      (option?.label ?? "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    options={[
-                      { label: "Chèques", value: "chèques" },
-                      { label: "Espèces", value: "Espèces" },
-                      { label: "Prélèvements", value: "prélèvements" },
-                      { label: "Autres", value: "autres" },
-                    ]}
-                  />
+                  <div>
+                    <label
+                      htmlFor="modeReglement"
+                      className="block font-medium"
+                    >
+                      *Mode de Règlement
+                    </label>
+                    <Select
+                      id="modeReglement"
+                      value={transactionData.Mode_reglement}
+                      showSearch
+                      placeholder="Mode de règlement"
+                      className="w-full"
+                      optionFilterProp="children"
+                      onChange={(value) =>
+                        setTransactionData({
+                          ...transactionData,
+                          Mode_reglement: value,
+                        })
+                      }
+                      filterOption={(input, option) =>
+                        (option?.label ?? "")
+                          .toLowerCase()
+                          .includes(input.toLowerCase())
+                      }
+                      options={[
+                        { label: "Chèques", value: "chèques" },
+                        { label: "Espèces", value: "Espèces" },
+                        { label: "Prélèvements", value: "prélèvements" },
+                        { label: "Autres", value: "autres" },
+                      ]}
+                    />
+                  </div>
                 </div>
+                <Space className="mt-10">
+                  <Button danger onClick={onCloseR}>
+                    Annuler
+                  </Button>
+                  <Button onClick={handleRoomSubmit} type="default">
+                    Enregistrer
+                  </Button>
+                </Space>
               </div>
-              <Space className="mt-10">
-                <Button danger onClick={onCloseR}>
-                  Annuler
-                </Button>
-                <Button onClick={handleRoomSubmit} type="default">
-                  Enregistrer
-                </Button>
-              </Space>
-            </div>
-          </Drawer>
+            </Drawer>
+          </div>
         </div>
+        <Table
+          loading={loading}
+          pagination={{
+            pageSize: 7,
+            showQuickJumper: true,
+          }}
+          size="small"
+          className="w-full mt-5"
+          columns={columns}
+          dataSource={filteredData}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: (selectedRowKeys) => setSelectedRowKeys(selectedRowKeys),
+          }}
+        />
       </div>
-      <Table
-        loading={loading}
-        pagination={{
-          pageSize: 7,
-          showQuickJumper: true,
-        }}
-        size="small"
-        className="w-full mt-5"
-        columns={columns}
-        dataSource={filteredData}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: (selectedRowKeys) => setSelectedRowKeys(selectedRowKeys),
-        }}
-      />
-    </div>
     </ConfigProvider>
   );
 };
