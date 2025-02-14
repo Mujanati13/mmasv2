@@ -231,7 +231,7 @@ const TablePeriod = () => {
       // Add id_client to the values object
 
       const response = await fetch(
-        `https://jyssrmmas.pythonanywhere.com/api/periode/`,
+        `${Endpoint()}/api/periode/`,
         {
           method: "PUT",
           headers: {
@@ -277,7 +277,7 @@ const TablePeriod = () => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://jyssrmmas.pythonanywhere.com/api/periode/${clientToDelete.id_periode}`,
+            `${Endpoint()}/api/periode/${clientToDelete.id_periode}`,
             {
               method: "DELETE",
               headers: {

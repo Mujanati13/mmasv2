@@ -33,6 +33,7 @@ import * as XLSX from "xlsx";
 import { handlePrintContract } from "../../utils/printable/contract";
 import { printFacteur } from "../../utils/printable/facteur";
 import { handlePrintPayment } from "../../utils/printable/payment";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableTransication = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -102,7 +103,7 @@ const TableTransication = ({ darkmode }) => {
 
       if (exportFilters.abonnements) {
         const abonnementData = await fetchDataFromAPI(
-          "http://51.38.99.75:2001/api/transactions/"
+          Endpoint()+"api/transactions/"
         );
         allData = [...allData, ...abonnementData];
       }
@@ -278,7 +279,7 @@ const TableTransication = ({ darkmode }) => {
 
   const fetchFournisseurs = async () => {
     try {
-      const response = await fetch("http://51.38.99.75:2001/api/fournisseur/", {
+      const response = await fetch(Endpoint()+"api/fournisseur/", {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -297,7 +298,7 @@ const TableTransication = ({ darkmode }) => {
   const fetchReservations = async () => {
     try {
       const response = await fetch(
-        "http://51.38.99.75:2001/api/reservationService/",
+        Endpoint()+"api/reservationService/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -340,7 +341,7 @@ const TableTransication = ({ darkmode }) => {
     const fecthConn = async () => {
       try {
         const response = await fetch(
-          "http://51.38.99.75:2001/api/contrat/?client_id=" + idClient,
+          Endpoint()+"api/contrat/?client_id=" + idClient,
           {
             method: "GET",
             headers: {
@@ -389,7 +390,7 @@ const TableTransication = ({ darkmode }) => {
           //     "https://JyssrMMAS.pythonanywhere.com/api/transaction_depense/";
           //   break;
           default:
-            url = "http://51.38.99.75:2001/api/transactions/";
+            url = Endpoint()+"api/transactions/";
         }
 
         const response = await fetch(url, {
@@ -511,7 +512,7 @@ const TableTransication = ({ darkmode }) => {
 
       // Add id_client to the values object
 
-      const response = await fetch(`http://51.38.99.75:2001/api/coach/`, {
+      const response = await fetch(`${Endpoint()}api/coach/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -555,7 +556,7 @@ const TableTransication = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `http://51.38.99.75:2001/api/periode/${clientToDelete.id_periode}`,
+            `${Endpoint()}api/periode/${clientToDelete.id_periode}`,
             {
               method: "DELETE",
               headers: {
@@ -629,7 +630,7 @@ const TableTransication = ({ darkmode }) => {
         //   url = "https://JyssrMMAS.pythonanywhere.com/api/transaction_depense/";
         //   break;
         default:
-          url = "http://51.38.99.75:2001/api/transactions/";
+          url = Endpoint()+"api/transactions/";
       }
 
       const response = await fetch(url, {
@@ -706,7 +707,7 @@ const TableTransication = ({ darkmode }) => {
   const fetchClients = async () => {
     try {
       const response = await fetch(
-        "http://51.38.99.75:2001/api/client_contrat/"
+        Endpoint()+"api/client_contrat/"
       );
       const data = await response.json();
       setContractClients(data.data);
@@ -727,7 +728,7 @@ const TableTransication = ({ darkmode }) => {
 
   const fetchClients2 = async () => {
     try {
-      const response = await fetch("http://51.38.99.75:2001/api/etudiants/");
+      const response = await fetch(Endpoint()+"api/etudiants/");
       const data = await response.json();
 
       setClients2(data.data);
@@ -738,7 +739,7 @@ const TableTransication = ({ darkmode }) => {
 
   const fetchServices = async () => {
     try {
-      const response = await fetch("http://51.38.99.75:2001/api/service/");
+      const response = await fetch(Endpoint()+"api/service/");
       const data = await response.json();
       console.log("services:" + data.data);
 
@@ -767,7 +768,7 @@ const TableTransication = ({ darkmode }) => {
     try {
       let url;
 
-      url = "http://51.38.99.75:2001/api/transactions/";
+      url = Endpoint()+"api/transactions/";
 
       const discountedAmount =
         transactionData.montant -

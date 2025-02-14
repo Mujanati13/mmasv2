@@ -59,7 +59,7 @@ function Reservations({ darkmode }) {
   };
 
   return (
-    <div className={themeStyles.container}>
+    <div style={{height:"10px"}} className={themeStyles.container}>
       <div className="flex items-center space-x-2 mb-4">
         <div className={themeStyles.iconContainer}>
           <CalendarOutlined className={themeStyles.icon} />

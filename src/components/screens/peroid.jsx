@@ -19,6 +19,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { getCurrentDate, addNewTrace } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 // import { addNewTrace, getCurrentDate } from "../../../utils/helper";
 
 const TablePeriod = ({ darkmode }) => {
@@ -63,7 +64,7 @@ const TablePeriod = ({ darkmode }) => {
       }
       ClientData.PeriodeSalaire = attribut.years + " " + attribut.month;
       const response = await fetch(
-        "https://JyssrMmas.pythonanywhere.com/api/periode/",
+        Endpoint()+"/api/periode/",
         {
           method: "POST",
           headers: {
@@ -128,7 +129,7 @@ const TablePeriod = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMmas.pythonanywhere.com/api/periode/",
+          Endpoint()+"/api/periode/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -232,7 +233,7 @@ const TablePeriod = ({ darkmode }) => {
       // Add id_client to the values object
 
       const response = await fetch(
-        `https://JyssrMmas.pythonanywhere.com/api/coach/`,
+        `${Endpoint()}/api/coach/`,
         {
           method: "PUT",
           headers: {
@@ -278,7 +279,7 @@ const TablePeriod = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMmas.pythonanywhere.com/api/periode/${clientToDelete.id_periode}`,
+            `${Endpoint()}/api/periode/${clientToDelete.id_periode}`,
             {
               method: "DELETE",
               headers: {

@@ -25,6 +25,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableClasse = ({ darkmode }) => {
   const [data1, setData1] = useState([]);
@@ -118,7 +119,7 @@ const TableClasse = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/niveau/",
+          Endpoint()+"/api/niveau/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -154,7 +155,7 @@ const TableClasse = ({ darkmode }) => {
     if (isRoomFormValid()) {
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/classe/",
+          Endpoint()+"/api/classe/",
           {
             method: "POST",
             headers: {
@@ -203,7 +204,7 @@ const TableClasse = ({ darkmode }) => {
   const addCtegeries = async () => {
     try {
       const response = await fetch(
-        "https://JyssrMMAS.pythonanywhere.com/api/niveau/",
+        Endpoint()+"/api/niveau/",
         {
           method: "POST",
           headers: {
@@ -274,7 +275,7 @@ const TableClasse = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/classe/",
+          Endpoint()+"/api/classe/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -345,7 +346,7 @@ const TableClasse = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "https://JyssrMMAS.pythonanywhere.com/api/niveau/",
+          Endpoint()+"/api/niveau/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -453,7 +454,7 @@ const TableClasse = ({ darkmode }) => {
     try {
       const values = await form.validateFields();
       const response = await fetch(
-        `https://JyssrMMAS.pythonanywhere.com/api/classe/`,
+        `${Endpoint()}/api/classe/`,
         {
           method: "PUT",
           headers: {
@@ -519,7 +520,7 @@ const TableClasse = ({ darkmode }) => {
       const values = await form1.validateFields();
       console.log(values);
       const response = await fetch(
-        `https://JyssrMMAS.pythonanywhere.com/api/niveau/`,
+        `${Endpoint()}/api/niveau/`,
         {
           method: "PUT",
           headers: {
@@ -579,7 +580,7 @@ const TableClasse = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMMAS.pythonanywhere.com/api/classe/${clientToDelete.id_classe}`,
+            `${Endpoint()}/api/classe/${clientToDelete.id_classe}`,
             {
               method: "DELETE",
               headers: {
@@ -633,7 +634,7 @@ const TableClasse = ({ darkmode }) => {
           const clientToDelete = data1.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMMAS.pythonanywhere.com/api/niveau/${clientToDelete.id_niveau}`,
+            `${Endpoint()}/api/niveau/${clientToDelete.id_niveau}`,
             {
               method: "DELETE",
               headers: {

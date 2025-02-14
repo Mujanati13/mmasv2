@@ -328,7 +328,7 @@ const TableReservation = ({darkmode}) => {
     ) {
       try {
         const response = await fetch(
-          `https://jyssrmmas.pythonanywhere.com/api/sallesdispo/?jour=${ClientData.jour}&heur_debut=${ClientData.heure_debut}&heur_fin=${ClientData.heure_fin}`,
+          `${Endpoint()}/api/sallesdispo/?jour=${ClientData.jour}&heur_debut=${ClientData.heure_debut}&heur_fin=${ClientData.heure_fin}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -365,7 +365,7 @@ const TableReservation = ({darkmode}) => {
     if (true) {
       try {
         const response = await fetch(
-          `https://jyssrmmas.pythonanywhere.com/api/sallesdispo/?jour=${jour}&heur_debut=${heure_debut}&heur_fin=${heure_fin}`,
+          Endpoint()+`/api/sallesdispo/?jour=${jour}&heur_debut=${heure_debut}&heur_fin=${heure_fin}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -537,7 +537,6 @@ const TableReservation = ({darkmode}) => {
           "coach",
           "salle",
           "Jour",
-          "genre",
           "heure_debut",
           "heure_fin",
           "capacity",
@@ -700,7 +699,7 @@ const TableReservation = ({darkmode}) => {
         return;
       }
       const response = await fetch(
-        `https://jyssrmmas.pythonanywhere.com/api/seance/`,
+        Endpoint()+`/api/seance/`,
         {
           method: "PUT",
           headers: {
@@ -789,7 +788,7 @@ const TableReservation = ({darkmode}) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://jyssrmmas.pythonanywhere.com/api/seance/${clientToDelete.id_seance}`,
+            Endpoint()+`/api/seance/${clientToDelete.id_seance}`,
             {
               method: "DELETE",
               headers: {
@@ -836,7 +835,7 @@ const TableReservation = ({darkmode}) => {
     if (editingClient != undefined) {
       try {
         const response = await fetch(
-          `https://jyssrmmas.pythonanywhere.com/api/seance/${editingClient.id_seance}`,
+          Endpoint()+`/api/seance/${editingClient.id_seance}`,
           {
             method: "DELETE",
             headers: {

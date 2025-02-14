@@ -32,28 +32,28 @@ function DashboardInterface({ darkmode }) {
     >
       <div className="w-full ">
         <div className="p-5 flex items-start justify-between">
-          <Teresorerie darkmode={darkmode}/>
-          <Client darkmode={darkmode}/>
-          <Reservations darkmode={darkmode}/>
+          <Teresorerie darkmode={false}/>
+          <Client darkmode={false}/>
+          <Reservations darkmode={false}/>
         </div>
         <div className="pl-5  pr-5 mt-0 flex items-start justify-between">
           <div className="w-[45%] h-96">
-            <TypeContart darkmode={darkmode}/>
+            <TypeContart darkmode={false}/>
           </div>
-          <Birthday darkmode={darkmode}/>
+          <Birthday darkmode={false}/>
         </div>
         <div className="p-5 flex items-start justify-between">
-          <SalaryContractChart darkmode={darkmode}/>
+          <SalaryContractChart darkmode={false}/>
           <div className="w-10"></div>
-          <StudentGradeDistribution darkmode={darkmode}/>
+          <StudentGradeDistribution darkmode={false}/>
         </div>
         <div className="w-full p-5 flex flex-col space-y-2 items-start justify-between">
           <div className="flex w-full">
-            <ContratsType darkmode={darkmode}/>
+            <ContratsType darkmode={false}/>
             <div className="w-5"></div>
-            <CourseDistribution darkmode={darkmode}/>
+            <CourseDistribution darkmode={false}/>
           </div>
-          <div className="w-full h-60 mt-5">
+          <div style={{height:"50px"}} className="w-full mt-5">
             <DailyActivityChart />
           </div>
         </div>

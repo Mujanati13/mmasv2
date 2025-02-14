@@ -195,7 +195,7 @@ const TableContract = ({ darkmode }) => {
   const fetchTransactions = async (id_contrat) => {
     try {
       const response = await fetch(
-        `https://jyssrmmas.pythonanywhere.com/api/transaction_by_contrat_id/?id_contrat=${id_contrat}`,
+        `${Endpoint()}/api/transaction_by_contrat_id/?id_contrat=${id_contrat}`,
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -279,7 +279,7 @@ const TableContract = ({ darkmode }) => {
 
     ContractData.date_fin = `${year}-${month}-${day}`;
     const id_staff = JSON.parse(localStorage.getItem("data"));
-    ContractData.id_admin = id_staff[0].id_admin;
+    ContractData.id_admin = id_staff[0].id_employe;
     ContractData.Type = true;
 
     const dataToSend = {
@@ -900,7 +900,7 @@ const TableContract = ({ darkmode }) => {
           const ContractData = data.find((client) => client.key === key);
           console.log(ContractData);
           const response = await fetch(
-            `https://jyssrmmas.pythonanywhere.com/api/contrat/${ContractData.id_contrat}`,
+            `${Endpoint()}/api/contrat/${ContractData.id_contrat}`,
             {
               method: "DELETE",
               headers: {

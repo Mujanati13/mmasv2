@@ -503,7 +503,7 @@ const TableAbonnement = ({ darkmode }) => {
   const handleModalSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const response = await fetch(`http://51.38.99.75:2001/api/abonnement/`, {
+      const response = await fetch(`${Endpoint()}api/abonnement/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -575,7 +575,7 @@ const TableAbonnement = ({ darkmode }) => {
       const values = await form1.validateFields();
       console.log(values);
       const response = await fetch(
-        `http://51.38.99.75:2001/api/category_contrat/`,
+        `${Endpoint()}api/category_contrat/`,
         {
           method: "PUT",
           headers: {
@@ -635,7 +635,7 @@ const TableAbonnement = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `http://51.38.99.75:2001/api/abonnement/${clientToDelete.id_abn}`,
+            `${Endpoint()}api/abonnement/${clientToDelete.id_abn}`,
             {
               method: "DELETE",
               headers: {
@@ -689,7 +689,7 @@ const TableAbonnement = ({ darkmode }) => {
           const clientToDelete = data1.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `http://51.38.99.75:2001/api/category_contrat/${clientToDelete.id_cat_cont}`,
+            `${Endpoint()}api/category_contrat/${clientToDelete.id_cat_cont}`,
             {
               method: "DELETE",
               headers: {

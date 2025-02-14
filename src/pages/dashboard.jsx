@@ -58,7 +58,7 @@ const { Title } = Typography;
 
 const Dashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [openKeys, setOpenKeys] = useState(["gestionPlanification"]);
+  const [openKeys, setOpenKeys] = useState(["gestionEtablissement"]);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [userRole, setUserRole] = useState("");
   const [selectedMenu, setSelectedMenu] = useState("interface_etablissement");
@@ -77,9 +77,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("data"));
-    console.log('====================================');
-    console.log(userData[0].fonction);
-    console.log('====================================');
     if (true) {
       setUserRole(userData[0].fonction);
       if (userData[0].fonction == "Prof") {
@@ -96,100 +93,93 @@ const Dashboard = () => {
   const gestionEtablissementMenu = {
     key: "gestionEtablissement",
     icon: <HomeOutlined />,
-    label: "Gestion Etablissement",
+    label: "GESTION ÉTABLISSEMENT",
     children: [
       {
         key: "interface_etablissement",
         icon: <HomeOutlined />,
-        label: "Etablissement",
+        label: "ÉTABLISSEMENT",
       },
       {
         key: "interface_dashboard",
         icon: <DashboardOutlined />,
-        label: "Dashboard",
+        label: "DASHBOARD",
       },
       {
         key: "interface_notification",
         icon: <NotificationOutlined />,
-        label: "Notification",
+        label: "NOTIFICATION",
       },
       {
         key: "interface_transaction",
         icon: <TransactionOutlined />,
-        label: "Transaction",
+        label: "TRANSACTION",
       },
       {
         key: "interface_salle",
         icon: <HomeOutlined />,
-        label: "Salle",
+        label: "SALLE",
       },
       {
         key: "interface_abonnement",
         icon: <CreditCardOutlined />,
-        label: "Abonnement",
+        label: "ABONNEMENT",
       },
     ],
   };
 
-  // Modified menu items for professors
   const professorPlanificationMenu = {
     key: "gestionPlanification",
     icon: <CalendarOutlined />,
-    label: "Gestion Planification",
+    label: "GESTION PLANIFICATION",
     children: [
       {
         key: "interface_planning",
         icon: <CalendarOutlined />,
-        label: "Planning",
+        label: "PLANNING",
       },
       {
         key: "interface_presence",
         icon: <TeamOutlined />,
-        label: "Présence",
+        label: "PRÉSENCE",
       },
       {
         key: "interface_cours",
         icon: <ReadOutlined />,
-        label: "Cours",
+        label: "COURS",
       },
       {
         key: "interface_classes",
         icon: <BookOutlined />,
-        label: "Classes",
+        label: "CLASSES",
       },
     ],
   };
 
-  // Full planification menu for admin
   const adminPlanificationMenu = {
     key: "gestionPlanification",
     icon: <CalendarOutlined />,
-    label: "Gestion Planification",
+    label: "GESTION PLANIFICATION",
     children: [
       {
         key: "interface_reservation",
         icon: <CalendarOutlined />,
-        label: "Planing",
+        label: "PLANNING",
       },
-      // {
-      //   key: "interface_seance",
-      //   icon: <CalendarOutlined />,
-      //   label: "Seance",
-      // },
       {
         key: "interface_presence",
         icon: <TeamOutlined />,
-        label: "Présence",
+        label: "PRÉSENCE",
       },
       {
         key: "interface_cours",
         icon: <ReadOutlined />,
-        label: "Cours",
+        label: "COURS",
       },
       {
         key: "interface_classes",
         icon: <BookOutlined />,
-        label: "Classes",
+        label: "CLASSES",
       },
     ],
   };
@@ -197,27 +187,27 @@ const Dashboard = () => {
   const studentManagementMenu = {
     key: "gestionEtudiants",
     icon: <UsergroupAddOutlined />,
-    label: "Gestion des Etudiants",
+    label: "GESTION DES ÉTUDIANTS",
     children: [
       {
         key: "interface_Etudiants",
         icon: <UserOutlined />,
-        label: "Etudiants",
+        label: "ÉTUDIANTS",
       },
       {
         key: "interface_Parents",
         icon: <TeamOutlined />,
-        label: "Parents",
+        label: "PARENTS",
       },
       {
         key: "interface_Affiliation",
         icon: <ApartmentOutlined />,
-        label: "affiliation",
+        label: "AFFILIATION",
       },
       {
         key: "contrat_Etudiant",
         icon: <FileTextOutlined />,
-        label: "Contrat Etudiant",
+        label: "CONTRAT ÉTUDIANT",
       },
     ],
   };
@@ -225,51 +215,48 @@ const Dashboard = () => {
   const personnelMenuItem = {
     key: "gestionPersonnel",
     icon: <TeamOutlined />,
-    label: "Gestion du Personnel",
+    label: "GESTION DU PERSONNEL",
     children: [
       {
         key: "interface_Staff",
         icon: <UserOutlined />,
-        label: "Staff",
+        label: "STAFF",
       },
       {
         key: "interface_Periode",
         icon: <FieldTimeOutlined />,
-        label: "Période",
+        label: "PÉRIODE",
       },
       {
         key: "interface_Payement",
         icon: <DollarOutlined />,
-        label: "Payement",
+        label: "PAIEMENT",
       },
       {
         key: "Contrat_Salarier",
         icon: <FileProtectOutlined />,
-        label: "Contrat salarier",
+        label: "CONTRAT SALARIÉ",
       },
     ],
   };
 
-  console.log();
-
-  // Determine menu items based on user role
   const menuItems =
-    (userRole === "Administration" || userRole === "Secrétaire")
+    userRole === "Administration" || userRole === "Secrétaire"
       ? [
-        gestionEtablissementMenu,
-        adminPlanificationMenu,
-        studentManagementMenu,
-        personnelMenuItem,
-      ]
+          gestionEtablissementMenu,
+          adminPlanificationMenu,
+          studentManagementMenu,
+          personnelMenuItem,
+        ]
       : userRole === "Prof"
-        ? [
+      ? [
           {
             key: "interface_presence",
             icon: <TeamOutlined />,
-            label: "Présence",
+            label: "PRÉSENCE",
           },
         ]
-        : [adminPlanificationMenu, studentManagementMenu];
+      : [adminPlanificationMenu, studentManagementMenu];
 
   const onOpenChange = (keys) => {
     const latestOpenKey = keys.find((key) => openKeys.indexOf(key) === -1);
@@ -331,6 +318,31 @@ const Dashboard = () => {
     }
   };
 
+  const getMenuLabel = () => {
+    // Handle the special case for Prof role with direct menu item
+    if (userRole === "Prof" && selectedMenu === "interface_presence") {
+      return "PRÉSENCE";
+    }
+
+    // Search through all menu items and their children
+    for (const menu of menuItems) {
+      // Check if it's a menu with children
+      if (menu.children) {
+        const foundChild = menu.children.find(
+          (child) => child.key === selectedMenu
+        );
+        if (foundChild) {
+          return foundChild.label;
+        }
+      }
+      // Check if it's a direct menu item
+      else if (menu.key === selectedMenu) {
+        return menu.label;
+      }
+    }
+    return "Dashboard"; // Default fallback
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("jwtToken");
     navigate("/");
@@ -375,19 +387,22 @@ const Dashboard = () => {
             />
           </div>
         )}
-        <Menu
-          theme={isDarkMode ? "dark" : "light"}
-          mode="inline"
-          openKeys={openKeys}
-          onOpenChange={onOpenChange}
-          defaultSelectedKeys={["interface_planning"]}
-          className="mt-5"
-          items={menuItems}
-          onSelect={({ key }) => setSelectedMenu(key)}
-          style={{
-            fontSize: "14px",
-          }}
-        />
+        <div className="w-full">
+          <Menu
+            theme={isDarkMode ? "dark" : "light"}
+            mode="inline"
+            openKeys={openKeys}
+            onOpenChange={onOpenChange}
+            defaultSelectedKeys={["interface_planning"]}
+            className="mt-5"
+            items={menuItems}
+            onSelect={({ key }) => setSelectedMenu(key)}
+            style={{
+              fontSize: "13px",
+              width: collapsed ? 80 : 230,
+            }}
+          />
+        </div>
       </Sider>
       <Layout
         style={{
@@ -426,9 +441,7 @@ const Dashboard = () => {
             style={{ color: isDarkMode ? "white" : "black" }}
             className="text-base font-medium"
           >
-            {toCapitalize(selectedMenu.split("_")[0]) +
-              " " +
-              selectedMenu.split("_")[1]}
+            {getMenuLabel()}
           </div>
           <Space>
             <Tooltip title="🌙/☀️ Mode">

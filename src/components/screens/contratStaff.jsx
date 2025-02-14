@@ -407,7 +407,7 @@ const TableContractStaff = ({ darkmode }) => {
       // Add id_client to the values object
 
       const response = await fetch(
-        `https://JyssrMmas.pythonanywhere.com/api/coach/`,
+        `${Endpoint()}/api/coach/`,
         {
           method: "PUT",
           headers: {
@@ -453,7 +453,7 @@ const TableContractStaff = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `https://JyssrMmas.pythonanywhere.com/api/contratstaff/${clientToDelete.id_contratStaff}`,
+            `${Endpoint()}/api/contratstaff/${clientToDelete.id_contratStaff}`,
             {
               method: "DELETE",
               headers: {

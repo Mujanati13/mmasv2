@@ -681,7 +681,7 @@ const TablePayemnt = ({ darkmode }) => {
           const ContractData = data.find((client) => client.key === key);
           console.log(ContractData);
           const response = await fetch(
-            `https://JyssrMmas.pythonanywhere.com/api/salaire/${ContractData.id}`,
+            `${Endpoint()}/api/salaire/${ContractData.id}`,
             {
               method: "DELETE",
               headers: {

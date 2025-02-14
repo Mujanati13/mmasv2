@@ -25,6 +25,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableSalle = ({ darkmode }) => {
   const [data1, setData1] = useState([]);
@@ -75,7 +76,7 @@ const TableSalle = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://51.38.99.75:2001/api/category/", {
+        const response = await fetch(Endpoint()+"api/category/", {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
           },
@@ -97,7 +98,7 @@ const TableSalle = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "http://51.38.99.75:2001/api/contratstaff/",
+          Endpoint()+"api/contratstaff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -130,7 +131,7 @@ const TableSalle = ({ darkmode }) => {
       //     return;
       //   }
 
-      const response = await fetch("http://51.38.99.75:2001/api/salles/", {
+      const response = await fetch(Endpoint()+"api/salles/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +178,7 @@ const TableSalle = ({ darkmode }) => {
 
   const addCtegeries = async () => {
     try {
-      const response = await fetch("http://51.38.99.75:2001/api/category/", {
+      const response = await fetch(Endpoint()+"api/category/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -250,7 +251,7 @@ const TableSalle = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://51.38.99.75:2001/api/salles/", {
+        const response = await fetch(Endpoint()+"api/salles/", {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
           },
@@ -314,7 +315,7 @@ const TableSalle = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://51.38.99.75:2001/api/category/ ", {
+        const response = await fetch(Endpoint()+"api/category/ ", {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
           },
@@ -420,7 +421,7 @@ const TableSalle = ({ darkmode }) => {
       const values = await form.validateFields();
       const { PeriodeSalaire } = values;
       console.log(values);
-      const response = await fetch(`http://51.38.99.75:2001/api/salles/`, {
+      const response = await fetch(`${Endpoint()}api/salles/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -488,7 +489,7 @@ const TableSalle = ({ darkmode }) => {
     try {
       const values = await form1.validateFields();
       console.log(values);
-      const response = await fetch(`http://51.38.99.75:2001/api/category/`, {
+      const response = await fetch(`${Endpoint()}api/category/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -544,7 +545,7 @@ const TableSalle = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `http://51.38.99.75:2001/api/salles/${clientToDelete.id_salle}`,
+            `${Endpoint()}api/salles/${clientToDelete.id_salle}`,
             {
               method: "DELETE",
               headers: {
@@ -597,7 +598,7 @@ const TableSalle = ({ darkmode }) => {
           const clientToDelete = data1.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `http://51.38.99.75:2001/api/category/${clientToDelete.id_category}`,
+            `${Endpoint()}api/category/${clientToDelete.id_category}`,
             {
               method: "DELETE",
               headers: {

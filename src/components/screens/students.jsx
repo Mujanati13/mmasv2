@@ -344,7 +344,7 @@ const TableStudent = ({ darkmode }) => {
       }
 
       const response = await fetch(
-        `https://jyssrmmas.pythonanywhere.com/api/etudiants/`,
+        Endpoint()+`/api/etudiants/`,
         {
           method: "PUT",
           headers: {
@@ -519,7 +519,7 @@ const TableStudent = ({ darkmode }) => {
 
   //     if (response.ok) {
   //       const res = await response.json();
-  //       return `https://jyssrmmas.pythonanywhere.com/media/${res.path}`;
+  //       return End`/media/${res.path}`;
   //     } else {
   //       const errorResponse = await response.json();
   //       message.error(`File upload failed: ${errorResponse.detail}`);
