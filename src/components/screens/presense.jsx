@@ -31,12 +31,13 @@ import {
   formatDateToYearMonthDay,
   getCurrentDate,
 } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 const { RangePicker } = DatePicker;
 
 const fetchReservations = async () => {
   try {
     const response = await fetch(
-      "http://51.38.99.75:2001/api/reservation/"
+      Endpoint()+"api/reservation/"
     );
     const data = await response.json();
     return data.data;
@@ -111,7 +112,7 @@ export const TableReservationCoachs = () => {
     console.log(SeancInfos);
     try {
       const response = await fetch(
-        "http://51.38.99.75:2001/api/set_presence",
+        Endpoint()+"api/set_presence",
         {
           method: "POST",
           headers: {
@@ -147,7 +148,7 @@ export const TableReservationCoachs = () => {
   const fetchClients = async () => {
     try {
       const response = await fetch(
-        "http://51.38.99.75:2001/api/etudiants/"
+        Endpoint()+"api/etudiants/"
       );
       const data = await response.json();
       setClients(data.data);
@@ -160,7 +161,7 @@ export const TableReservationCoachs = () => {
 
     try {
       const response = await fetch(
-        "http://51.38.99.75:2001/api/cours/",
+        Endpoint()+"api/cours/",
         {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -179,7 +180,7 @@ export const TableReservationCoachs = () => {
     if (id_client && cour_id) {
       try {
         const response = await fetch(
-          `http://51.38.99.75:2001/api/seance/?cour_id=${cour_id}&client_id=${id_client}`,
+          `${Endpoint()}api/seance/?cour_id=${cour_id}&client_id=${id_client}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -243,7 +244,7 @@ export const TableReservationCoachs = () => {
       ReservationData.id_seance = selectedSeance.id_seance;
       ReservationData.date_reservation = selectedSeance.date_reservation;
       const response = await fetch(
-        "http://51.38.99.75:2001/api/reservation/",
+        Endpoint()+"api/reservation/",
         {
           method: "POST",
           headers: {
@@ -308,7 +309,7 @@ export const TableReservationCoachs = () => {
     try {
       const [clientResponse, presenceResponse] = await Promise.all([
         fetch(
-          `http://51.38.99.75:2001/api/Etudiant_by_resevation/?id_seance=${e.id_seance}`,
+          `${Endpoint()}api/Etudiant_by_resevation/?id_seance=${e.id_seance}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -359,7 +360,7 @@ export const TableReservationCoachs = () => {
     try {
       const authToken = localStorage.getItem("jwtToken");
       const response = await fetch(
-        `http://51.38.99.75:2001/api/presences_etds/?id_seance=${id_seance}&date_presence=${date_presence}`,
+        `${Endpoint()}api/presences_etds/?id_seance=${id_seance}&date_presence=${date_presence}`,
         {
           headers: {
             Authorization: `Bearer ${authToken}`,

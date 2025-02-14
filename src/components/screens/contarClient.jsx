@@ -279,7 +279,7 @@ const TableContract = ({ darkmode }) => {
 
     ContractData.date_fin = `${year}-${month}-${day}`;
     const id_staff = JSON.parse(localStorage.getItem("data"));
-    ContractData.id_admin = id_staff[0].id_admin;
+    ContractData.id_admin = id_staff[0].id_employe;
     ContractData.Type = true;
 
     const dataToSend = {

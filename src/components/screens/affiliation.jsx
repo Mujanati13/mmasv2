@@ -52,14 +52,11 @@ const TableAffiliation = ({ darkmode }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        Endpoint()+"/api/affiliation/",
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const response = await fetch(Endpoint() + "/api/affiliation/", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
       const jsonData = await response.json();
       const processedData = jsonData.data.map((item) => ({
         ...item,
@@ -76,14 +73,11 @@ const TableAffiliation = ({ darkmode }) => {
 
   const fetchStudents = async () => {
     try {
-      const response = await fetch(
-        Endpoint()+"/api/etudiants/",
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const response = await fetch(Endpoint() + "/api/etudiants/", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
       const jsonData = await response.json();
       setStudents(jsonData.data);
     } catch (error) {
@@ -94,14 +88,11 @@ const TableAffiliation = ({ darkmode }) => {
 
   const fetchParents = async () => {
     try {
-      const response = await fetch(
-        Endpoint()+"/api/Parentt/",
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const response = await fetch(Endpoint() + "/api/Parentt/", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
       const jsonData = await response.json();
       setParents(jsonData.data);
     } catch (error) {
@@ -112,7 +103,7 @@ const TableAffiliation = ({ darkmode }) => {
 
   const columns = [
     {
-      title: "Student",
+      title: "Etudiant",
       dataIndex: "etudiant",
       key: "etudiant",
     },
@@ -159,17 +150,14 @@ const TableAffiliation = ({ darkmode }) => {
     try {
       const values = await form.validateFields();
       values.id_affiliation = editingAffiliation.id_affiliation;
-      const response = await fetch(
-        `${Endpoint()}/api/affiliation//`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        }
-      );
+      const response = await fetch(`${Endpoint()}/api/affiliation/`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
 
       if (response.ok) {
         message.success("Affiliation mise à jour avec succès");
@@ -192,15 +180,12 @@ const TableAffiliation = ({ darkmode }) => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(
-        `${Endpoint()}/api/affiliation/${id}/`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const response = await fetch(`${Endpoint()}/api/affiliation/${id}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
 
       if (response.ok) {
         message.success("Affiliation supprimée avec succès");
@@ -228,17 +213,14 @@ const TableAffiliation = ({ darkmode }) => {
 
   const handleAffiliationSubmit = async () => {
     try {
-      const response = await fetch(
-        Endpoint()+"/api/affiliation/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify(affiliationData),
-        }
-      );
+      const response = await fetch(Endpoint() + "/api/affiliation/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(affiliationData),
+      });
 
       if (response.ok) {
         message.success("Affiliation ajoutée avec succès");
@@ -278,15 +260,12 @@ const TableAffiliation = ({ darkmode }) => {
   const handleBulkDelete = async () => {
     try {
       for (const key of selectedRowKeys) {
-        await fetch(
-          `${Endpoint()}/api/affiliation/${key}/`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
-        );
+        await fetch(`${Endpoint()}/api/affiliation/${key}/`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
       }
       message.success("Selected affiliations deleted successfully");
       fetchData();
@@ -309,7 +288,15 @@ const TableAffiliation = ({ darkmode }) => {
           },
         }}
       >
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center justify-between mt-3 w-full">
+          <div className="w-52">
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder="Rechercher une affiliation"
+              value={searchText}
+              onChange={handleSearch}
+            />
+          </div>
           <div className="flex items-center space-x-2">
             {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
               "Administration" &&
@@ -338,6 +325,7 @@ const TableAffiliation = ({ darkmode }) => {
                       ""
                     ))}
                 </Popconfirm>
+
                 {selectedRowKeys.length === 1 && (
                   <>
                     {JSON.parse(localStorage.getItem(`data`))[0].fonction ==
@@ -361,16 +349,6 @@ const TableAffiliation = ({ darkmode }) => {
                 )}
               </>
             )}
-          </div>
-          <div className="flex items-center space-x-7">
-            <div className="w-52">
-              <Input
-                prefix={<SearchOutlined />}
-                placeholder="Rechercher une affiliation"
-                value={searchText}
-                onChange={handleSearch}
-              />
-            </div>
           </div>
         </div>
         <Table

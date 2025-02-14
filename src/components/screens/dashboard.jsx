@@ -53,7 +53,7 @@ function DashboardInterface({ darkmode }) {
             <div className="w-5"></div>
             <CourseDistribution darkmode={false}/>
           </div>
-          <div className="w-full h-60 mt-5">
+          <div style={{height:"50px"}} className="w-full mt-5">
             <DailyActivityChart />
           </div>
         </div>

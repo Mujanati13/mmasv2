@@ -23,6 +23,7 @@ import {
 import moment from "moment";
 import { handlePrintContractStaff } from "../../utils/printable/contraStaff";
 import { addNewTrace, getCurrentDate } from "../../utils/helper";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableCours = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -62,7 +63,7 @@ const TableCours = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://51.38.99.75:2001/api/staff/", {
+        const response = await fetch(Endpoint()+"api/staff/", {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
           },
@@ -81,7 +82,7 @@ const TableCours = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "http://51.38.99.75:2001/api/contratstaff/",
+          Endpoint()+"api/contratstaff/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -120,7 +121,7 @@ const TableCours = ({ darkmode }) => {
     try {
       // Check if the form is valid before submitting
 
-      const response = await fetch("http://51.38.99.75:2001/api/cours/", {
+      const response = await fetch(Endpoint()+"api/cours/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -187,7 +188,7 @@ const TableCours = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://51.38.99.75:2001/api/cours/", {
+        const response = await fetch(Endpoint()+"api/cours/", {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
           },
@@ -282,7 +283,7 @@ const TableCours = ({ darkmode }) => {
       const values = await form.validateFields();
       const { PeriodeSalaire } = values;
       console.log(editingClient);
-      const response = await fetch(`http://51.38.99.75:2001/api/cours/`, {
+      const response = await fetch(`${Endpoint()}api/cours/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -330,7 +331,7 @@ const TableCours = ({ darkmode }) => {
           const clientToDelete = data.find((client) => client.key === key);
           console.log(clientToDelete);
           const response = await fetch(
-            `http://51.38.99.75:2001/api/cours/${clientToDelete.id_cour}`,
+            `${Endpoint()}api/cours/${clientToDelete.id_cour}`,
             {
               method: "DELETE",
               headers: {

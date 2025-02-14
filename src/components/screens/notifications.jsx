@@ -37,6 +37,7 @@ import {
   getCurrentTime,
 } from "../../utils/helper";
 import TextArea from "antd/es/input/TextArea";
+import { Endpoint } from "../../utils/endpoint";
 
 const TableNotification = ({ darkmode }) => {
   const [data, setData] = useState([]);
@@ -123,7 +124,7 @@ const TableNotification = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://51.38.99.75:2001/api/Parentt/", {
+        const response = await fetch(Endpoint()+"api/Parentt/", {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
           },
@@ -165,7 +166,7 @@ const TableNotification = ({ darkmode }) => {
 
   const fetchClients = async () => {
     try {
-      const response = await fetch("http://51.38.99.75:2001/api/Parentt/");
+      const response = await fetch(Endpoint()+"api/Parentt/");
       const data = await response.json();
       setClients(data.data);
     } catch (error) {
@@ -175,7 +176,7 @@ const TableNotification = ({ darkmode }) => {
 
   const fetchAbonnements = async () => {
     try {
-      const response = await fetch("http://51.38.99.75:2001/api/abonnement/");
+      const response = await fetch(Endpoint()+"api/abonnement/");
       const data = await response.json();
       setAbonnements(data.data);
     } catch (error) {
@@ -188,21 +189,21 @@ const TableNotification = ({ darkmode }) => {
     fetchClients();
     fetchAbonnements();
     const adminData = JSON.parse(localStorage.getItem("data"));
-    const initialAdminId = adminData ? adminData[0].id_admin : ""; // Accessing the first element's id_admin
+    const initialAdminId = adminData ? adminData[0].id_employe : ""; // Accessing the first element's id_admin
     // ContractData.id_admin = initialAdminId;
   }, []);
 
   // Function to add a new contract
   const addContract = async () => {
     const staff = JSON.parse(localStorage.getItem("data"));
-    PaymentData.id_admin = staff[0].id_admin;
-    PaymentData.id_staff = staff[0].id_admin;
+    PaymentData.id_admin = staff[0].id_employe;
+    PaymentData.id_staff = staff[0].id_employe;
     PaymentData.cible = selectedValues.toString();
 
     const authToken = localStorage.getItem("jwtToken");
     try {
       const response = await fetch(
-        "http://51.38.99.75:2001/api/notifications/",
+        Endpoint()+"api/notifications/",
         {
           method: "POST",
           headers: {
@@ -226,18 +227,16 @@ const TableNotification = ({ darkmode }) => {
             );
           }
 
-          console.log(usersToNotify);
-
           for (const userId of usersToNotify) {
             const notificationData = {
               user_id: userId.toString(),
               title: PaymentData.sujet,
               body: PaymentData.contenu,
-              id_admin: PaymentData.id_admin,
+              id_admin: PaymentData.id_employe,
             };
 
             const pushResponse = await fetch(
-              "http://51.38.99.75:2001/api/send/notification/",
+              Endpoint()+"api/send/notification/",
               {
                 method: "POST",
                 headers: {
@@ -263,12 +262,12 @@ const TableNotification = ({ darkmode }) => {
 
           onCloseR();
         } else {
-          message.warning(res.msg);
+          message.warning("Erreur lors de l'ajout de la notification");
           console.log(res);
         }
       } else {
-        console.log(response);
-        message.error("Error adding");
+        // console.log(response);
+        message.error("Erreur lors de l'ajout de la notification");
       }
     } catch (error) {
       console.log(error);
@@ -299,7 +298,7 @@ const TableNotification = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://51.38.99.75:2001/api/contrat");
+        const response = await fetch(Endpoint()+"api/contrat");
         const jsonData = await response.json();
         setContartClient(jsonData.data);
       } catch (error) {
@@ -535,7 +534,7 @@ const TableNotification = ({ darkmode }) => {
       setLoading(true);
       try {
         const response = await fetch(
-          "http://51.38.99.75:2001/api/notifications/",
+          Endpoint()+"api/notifications/",
           {
             headers: {
               Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
@@ -583,7 +582,7 @@ const TableNotification = ({ darkmode }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://51.38.99.75:2001/api/staff/", {
+        const response = await fetch(Endpoint()+"api/staff/", {
           headers: {
             Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
           },
@@ -631,9 +630,8 @@ const TableNotification = ({ darkmode }) => {
       try {
         const promises = selectedRowKeys.map(async (key) => {
           const ContractData = data.find((client) => client.key === key);
-          console.log(ContractData);
           const response = await fetch(
-            `http://51.38.99.75:2001/api/notifications/${ContractData.id_notif}`,
+            `${Endpoint()}api/notifications/${ContractData.id_notif}`,
             {
               method: "DELETE",
               headers: {
@@ -708,7 +706,7 @@ const TableNotification = ({ darkmode }) => {
               JSON.parse(localStorage.getItem(`data`))[0].fonction ==
                 "secretaire")&&
               selectedRowKeys.length >= 1 ? ( */}
-              {selectedRowKeys.length === 1 ? (
+              {selectedRowKeys.length >= 1 ? (
                 <Popconfirm
                   title="Supprimer la notification"
                   description="Êtes-vous sûr de supprimer  notification ?"

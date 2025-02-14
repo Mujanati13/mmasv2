@@ -537,7 +537,6 @@ const TableReservation = ({darkmode}) => {
           "coach",
           "salle",
           "Jour",
-          "genre",
           "heure_debut",
           "heure_fin",
           "capacity",

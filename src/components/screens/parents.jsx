@@ -268,7 +268,7 @@ const TableParent = ({ darkmode }) => {
       values.image = imagePath;
 
       const response = await fetch(
-        `${Endpoint()}/api/Parentt//`,
+        `${Endpoint()}/api/Parentt/`,
         {
           method: "PUT",
           headers: {
